@@ -11313,150 +11313,151 @@ strong {
 }
 
 /* ============================================================
-   MOBILE FIX — STATUS LAYANAN & KARTU INSTALL APP
-   ============================================================ */
+   MOBILE FINAL FIX
+   SERVICE STATUS + PWA INSTALL CARD
+============================================================ */
 
 @media (max-width: 768px) {
 
-    /* --------------------------------------------------------
-       WRAPPER BAGIAN ATAS
-       -------------------------------------------------------- */
-    .service-status-card,
-    .install-app-card {
-        padding: 18px 16px;
-        border-radius: 18px;
-        min-height: 88px;
-    }
-
-    /* --------------------------------------------------------
+    /* ========================================================
        STATUS LAYANAN
-       -------------------------------------------------------- */
-    #customerServiceStatus,
-    .service-status-card {
-        padding: 18px 16px;
+    ======================================================== */
+
+    #customerServiceStatus {
+        min-height: 110px !important;
+
+        padding: 20px 22px !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+
+        border-radius: 20px !important;
     }
 
-    #customerServiceLabel,
-    .service-status-title,
-    .service-status-card .title {
-        font-size: 16px;
-        line-height: 1.35;
-        font-weight: 700;
+
+    #customerServiceStatus small {
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        letter-spacing: .08em !important;
+
+        margin-bottom: 7px !important;
     }
 
-    #customerServiceDescription,
-    .service-status-description,
-    .service-status-card .description {
-        font-size: 13px;
-        line-height: 1.5;
-        margin-top: 4px;
+
+    #customerServiceLabel {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+        font-weight: 800 !important;
     }
 
-    /* --------------------------------------------------------
-       KARTU INSTALL APP
-       -------------------------------------------------------- */
-    .install-app-card,
-    .pwa-install-card,
-    .app-install-card {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 18px 16px;
+
+    #customerServiceDescription {
+        margin-top: 6px !important;
+
+        font-size: 14px !important;
+        line-height: 1.45 !important;
     }
 
-    .install-app-card .app-icon,
-    .pwa-install-card .app-icon,
-    .app-install-card .app-icon {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        border-radius: 14px;
+
+    /* ========================================================
+       PWA INSTALL CARD
+    ======================================================== */
+
+    .pwa-install-card {
+        min-height: 110px !important;
+
+        padding: 17px 18px !important;
+
+        grid-template-columns:
+            58px
+            minmax(0, 1fr)
+            auto !important;
+
+        gap: 14px !important;
+
+        align-items: center !important;
+
+        border-radius: 20px !important;
     }
 
-    .install-app-card .app-title,
-    .pwa-install-card .app-title,
-    .app-install-card .app-title {
-        font-size: 16px;
-        font-weight: 700;
-        line-height: 1.3;
+
+    .pwa-install-icon {
+        width: 58px !important;
+        height: 58px !important;
+
+        border-radius: 17px !important;
     }
 
-    .install-app-card .app-description,
-    .pwa-install-card .app-description,
-    .app-install-card .app-description {
-        font-size: 13px;
-        line-height: 1.45;
-        margin-top: 4px;
+
+    .pwa-install-icon span {
+        font-size: 14px !important;
     }
 
-    .install-app-card .install-button,
-    .pwa-install-card .install-button,
-    .app-install-card .install-button,
-    #installButton {
-        min-height: 42px;
-        padding: 0 16px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 700;
-        white-space: nowrap;
+
+    .pwa-install-copy small {
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+
+        letter-spacing: .08em !important;
     }
+
+
+    .pwa-install-copy strong {
+        margin-top: 4px !important;
+
+        font-size: 17px !important;
+        line-height: 1.25 !important;
+    }
+
+
+    .pwa-install-copy p {
+        margin-top: 5px !important;
+
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+    }
+
+
+    .pwa-install-button {
+        min-width: 78px !important;
+        min-height: 46px !important;
+
+        padding: 0 15px !important;
+
+        border-radius: 13px !important;
+
+        font-size: 13px !important;
+        font-weight: 800 !important;
+    }
+
 }
 
-@media (max-width: 480px) {
+@media (max-width: 420px) {
 
-    #customerServiceStatus,
-    .service-status-card,
-    .install-app-card,
-    .pwa-install-card,
-    .app-install-card {
-        padding: 20px 18px;
-        border-radius: 20px;
+    .pwa-install-card {
+        grid-template-columns:
+            54px
+            minmax(0, 1fr) !important;
+
+        min-height: 140px !important;
     }
 
-    #customerServiceLabel,
-    .service-status-title,
-    .install-app-card .app-title,
-    .pwa-install-card .app-title,
-    .app-install-card .app-title {
-        font-size: 17px;
+
+    .pwa-install-icon {
+        width: 54px !important;
+        height: 54px !important;
     }
 
-    #customerServiceDescription,
-    .service-status-description,
-    .install-app-card .app-description,
-    .pwa-install-card .app-description,
-    .app-install-card .app-description {
-        font-size: 14px;
+
+    .pwa-install-button {
+        grid-column:
+            1 / -1 !important;
+
+        width: 100% !important;
+        min-height: 48px !important;
+
+        margin-top: 4px !important;
     }
 
-    .install-app-card .app-icon,
-    .pwa-install-card .app-icon,
-    .app-install-card .app-icon {
-        width: 48px;
-        height: 48px;
-    }
-
-    .install-app-card .install-button,
-    .pwa-install-card .install-button,
-    .app-install-card .install-button,
-    #installButton {
-        min-height: 44px;
-        padding: 0 18px;
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 768px) {
-    .install-app-card,
-    .pwa-install-card,
-    .app-install-card {
-        justify-content: space-between;
-    }
-
-    .install-app-card .app-content,
-    .pwa-install-card .app-content,
-    .app-install-card .app-content {
-        flex: 1;
-        min-width: 0;
-    }
 }
