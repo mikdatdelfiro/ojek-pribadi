@@ -29,7 +29,9 @@ const STATIC_ASSETS = [
 
     "/static/icons/icon-192.png",
 
-    "/static/icons/icon-512.png"
+    "/static/icons/icon-512.png",
+
+    "/static/icons/apple-touch-icon.png"
 
 ];
 
