@@ -1,18 +1,18 @@
 # ============================================================
 # OJEK PRIBADI
-# Clean Backend - Phase 10
-# Phase 7.5 + 8A + 8B + 8C + 8D + 9 + 10
+# Production Backend - Phase 14C
+# Neon PostgreSQL + Cloudinary + PWA
 # ============================================================
 
 from datetime import datetime, timedelta
 from functools import wraps
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, unquote
+from zoneinfo import ZoneInfo
 
 import math
 import os
 import re
 import secrets
-import sqlite3
 import threading
 import time
 
@@ -31,8 +31,12 @@ from flask import (
     send_from_directory,
 )
 
-from werkzeug.middleware.proxy_fix import (ProxyFix)
-from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+
+# ============================================================
+# PATHS + ENVIRONMENT
+# ============================================================
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(
@@ -40,39 +44,227 @@ BASE_DIR = os.path.dirname(
     )
 )
 
-DATA_DIR = os.path.abspath(
-    os.getenv(
-        "DATA_DIR",
-        os.path.join(
-            BASE_DIR,
-            "instance"
-        )
-    )
-)
-
-INSTANCE_DIR = DATA_DIR
-
 ENV_PATH = os.path.join(
     BASE_DIR,
     ".env"
 )
 
-DATABASE_PATH = os.path.join(
-    DATA_DIR,
-    "ojek.db"
+load_dotenv(
+    ENV_PATH
 )
 
-DRIVER_UPLOAD_DIR = os.path.abspath(
-    os.getenv(
-        "DRIVER_UPLOAD_DIR",
-        os.path.join(
-            BASE_DIR,
-            "static",
-            "uploads",
-            "driver"
+
+# Import konektor production setelah .env dimuat.
+import psycopg
+from psycopg.rows import dict_row
+
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    ""
+).strip()
+
+CLOUDINARY_URL = os.getenv(
+    "CLOUDINARY_URL",
+    ""
+).strip()
+
+CLOUDINARY_CLOUD_NAME = os.getenv(
+    "CLOUDINARY_CLOUD_NAME",
+    ""
+).strip()
+
+CLOUDINARY_API_KEY = os.getenv(
+    "CLOUDINARY_API_KEY",
+    ""
+).strip()
+
+CLOUDINARY_API_SECRET = os.getenv(
+    "CLOUDINARY_API_SECRET",
+    ""
+).strip()
+
+APP_ENV = os.getenv(
+    "APP_ENV",
+    "development"
+).strip().lower()
+
+APP_TIMEZONE = os.getenv(
+    "APP_TIMEZONE",
+    "Asia/Jakarta"
+).strip()
+
+try:
+    APP_TZ = ZoneInfo(
+        APP_TIMEZONE
+    )
+except Exception:
+    APP_TIMEZONE = "Asia/Jakarta"
+    APP_TZ = ZoneInfo(
+        APP_TIMEZONE
+    )
+
+
+# ============================================================
+# CLOUDINARY CONFIGURATION
+# ============================================================
+
+def _cloudinary_value_is_placeholder(value):
+
+    value = str(value or "").strip().lower()
+
+    placeholder_markers = (
+        "<your_api_key>",
+        "<your_api_secret>",
+        "<your_cloud_name>",
+        "your_api_key",
+        "your_api_secret",
+        "your_cloud_name",
+    )
+
+    return any(
+        marker in value
+        for marker in placeholder_markers
+    )
+
+
+def _valid_cloudinary_value(value):
+
+    value = str(value or "").strip()
+
+    return bool(
+        value
+        and not _cloudinary_value_is_placeholder(value)
+    )
+
+
+def configure_cloudinary():
+    """
+    Konfigurasi Cloudinary secara eksplisit.
+
+    Prioritas:
+    1. CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET
+    2. CLOUDINARY_URL
+
+    CLOUDINARY_URL diparse sendiri supaya konfigurasi tidak bergantung
+    pada kapan SDK Cloudinary membaca environment variable.
+    """
+
+    if all(
+        _valid_cloudinary_value(value)
+        for value in (
+            CLOUDINARY_CLOUD_NAME,
+            CLOUDINARY_API_KEY,
+            CLOUDINARY_API_SECRET,
+        )
+    ):
+
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET,
+            secure=True,
+        )
+
+        return "separate"
+
+
+    if _valid_cloudinary_value(CLOUDINARY_URL):
+
+        try:
+
+            parsed = urlparse(
+                CLOUDINARY_URL
+            )
+
+            if parsed.scheme != "cloudinary":
+                raise ValueError(
+                    "CLOUDINARY_URL harus diawali cloudinary://"
+                )
+
+            api_key = unquote(
+                parsed.username or ""
+            ).strip()
+
+            api_secret = unquote(
+                parsed.password or ""
+            ).strip()
+
+            cloud_name = unquote(
+                parsed.hostname or ""
+            ).strip()
+
+            if not all(
+                _valid_cloudinary_value(value)
+                for value in (
+                    cloud_name,
+                    api_key,
+                    api_secret,
+                )
+            ):
+                raise ValueError(
+                    "CLOUDINARY_URL belum berisi credential lengkap."
+                )
+
+            cloudinary.config(
+                cloud_name=cloud_name,
+                api_key=api_key,
+                api_secret=api_secret,
+                secure=True,
+            )
+
+            return "url"
+
+        except Exception as error:
+
+            print(
+                "[CONFIG] CLOUDINARY_URL tidak valid:",
+                type(error).__name__,
+                str(error),
+            )
+
+            return "invalid_url"
+
+
+    return "none"
+
+
+CLOUDINARY_CONFIG_SOURCE = (
+    configure_cloudinary()
+)
+
+_cloudinary_config = (
+    cloudinary.config()
+)
+
+CLOUDINARY_CONFIGURED = bool(
+    _valid_cloudinary_value(
+        getattr(
+            _cloudinary_config,
+            "cloud_name",
+            ""
+        )
+    )
+    and _valid_cloudinary_value(
+        getattr(
+            _cloudinary_config,
+            "api_key",
+            ""
+        )
+    )
+    and _valid_cloudinary_value(
+        getattr(
+            _cloudinary_config,
+            "api_secret",
+            ""
         )
     )
 )
+
 
 ALLOWED_DRIVER_PHOTO_EXTENSIONS = {
     "jpg",
@@ -80,15 +272,6 @@ ALLOWED_DRIVER_PHOTO_EXTENSIONS = {
     "png",
     "webp",
 }
-
-
-# ============================================================
-# ENVIRONMENT
-# ============================================================
-
-load_dotenv(
-    ENV_PATH
-)
 
 
 # ============================================================
@@ -179,9 +362,43 @@ app.wsgi_app = ProxyFix(
     x_host=1
 )
 
+
 # ============================================================
 # STARTUP DIAGNOSTICS
 # ============================================================
+
+print(
+    "[CONFIG] Environment:",
+    APP_ENV
+)
+
+print(
+    "[CONFIG] Timezone:",
+    APP_TIMEZONE
+)
+
+print(
+    "[CONFIG] Neon PostgreSQL:",
+    (
+        "OK"
+        if DATABASE_URL
+        else "BELUM DIATUR"
+    )
+)
+
+print(
+    "[CONFIG] Cloudinary:",
+    (
+        "OK"
+        if CLOUDINARY_CONFIGURED
+        else "BELUM DIATUR / KREDENSIAL TIDAK LENGKAP"
+    )
+)
+
+print(
+    "[CONFIG] Cloudinary source:",
+    CLOUDINARY_CONFIG_SOURCE
+)
 
 print(
     "[CONFIG] WhatsApp driver:",
@@ -393,7 +610,9 @@ SERVICE_SETTING_KEY = (
 
 def current_timestamp():
 
-    return datetime.now().strftime(
+    return datetime.now(
+        APP_TZ
+    ).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
@@ -544,36 +763,125 @@ def rupiah_filter(
 
 # ============================================================
 # DATABASE
+# NEON POSTGRESQL
 # ============================================================
+
+def _convert_qmark_sql(
+    query
+):
+    """
+    Mempertahankan query lama aplikasi yang memakai
+    placeholder SQLite "?" dan mengubahnya menjadi
+    placeholder Psycopg "%s".
+    """
+
+    return str(
+        query
+    ).replace(
+        "?",
+        "%s"
+    )
+
+
+class DatabaseConnection:
+    """
+    Compatibility wrapper agar sebagian besar kode lama
+    connection.execute(...).fetchone()/fetchall() tetap bekerja.
+    """
+
+    def __init__(
+        self,
+        connection
+    ):
+
+        self._connection = (
+            connection
+        )
+
+
+    def execute(
+        self,
+        query,
+        parameters=None
+    ):
+
+        sql = (
+            _convert_qmark_sql(
+                query
+            )
+        )
+
+        if parameters is None:
+
+            return (
+                self._connection.execute(
+                    sql
+                )
+            )
+
+        return (
+            self._connection.execute(
+                sql,
+                parameters
+            )
+        )
+
+
+    def commit(
+        self
+    ):
+
+        return (
+            self._connection.commit()
+        )
+
+
+    def rollback(
+        self
+    ):
+
+        return (
+            self._connection.rollback()
+        )
+
+
+    def close(
+        self
+    ):
+
+        return (
+            self._connection.close()
+        )
+
 
 def get_db():
 
-    connection = sqlite3.connect(
-        DATABASE_PATH
+    if not DATABASE_URL:
+
+        raise RuntimeError(
+            "DATABASE_URL Neon belum dikonfigurasi."
+        )
+
+
+    raw_connection = (
+        psycopg.connect(
+            DATABASE_URL,
+
+            row_factory=
+                dict_row,
+
+            connect_timeout=
+                15,
+        )
     )
 
 
-    connection.row_factory = (
-        sqlite3.Row
+    return DatabaseConnection(
+        raw_connection
     )
-
-
-    return connection
 
 
 def init_database():
-
-    os.makedirs(
-        DATA_DIR,
-        exist_ok=True
-    )
-
-
-    os.makedirs(
-        DRIVER_UPLOAD_DIR,
-        exist_ok=True
-    )
-
 
     connection = get_db()
 
@@ -588,7 +896,7 @@ def init_database():
             """
             CREATE TABLE IF NOT EXISTS orders (
 
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id BIGSERIAL PRIMARY KEY,
 
                 order_code TEXT UNIQUE NOT NULL,
 
@@ -602,24 +910,25 @@ def init_database():
 
                 note TEXT,
 
-                distance_km REAL NOT NULL,
+                distance_km DOUBLE PRECISION NOT NULL,
 
                 duration_minutes INTEGER NOT NULL,
 
                 fare INTEGER NOT NULL,
 
-                status TEXT NOT NULL DEFAULT 'MENUNGGU',
+                status TEXT NOT NULL
+                    DEFAULT 'MENUNGGU',
 
                 created_at TEXT NOT NULL,
 
-                pickup_lat REAL,
+                pickup_lat DOUBLE PRECISION,
 
-                pickup_lon REAL,
+                pickup_lon DOUBLE PRECISION,
 
-                destination_lat REAL,
+                destination_lat DOUBLE PRECISION,
 
-                destination_lon REAL
-                
+                destination_lon DOUBLE PRECISION,
+
                 accepted_at TEXT,
 
                 to_pickup_at TEXT,
@@ -630,6 +939,83 @@ def init_database():
 
                 rejected_at TEXT
             )
+            """
+        )
+
+
+        # ----------------------------------------------------
+        # SAFE COLUMN MIGRATIONS
+        # ----------------------------------------------------
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            pickup_lat DOUBLE PRECISION
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            pickup_lon DOUBLE PRECISION
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            destination_lat DOUBLE PRECISION
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            destination_lon DOUBLE PRECISION
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            accepted_at TEXT
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            to_pickup_at TEXT
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            picked_up_at TEXT
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            completed_at TEXT
+            """
+        )
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            rejected_at TEXT
             """
         )
 
@@ -672,81 +1058,30 @@ def init_database():
 
                 vehicle_plate TEXT NOT NULL,
 
-                photo_filename TEXT,
+                photo_url TEXT,
+
+                photo_public_id TEXT,
 
                 updated_at TEXT NOT NULL
             )
             """
         )
 
+        connection.execute(
+            """
+            ALTER TABLE driver_profile
+            ADD COLUMN IF NOT EXISTS
+            photo_url TEXT
+            """
+        )
 
-        # ----------------------------------------------------
-        # MIGRATION OLD ORDERS
-        # ----------------------------------------------------
-
-        existing_columns = {
-
-            row["name"]
-
-            for row in connection.execute(
-                "PRAGMA table_info(orders)"
-            ).fetchall()
-        }
-
-
-        required_columns = {
-
-            # GPS
-            "pickup_lat":
-                "REAL",
-
-            "pickup_lon":
-                "REAL",
-
-            "destination_lat":
-                "REAL",
-
-            "destination_lon":
-                "REAL",
-
-
-            # PHASE 11.5
-            # TRIP TIMESTAMPS
-            "accepted_at":
-                "TEXT",
-
-            "to_pickup_at":
-                "TEXT",
-
-            "picked_up_at":
-                "TEXT",
-
-            "completed_at":
-                "TEXT",
-
-            "rejected_at":
-                "TEXT",
-        }
-
-        for (
-            column_name,
-            column_type
-        ) in required_columns.items():
-
-            if (
-                column_name
-                not in existing_columns
-            ):
-
-                connection.execute(
-                    f"""
-                    ALTER TABLE orders
-
-                    ADD COLUMN
-                    {column_name}
-                    {column_type}
-                    """
-                )
+        connection.execute(
+            """
+            ALTER TABLE driver_profile
+            ADD COLUMN IF NOT EXISTS
+            photo_public_id TEXT
+            """
+        )
 
 
         # ----------------------------------------------------
@@ -755,7 +1090,7 @@ def init_database():
 
         connection.execute(
             """
-            INSERT OR IGNORE INTO app_settings (
+            INSERT INTO app_settings (
 
                 setting_key,
 
@@ -765,6 +1100,9 @@ def init_database():
             )
 
             VALUES (?, ?, ?)
+
+            ON CONFLICT (setting_key)
+            DO NOTHING
             """,
             (
                 SERVICE_SETTING_KEY,
@@ -782,7 +1120,7 @@ def init_database():
 
         connection.execute(
             """
-            INSERT OR IGNORE INTO driver_profile (
+            INSERT INTO driver_profile (
 
                 id,
 
@@ -796,7 +1134,9 @@ def init_database():
 
                 vehicle_plate,
 
-                photo_filename,
+                photo_url,
+
+                photo_public_id,
 
                 updated_at
             )
@@ -809,8 +1149,12 @@ def init_database():
                 ?,
                 ?,
                 ?,
+                ?,
                 ?
             )
+
+            ON CONFLICT (id)
+            DO NOTHING
             """,
             (
                 "Pengemudi",
@@ -822,6 +1166,8 @@ def init_database():
                 "",
 
                 "-",
+
+                None,
 
                 None,
 
@@ -843,7 +1189,6 @@ def init_database():
             """
         )
 
-
         connection.execute(
             """
             CREATE INDEX IF NOT EXISTS
@@ -853,8 +1198,24 @@ def init_database():
             """
         )
 
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_orders_completed_at
+
+            ON orders(completed_at)
+            """
+        )
+
 
         connection.commit()
+
+
+    except Exception:
+
+        connection.rollback()
+
+        raise
 
 
     finally:
@@ -980,6 +1341,7 @@ def set_service_open(
 
 # ============================================================
 # DRIVER PROFILE HELPERS
+# CLOUDINARY
 # ============================================================
 
 def get_driver_profile(
@@ -1050,61 +1412,221 @@ def allowed_driver_photo(
 
 
 def driver_photo_url(
-    filename
+    value
 ):
 
-    if not filename:
+    if not value:
 
         return None
 
 
-    safe_filename = (
-        os.path.basename(
-            filename
+    return str(
+        value
+    ).strip() or None
+
+
+def cloudinary_upload_error_message(error):
+
+    raw_message = str(
+        error or ""
+    ).strip()
+
+    message = raw_message.lower()
+
+    if (
+        "invalid signature" in message
+        or "unknown api key" in message
+        or "invalid api key" in message
+        or "authentication" in message
+        or "authorization" in message
+        or "unauthorized" in message
+        or "401" in message
+        or "403" in message
+    ):
+
+        return (
+            "Kredensial Cloudinary ditolak. "
+            "Periksa Cloud Name, API Key, dan API Secret."
+        )
+
+    if (
+        "cloud name" in message
+        or "cloud_name" in message
+        or "must supply cloud" in message
+    ):
+
+        return (
+            "Cloud Name Cloudinary tidak valid atau belum terbaca."
+        )
+
+    if (
+        "api key" in message
+        or "api_key" in message
+        or "api secret" in message
+        or "api_secret" in message
+    ):
+
+        return (
+            "API Key atau API Secret Cloudinary belum benar."
+        )
+
+    if (
+        "timed out" in message
+        or "timeout" in message
+        or "connection" in message
+        or "network" in message
+        or "name resolution" in message
+    ):
+
+        return (
+            "Cloudinary tidak dapat dihubungi. "
+            "Periksa koneksi internet lalu coba lagi."
+        )
+
+    return (
+        "Cloudinary mengembalikan error: "
+        + (
+            raw_message[:220]
+            if raw_message
+            else type(error).__name__
         )
     )
 
 
-    return url_for(
-        "driver_photo_file",
-        filename=
-            safe_filename
-    )
-
-# ============================================================
-# DRIVER PHOTO
-# PERSISTENT STORAGE
-# ============================================================
-
-@app.route(
-    "/uploads/driver/<string:filename>"
-)
-def driver_photo_file(
-    filename
+def upload_driver_photo(
+    photo
 ):
 
-    safe_filename = (
-        os.path.basename(
-            filename
+    if not CLOUDINARY_CONFIGURED:
+
+        raise RuntimeError(
+            "Cloudinary belum dikonfigurasi."
+        )
+
+
+    if (
+        not photo
+        or not photo.filename
+    ):
+
+        raise ValueError(
+            "Foto tidak tersedia."
+        )
+
+
+    if not allowed_driver_photo(
+        photo.filename
+    ):
+
+        raise ValueError(
+            "Format foto harus JPG, JPEG, PNG, atau WEBP."
+        )
+
+
+    # Pastikan stream mulai dari awal.
+    try:
+
+        photo.stream.seek(
+            0
+        )
+
+    except Exception:
+
+        pass
+
+
+    upload_result = (
+        cloudinary.uploader.upload(
+            photo.stream,
+
+            folder=
+                "ojek-pribadi/driver",
+
+            public_id=(
+                "driver_"
+                + secrets.token_hex(
+                    12
+                )
+            ),
+
+            resource_type=
+                "image",
+
+            overwrite=
+                False,
+
+            timeout=
+                30,
+        )
+    )
+
+
+    secure_url = (
+        upload_result.get(
+            "secure_url"
+        )
+    )
+
+    public_id = (
+        upload_result.get(
+            "public_id"
         )
     )
 
 
     if (
-        safe_filename
-        != filename
+        not secure_url
+        or not public_id
     ):
 
-        abort(
-            404
+        raise RuntimeError(
+            "Cloudinary tidak mengembalikan URL foto."
         )
 
 
-    return send_from_directory(
-        DRIVER_UPLOAD_DIR,
-        safe_filename,
-        max_age=3600
-    )
+    return {
+        "photo_url":
+            secure_url,
+
+        "photo_public_id":
+            public_id,
+    }
+
+
+def delete_cloudinary_photo(
+    public_id
+):
+
+    if (
+        not CLOUDINARY_CONFIGURED
+        or not public_id
+    ):
+
+        return
+
+
+    try:
+
+        cloudinary.uploader.destroy(
+            public_id,
+
+            resource_type=
+                "image",
+
+            invalidate=
+                True,
+        )
+
+
+    except Exception as error:
+
+        # Gagal menghapus foto lama tidak boleh
+        # menggagalkan penyimpanan profil baru.
+        print(
+            "[CLOUDINARY DELETE ERROR]",
+            repr(error)
+        )
+
 
 def driver_profile_payload(
     profile
@@ -1144,9 +1666,9 @@ def driver_profile_payload(
 
         "photo_url":
             driver_photo_url(
-                profile[
-                    "photo_filename"
-                ]
+                profile.get(
+                    "photo_url"
+                )
             ),
     }
 
@@ -3555,6 +4077,7 @@ def driver_logout():
 
 # ============================================================
 # DRIVER PROFILE
+# NEON + CLOUDINARY
 # ============================================================
 
 @app.route(
@@ -3680,6 +4203,28 @@ def driver_profile():
             )
 
 
+        photo = (
+            request.files.get(
+                "driver_photo"
+            )
+        )
+
+
+        if (
+            not error
+            and photo
+            and photo.filename
+            and not allowed_driver_photo(
+                photo.filename
+            )
+        ):
+
+            error = (
+                "Format foto harus "
+                "JPG, JPEG, PNG, atau WEBP."
+            )
+
+
         # ----------------------------------------------------
         # SAVE
         # ----------------------------------------------------
@@ -3688,6 +4233,14 @@ def driver_profile():
 
             connection = (
                 get_db()
+            )
+
+            uploaded_public_id = (
+                None
+            )
+
+            old_public_id = (
+                None
             )
 
 
@@ -3700,135 +4253,75 @@ def driver_profile():
                 )
 
 
-                photo_filename = (
-                    old_profile[
-                        "photo_filename"
-                    ]
+                photo_url = (
+                    old_profile.get(
+                        "photo_url"
+                    )
                     if old_profile
                     else None
                 )
 
 
-                photo = (
-                    request.files.get(
-                        "driver_photo"
+                photo_public_id = (
+                    old_profile.get(
+                        "photo_public_id"
                     )
+                    if old_profile
+                    else None
+                )
+
+
+                old_public_id = (
+                    photo_public_id
                 )
 
 
                 if (
                     photo
-                    and
-                    photo.filename
+                    and photo.filename
                 ):
 
-                    if not allowed_driver_photo(
-                        photo.filename
-                    ):
+                    try:
+
+                        uploaded = (
+                            upload_driver_photo(
+                                photo
+                            )
+                        )
+
+
+                        photo_url = (
+                            uploaded[
+                                "photo_url"
+                            ]
+                        )
+
+
+                        photo_public_id = (
+                            uploaded[
+                                "photo_public_id"
+                            ]
+                        )
+
+
+                        uploaded_public_id = (
+                            photo_public_id
+                        )
+
+
+                    except Exception as upload_error:
+
+                        print(
+                            "[CLOUDINARY UPLOAD ERROR]",
+                            repr(upload_error)
+                        )
+
 
                         error = (
-                            "Format foto harus "
-                            "JPG, JPEG, PNG, "
-                            "atau WEBP."
-                        )
-
-
-                    else:
-
-                        safe_name = (
-                            secure_filename(
-                                photo.filename
+                            cloudinary_upload_error_message(
+                                upload_error
                             )
                         )
-
-
-                        if (
-                            "."
-                            not in safe_name
-                        ):
-
-                            error = (
-                                "Nama file foto "
-                                "tidak valid."
-                            )
-
-
-                        else:
-
-                            extension = (
-                                safe_name
-                                .rsplit(
-                                    ".",
-                                    1
-                                )[1]
-                                .lower()
-                            )
-
-
-                            new_filename = (
-                                "driver_"
-                                + secrets.token_hex(
-                                    12
-                                )
-                                + "."
-                                + extension
-                            )
-
-
-                            new_path = (
-                                os.path.join(
-                                    DRIVER_UPLOAD_DIR,
-                                    new_filename
-                                )
-                            )
-
-
-                            photo.save(
-                                new_path
-                            )
-
-
-                            if (
-                                old_profile
-                                and
-                                old_profile[
-                                    "photo_filename"
-                                ]
-                            ):
-
-                                old_path = (
-                                    os.path.join(
-                                        DRIVER_UPLOAD_DIR,
-
-                                        os.path.basename(
-                                            old_profile[
-                                                "photo_filename"
-                                            ]
-                                        )
-                                    )
-                                )
-
-
-                                if (
-                                    os.path.isfile(
-                                        old_path
-                                    )
-                                ):
-
-                                    try:
-
-                                        os.remove(
-                                            old_path
-                                        )
-
-                                    except OSError:
-
-                                        pass
-
-
-                            photo_filename = (
-                                new_filename
-                            )
 
 
                 if not error:
@@ -3848,7 +4341,9 @@ def driver_profile():
 
                             vehicle_plate = ?,
 
-                            photo_filename = ?,
+                            photo_url = ?,
+
+                            photo_public_id = ?,
 
                             updated_at = ?
 
@@ -3865,7 +4360,9 @@ def driver_profile():
 
                             vehicle_plate,
 
-                            photo_filename,
+                            photo_url,
+
+                            photo_public_id,
 
                             current_timestamp(),
                         )
@@ -3875,9 +4372,37 @@ def driver_profile():
                     connection.commit()
 
 
+            except Exception:
+
+                connection.rollback()
+
+
+                if uploaded_public_id:
+
+                    delete_cloudinary_photo(
+                        uploaded_public_id
+                    )
+
+
+                raise
+
+
             finally:
 
                 connection.close()
+
+
+            if (
+                not error
+                and uploaded_public_id
+                and old_public_id
+                and old_public_id
+                    != uploaded_public_id
+            ):
+
+                delete_cloudinary_photo(
+                    old_public_id
+                )
 
 
         if not error:
@@ -3903,9 +4428,9 @@ def driver_profile():
 
         photo_url=(
             driver_photo_url(
-                profile[
-                    "photo_filename"
-                ]
+                profile.get(
+                    "photo_url"
+                )
             )
             if profile
             else None
@@ -4000,7 +4525,7 @@ def driver_dashboard():
 
 
         today = (
-            datetime.now()
+            datetime.now(APP_TZ)
             .strftime(
                 "%Y-%m-%d"
             )
@@ -4227,7 +4752,7 @@ def driver_history():
     ):
 
         today = (
-            datetime.now()
+            datetime.now(APP_TZ)
             .strftime(
                 "%Y-%m-%d"
             )
@@ -5084,9 +5609,9 @@ def file_too_large(
 
             photo_url=(
                 driver_photo_url(
-                    profile[
-                        "photo_filename"
-                    ]
+                    profile.get(
+                        "photo_url"
+                    )
                 )
                 if profile
                 else None
@@ -5106,6 +5631,152 @@ def file_too_large(
         "File terlalu besar.",
         413
     )
+
+# ============================================================
+# CLOUDINARY HEALTH CHECK
+# DRIVER ONLY
+# ============================================================
+
+@app.route(
+    "/api/driver/cloudinary-health",
+    methods=["GET"]
+)
+@driver_api_required
+def cloudinary_health():
+    """
+    Tes jalur upload yang benar-benar digunakan aplikasi.
+
+    Kita tidak lagi memakai Admin API ping sebagai tes utama.
+    Endpoint ini mengunggah gambar 1x1 yang sangat kecil lalu
+    menghapusnya kembali. Dengan demikian yang diuji sama dengan
+    fitur upload foto profil driver.
+    """
+
+    config = cloudinary.config()
+
+    safe_config = {
+        "config_source": CLOUDINARY_CONFIG_SOURCE,
+        "cloud_name": getattr(
+            config,
+            "cloud_name",
+            None
+        ),
+        "api_key_present": bool(
+            getattr(
+                config,
+                "api_key",
+                None
+            )
+        ),
+        "api_secret_present": bool(
+            getattr(
+                config,
+                "api_secret",
+                None
+            )
+        ),
+    }
+
+    if not CLOUDINARY_CONFIGURED:
+
+        return jsonify(
+            {
+                "success": False,
+                "status": "not_configured",
+                "message": (
+                    "Konfigurasi Cloudinary belum lengkap."
+                ),
+                "config": safe_config,
+            }
+        ), 503
+
+
+    # GIF transparan 1x1.
+    health_asset = (
+        "data:image/gif;base64,"
+        "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+    )
+
+    public_id = (
+        "health_"
+        + secrets.token_hex(8)
+    )
+
+    uploaded_public_id = None
+
+    try:
+
+        result = cloudinary.uploader.upload(
+            health_asset,
+            folder="ojek-pribadi/health",
+            public_id=public_id,
+            resource_type="image",
+            overwrite=True,
+            timeout=30,
+        )
+
+        uploaded_public_id = result.get(
+            "public_id"
+        )
+
+        secure_url = result.get(
+            "secure_url"
+        )
+
+        if not uploaded_public_id or not secure_url:
+            raise RuntimeError(
+                "Cloudinary tidak mengembalikan public_id/secure_url."
+            )
+
+        return jsonify(
+            {
+                "success": True,
+                "status": "ok",
+                "message": (
+                    "Cloudinary upload berhasil dan credential valid."
+                ),
+                "config": safe_config,
+            }
+        ), 200
+
+    except Exception as error:
+
+        print(
+            "[CLOUDINARY HEALTH ERROR]",
+            type(error).__name__,
+            repr(error)
+        )
+
+        return jsonify(
+            {
+                "success": False,
+                "status": "error",
+                "error_type": type(error).__name__,
+                "message": (
+                    cloudinary_upload_error_message(
+                        error
+                    )
+                ),
+                "config": safe_config,
+            }
+        ), 503
+
+    finally:
+
+        if uploaded_public_id:
+
+            try:
+                cloudinary.uploader.destroy(
+                    uploaded_public_id,
+                    resource_type="image",
+                    invalidate=False,
+                )
+            except Exception as cleanup_error:
+                print(
+                    "[CLOUDINARY HEALTH CLEANUP ERROR]",
+                    repr(cleanup_error)
+                )
+
 
 # ============================================================
 # PRODUCTION HEALTH CHECK
@@ -5155,6 +5826,53 @@ def healthz():
         if connection:
 
             connection.close()
+
+# ============================================================
+# BOOT DIAGNOSTICS
+# ============================================================
+
+_registered_routes = {
+    rule.rule
+    for rule in app.url_map.iter_rules()
+}
+
+print(
+    "[BOOT] File aktif:",
+    os.path.abspath(
+        __file__
+    )
+)
+
+print(
+    "[BOOT] /healthz:",
+    (
+        "OK"
+        if "/healthz"
+        in _registered_routes
+        else "TIDAK ADA"
+    )
+)
+
+print(
+    "[BOOT] /manifest.webmanifest:",
+    (
+        "OK"
+        if "/manifest.webmanifest"
+        in _registered_routes
+        else "TIDAK ADA"
+    )
+)
+
+print(
+    "[BOOT] /service-worker.js:",
+    (
+        "OK"
+        if "/service-worker.js"
+        in _registered_routes
+        else "TIDAK ADA"
+    )
+)
+
 
 # ============================================================
 # INITIALIZE DATABASE
