@@ -1,0 +1,1000 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Ojek Control
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="driver-page">
+
+
+    <!-- PREMIUM BACKGROUND -->
+
+    <div class="driver-background">
+
+        <div class="driver-glow driver-glow-one"></div>
+
+        <div class="driver-glow driver-glow-two"></div>
+
+    </div>
+
+
+    <!-- ==========================================
+         HEADER
+    =========================================== -->
+
+    <header class="driver-header">
+
+        <div>
+
+            <span class="driver-eyebrow">
+                DRIVER CONTROL
+            </span>
+
+            <h1>
+                Ojek Control
+            </h1>
+
+        </div>
+
+        <a
+                href="{{ url_for('driver_profile') }}"
+                class="driver-profile-link"
+            >
+                <span>
+                    Profil
+                </span>
+
+                <span>
+                    →
+                </span>
+
+                <a
+                    href="{{ url_for('driver_history') }}"
+                    class="driver-history-link"
+                >
+
+                    <span>
+                        Riwayat
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </a>
+
+            </a>
+
+        <div class="driver-header-actions">
+
+
+    <div class="driver-online">
+
+        <span></span>
+
+        AKTIF
+
+    </div>
+
+
+    <form
+        method="POST"
+        action="{{ url_for('driver_logout') }}"
+    >
+
+        <button
+            type="submit"
+            class="driver-logout-button"
+            aria-label="Keluar"
+        >
+            ↗
+        </button>
+
+    </form>
+
+</div>
+
+    </header>
+
+
+    <!-- ==========================================
+         INTRO
+    =========================================== -->
+
+    <section class="driver-intro">
+
+        <p>
+            Selamat datang.
+        </p>
+
+        <h2>
+            Siap untuk
+            <span>perjalanan berikutnya?</span>
+        </h2>
+
+    </section>
+
+    <!-- =====================================
+     SERVICE CONTROL
+====================================== -->
+
+<section
+    class="driver-service-control
+    {% if service_open %}
+        is-open
+    {% else %}
+        is-closed
+    {% endif %}"
+    id="serviceControl"
+    data-service-open="{{
+        'true'
+        if service_open
+        else 'false'
+    }}"
+>
+
+    <div class="service-control-top">
+
+        <div class="service-control-status">
+
+            <span
+                class="service-status-dot"
+                id="serviceStatusDot"
+            ></span>
+
+
+            <div>
+
+                <small>
+                    STATUS LAYANAN
+                </small>
+
+                <strong
+                    id="serviceStatusLabel"
+                >
+                    {% if service_open %}
+                        MENERIMA PESANAN
+                    {% else %}
+                        SEDANG TIDAK MELAYANI
+                    {% endif %}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <button
+            type="button"
+            class="service-toggle"
+            id="serviceToggleButton"
+            aria-pressed="{{
+                'true'
+                if service_open
+                else 'false'
+            }}"
+        >
+
+            <span
+                class="service-toggle-track"
+            >
+
+                <span
+                    class="service-toggle-knob"
+                ></span>
+
+            </span>
+
+        </button>
+
+    </div>
+
+
+    <p
+        class="service-control-description"
+        id="serviceStatusDescription"
+    >
+
+        {% if service_open %}
+
+            Pelanggan dapat membuat
+            pesanan baru.
+
+        {% else %}
+
+            Pesanan baru sedang
+            dinonaktifkan.
+
+        {% endif %}
+
+    </p>
+
+
+    <div
+        class="service-control-message"
+        id="serviceControlMessage"
+        aria-live="polite"
+    ></div>
+
+</section>
+
+<!-- =====================================
+     PHASE 12
+     DRIVER NOTIFICATION CONTROL
+====================================== -->
+
+<section
+    class="driver-notification-control"
+    id="driverNotificationControl"
+    data-latest-order-id="{{ latest_order_id or 0 }}"
+>
+
+    <div class="driver-notification-info">
+
+        <span class="driver-notification-icon">
+            🔔
+        </span>
+
+
+        <div>
+
+            <small>
+                NOTIFIKASI
+            </small>
+
+            <strong>
+                Pesanan Baru
+            </strong>
+
+            <p
+                id="driverNotificationStatus"
+            >
+                Aktifkan agar pesanan baru
+                lebih mudah diketahui.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="driver-notification-actions">
+
+        <span
+            class="driver-notification-count"
+            id="driverNotificationCount"
+            hidden
+        >
+            0
+        </span>
+
+
+        <button
+            type="button"
+            class="driver-notification-button"
+            id="enableDriverNotifications"
+        >
+            Aktifkan
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================
+     NEW ORDER TOAST
+====================================== -->
+
+<div
+    class="driver-order-notification"
+    id="driverOrderNotification"
+    hidden
+    aria-live="assertive"
+>
+
+    <div class="driver-order-notification-head">
+
+        <span>
+            PESANAN BARU
+        </span>
+
+        <span class="driver-order-notification-pulse"></span>
+
+    </div>
+
+
+    <strong
+        id="driverOrderNotificationTitle"
+    >
+        Pesanan baru masuk
+    </strong>
+
+
+    <p
+        id="driverOrderNotificationMessage"
+    >
+        -
+    </p>
+
+
+    <a
+        href="{{ url_for('driver_dashboard') }}"
+        id="driverOrderNotificationOpen"
+    >
+        Lihat Pesanan
+
+        <span>
+            →
+        </span>
+    </a>
+
+</div>
+
+    <!-- ==========================================
+         STATS
+    =========================================== -->
+
+    <section class="driver-stats">
+
+
+        <article class="driver-stat">
+
+            <span class="stat-name">
+                Menunggu
+            </span>
+
+            <strong>
+                {{ waiting_count }}
+            </strong>
+
+            <small>
+                Pesanan baru
+            </small>
+
+        </article>
+
+
+        <article class="driver-stat">
+
+            <span class="stat-name">
+                Aktif
+            </span>
+
+            <strong>
+                {{ active_count }}
+            </strong>
+
+            <small>
+                Perjalanan
+            </small>
+
+        </article>
+
+
+        <article class="driver-stat">
+
+            <span class="stat-name">
+                Selesai
+            </span>
+
+            <strong>
+                {{ completed_today }}
+            </strong>
+
+            <small>
+                Hari ini
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- ==========================================
+         INCOME
+    =========================================== -->
+
+    <section class="driver-income">
+
+        <div>
+
+            <span>
+                Pendapatan hari ini
+            </span>
+
+            <strong>
+                Rp{{ "{:,.0f}".format(income_today).replace(",", ".") }}
+            </strong>
+
+        </div>
+
+
+        <div class="income-icon">
+            ↗
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         ORDERS
+    =========================================== -->
+
+    <section class="driver-orders">
+
+
+        <div class="driver-section-heading">
+
+            <div>
+
+                <span>
+                    PERJALANAN
+                </span>
+
+                <h2>
+                    Pesanan Anda
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="refresh-button"
+                onclick="window.location.reload()"
+            >
+                ↻
+            </button>
+
+        </div>
+
+
+        {% if orders %}
+
+
+            <div class="driver-order-list">
+
+
+                {% for order in orders %}
+
+
+                    <article
+                        class="driver-order-card"
+                        data-order-id="{{ order.id }}"
+                    >
+
+
+                        <!-- CARD TOP -->
+
+                        <div class="order-card-top">
+
+                            <div>
+
+                                <span class="order-card-label">
+
+                                    {% if order.status == "MENUNGGU" %}
+
+                                        PESANAN BARU
+
+                                    {% else %}
+
+                                        PERJALANAN AKTIF
+
+                                    {% endif %}
+
+                                </span>
+
+
+                                <strong class="driver-order-code">
+                                    {{ order.order_code }}
+                                </strong>
+
+                            </div>
+
+
+                            <span
+                                class="
+                                    driver-status
+                                    status-{{ order.status|lower }}
+                                "
+                            >
+
+                                {% if order.status == "MENUNGGU" %}
+
+                                    Menunggu
+
+                                {% elif order.status == "DITERIMA" %}
+
+                                    Diterima
+
+                                {% elif order.status == "MENUJU_JEMPUT" %}
+
+                                    Menuju jemput
+
+                                {% elif order.status == "DIJEMPUT" %}
+
+                                    Perjalanan
+
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- CUSTOMER -->
+
+                        <div class="driver-customer">
+
+                            <div class="customer-avatar">
+
+                                {{ order.customer_name[0]|upper }}
+
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    {{ order.customer_name }}
+                                </strong>
+
+                                <span>
+                                    {{ order.whatsapp }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ROUTE -->
+
+                        <div class="driver-route">
+
+
+                            <div class="driver-route-item">
+
+                                <span class="route-dot pickup"></span>
+
+                                <div>
+
+                                    <small>
+                                        JEMPUT
+                                    </small>
+
+                                    <strong>
+                                        {{ order.pickup }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="driver-route-divider"></div>
+
+
+                            <div class="driver-route-item">
+
+                                <span class="route-dot destination"></span>
+
+                                <div>
+
+                                    <small>
+                                        TUJUAN
+                                    </small>
+
+                                    <strong>
+                                        {{ order.destination }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if order.note %}
+
+                        <div class="driver-note">
+
+                            <span>
+                                Catatan
+                            </span>
+
+                            <p>
+                                {{ order.note }}
+                            </p>
+
+                        </div>
+
+                        {% endif %}
+
+
+                        <!-- META -->
+
+                        <div class="driver-order-meta">
+
+
+                            <div>
+
+                                <span>
+                                    Jarak
+                                </span>
+
+                                <strong>
+                                    {{ order.distance_km }} km
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Estimasi
+                                </span>
+
+                                <strong>
+                                    {{ order.duration_minutes }} menit
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Tarif
+                                </span>
+
+                                <strong class="fare">
+                                    Rp{{ "{:,.0f}".format(order.fare).replace(",", ".") }}
+                                </strong>
+
+                            </div>
+
+<!-- =================================
+     CUSTOMER CONTACT
+================================== -->
+
+{% set wa_link = whatsapp_link(
+    order.whatsapp,
+    order.customer_name,
+    order.order_code,
+    order.status
+) %}
+
+
+{% if wa_link %}
+
+<div class="driver-contact">
+
+    <a
+        href="{{ wa_link }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="whatsapp-button"
+    >
+
+        <span class="whatsapp-icon">
+            WA
+        </span>
+
+
+        <span class="whatsapp-content">
+
+            <small>
+                HUBUNGI PENUMPANG
+            </small>
+
+            <strong>
+                Chat melalui WhatsApp
+            </strong>
+
+        </span>
+
+
+        <span class="whatsapp-arrow">
+            ↗
+        </span>
+
+    </a>
+
+</div>
+
+{% endif %}
+
+<!-- =================================
+     NAVIGATION
+================================== -->
+
+<div class="driver-navigation">
+
+
+    {% if order.status in [
+        "MENUNGGU",
+        "DITERIMA",
+        "MENUJU_JEMPUT"
+    ] %}
+
+
+        {% if (
+            order.pickup_lat
+            is not none
+            and
+            order.pickup_lon
+            is not none
+        ) %}
+
+        <a
+            href="https://www.google.com/maps/dir/?api=1&destination={{ order.pickup_lat }},{{ order.pickup_lon }}&travelmode=driving"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="navigation-button pickup-navigation"
+        >
+
+            <span class="navigation-icon">
+                📍
+            </span>
+
+
+            <span>
+
+                <small>
+                    NAVIGASI
+                </small>
+
+                <strong>
+                    Buka rute ke penumpang
+                </strong>
+
+            </span>
+
+
+            <span class="navigation-arrow">
+                ↗
+            </span>
+
+        </a>
+
+        {% endif %}
+
+
+    {% elif order.status == "DIJEMPUT" %}
+
+
+        {% if (
+            order.destination_lat
+            is not none
+            and
+            order.destination_lon
+            is not none
+        ) %}
+
+        <a
+            href="https://www.google.com/maps/dir/?api=1&destination={{ order.destination_lat }},{{ order.destination_lon }}&travelmode=driving"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="navigation-button destination-navigation"
+        >
+
+            <span class="navigation-icon">
+                🏁
+            </span>
+
+
+            <span>
+
+                <small>
+                    NAVIGASI
+                </small>
+
+                <strong>
+                    Buka rute ke tujuan
+                </strong>
+
+            </span>
+
+
+            <span class="navigation-arrow">
+                ↗
+            </span>
+
+        </a>
+
+        {% endif %}
+
+
+    {% endif %}
+
+
+</div>
+
+
+                        <!-- ACTION -->
+
+                        <div class="driver-actions">
+
+
+                            {% if order.status == "MENUNGGU" %}
+
+
+                                <button
+                                    type="button"
+                                    class="driver-button secondary reject-order"
+                                    data-id="{{ order.id }}"
+                                    data-status="DITOLAK"
+                                >
+                                    Tolak
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="driver-button primary update-status"
+                                    data-id="{{ order.id }}"
+                                    data-status="DITERIMA"
+                                >
+
+                                    Terima
+
+                                    <span>
+                                        →
+                                    </span>
+
+                                </button>
+
+
+                            {% elif order.status == "DITERIMA" %}
+
+
+                                <button
+                                    type="button"
+                                    class="driver-button primary full update-status"
+                                    data-id="{{ order.id }}"
+                                    data-status="MENUJU_JEMPUT"
+                                >
+
+                                    Menuju Penjemputan
+
+                                    <span>
+                                        →
+                                    </span>
+
+                                </button>
+
+
+                            {% elif order.status == "MENUJU_JEMPUT" %}
+
+
+                                <button
+                                    type="button"
+                                    class="driver-button primary full update-status"
+                                    data-id="{{ order.id }}"
+                                    data-status="DIJEMPUT"
+                                >
+
+                                    Penumpang Sudah Dijemput
+
+                                    <span>
+                                        →
+                                    </span>
+
+                                </button>
+
+
+                            {% elif order.status == "DIJEMPUT" %}
+
+
+                                <button
+                                    type="button"
+                                    class="driver-button finish full update-status"
+                                    data-id="{{ order.id }}"
+                                    data-status="SELESAI"
+                                >
+
+                                    Selesaikan Perjalanan
+
+                                    <span>
+                                        ✓
+                                    </span>
+
+                                </button>
+
+
+                            {% endif %}
+
+
+                        </div>
+
+
+                    </article>
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+        {% else %}
+
+
+            <div class="driver-empty">
+
+                <div class="empty-icon">
+                    🛵
+                </div>
+
+
+                <span>
+                    BELUM ADA PESANAN
+                </span>
+
+
+                <h3>
+                    Semua tenang.
+                </h3>
+
+
+                <p>
+                    Pesanan baru akan muncul
+                    di halaman ini.
+                </p>
+
+            </div>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+</div>
+
+
+<!-- ==========================================
+     TOAST
+=========================================== -->
+
+<div
+    class="driver-toast"
+    id="driverToast"
+>
+
+    <div class="driver-toast-icon">
+        ✓
+    </div>
+
+
+    <div>
+
+        <strong id="driverToastTitle">
+            Berhasil
+        </strong>
+
+        <span id="driverToastMessage">
+            Status pesanan diperbarui.
+        </span>
+
+    </div>
+
+</div>
+
+
+<script
+    src="{{ url_for('static', filename='js/driver.js') }}"
+></script>
+
+
+{% endblock %}

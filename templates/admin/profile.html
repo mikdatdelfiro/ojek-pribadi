@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Profil Driver
+{% endblock %}
+
+
+{% block content %}
+
+<div class="driver-profile-page">
+
+
+    <div class="driver-profile-glow"></div>
+
+
+    <main class="driver-profile-container">
+
+
+        <!-- =====================================
+             HEADER
+        ====================================== -->
+
+        <header class="profile-page-header">
+
+            <a
+                href="{{ url_for('driver_dashboard') }}"
+                class="profile-back-button"
+            >
+                ←
+            </a>
+
+
+            <div>
+
+                <span>
+                    DRIVER IDENTITY
+                </span>
+
+                <h1>
+                    Profil Driver
+                </h1>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================
+             INTRO
+        ====================================== -->
+
+        <section class="profile-intro">
+
+            <span>
+                IDENTITAS PENGEMUDI
+            </span>
+
+
+            <h2>
+                Tampilkan siapa
+                <strong>yang menjemput.</strong>
+            </h2>
+
+
+            <p>
+                Informasi ini akan muncul kepada
+                pelanggan setelah pesanan diterima.
+            </p>
+
+        </section>
+
+
+        <!-- =====================================
+             MESSAGE
+        ====================================== -->
+
+        {% if saved %}
+
+        <div class="profile-success-message">
+
+            <span>✓</span>
+
+            Profil berhasil diperbarui.
+
+        </div>
+
+        {% endif %}
+
+
+        {% if error %}
+
+        <div class="profile-error-message">
+
+            <span>!</span>
+
+            {{ error }}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =====================================
+             FORM
+        ====================================== -->
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="driver-profile-form"
+        >
+
+
+            <!-- =================================
+                 PHOTO
+            ================================== -->
+
+            <section class="profile-photo-section">
+
+                <div class="profile-photo-preview">
+
+                    {% if photo_url %}
+
+                    <img
+                        src="{{ photo_url }}"
+                        alt="Foto driver"
+                        id="profilePhotoPreview"
+                    >
+
+                    {% else %}
+
+                    <div
+                        class="profile-photo-placeholder"
+                        id="profilePhotoPlaceholder"
+                    >
+                        {{ profile.driver_name[0] | upper }}
+                    </div>
+
+                    <img
+                        src=""
+                        alt="Foto driver"
+                        id="profilePhotoPreview"
+                        hidden
+                    >
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="profile-photo-copy">
+
+                    <small>
+                        FOTO DRIVER
+                    </small>
+
+                    <strong>
+                        Foto profil
+                    </strong>
+
+                    <p>
+                        JPG, PNG atau WEBP.
+                        Maksimal 5 MB.
+                    </p>
+
+
+                    <label
+                        for="driverPhoto"
+                        class="profile-upload-button"
+                    >
+                        Pilih Foto
+                    </label>
+
+
+                    <input
+                        type="file"
+                        id="driverPhoto"
+                        name="driver_photo"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        hidden
+                    >
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================
+                 PERSONAL
+            ================================== -->
+
+            <section class="profile-form-card">
+
+                <div class="profile-section-heading">
+
+                    <span>
+                        01
+                    </span>
+
+                    <div>
+
+                        <small>
+                            PENGEMUDI
+                        </small>
+
+                        <h3>
+                            Informasi Driver
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label for="driverName">
+                        Nama Driver
+                    </label>
+
+                    <input
+                        type="text"
+                        id="driverName"
+                        name="driver_name"
+                        value="{{ profile.driver_name }}"
+                        maxlength="60"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label for="shortBio">
+                        Bio singkat
+                    </label>
+
+                    <textarea
+                        id="shortBio"
+                        name="short_bio"
+                        rows="3"
+                        maxlength="140"
+                        placeholder="Contoh: Siap mengantar dengan aman dan nyaman."
+                    >{{ profile.short_bio or '' }}</textarea>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================
+                 VEHICLE
+            ================================== -->
+
+            <section class="profile-form-card">
+
+                <div class="profile-section-heading">
+
+                    <span>
+                        02
+                    </span>
+
+                    <div>
+
+                        <small>
+                            KENDARAAN
+                        </small>
+
+                        <h3>
+                            Identitas Motor
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label for="vehicleName">
+                        Motor
+                    </label>
+
+                    <input
+                        type="text"
+                        id="vehicleName"
+                        name="vehicle_name"
+                        value="{{ profile.vehicle_name }}"
+                        placeholder="Honda Beat"
+                        maxlength="60"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="profile-field-grid">
+
+                    <div class="profile-field">
+
+                        <label for="vehicleColor">
+                            Warna
+                        </label>
+
+                        <input
+                            type="text"
+                            id="vehicleColor"
+                            name="vehicle_color"
+                            value="{{ profile.vehicle_color or '' }}"
+                            placeholder="Hitam"
+                            maxlength="30"
+                        >
+
+                    </div>
+
+
+                    <div class="profile-field">
+
+                        <label for="vehiclePlate">
+                            Plat Nomor
+                        </label>
+
+                        <input
+                            type="text"
+                            id="vehiclePlate"
+                            name="vehicle_plate"
+                            value="{{ profile.vehicle_plate }}"
+                            placeholder="B 1234 ABC"
+                            maxlength="20"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================
+                 SAVE
+            ================================== -->
+
+            <button
+                type="submit"
+                class="profile-save-button"
+            >
+
+                <span>
+                    Simpan Profil
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+        </form>
+
+    </main>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+const photoInput =
+    document.getElementById(
+        "driverPhoto"
+    );
+
+
+const photoPreview =
+    document.getElementById(
+        "profilePhotoPreview"
+    );
+
+
+const photoPlaceholder =
+    document.getElementById(
+        "profilePhotoPlaceholder"
+    );
+
+
+if (photoInput) {
+
+    photoInput.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                photoInput.files[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            const imageUrl =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            photoPreview.src =
+                imageUrl;
+
+
+            photoPreview.hidden =
+                false;
+
+
+            if (photoPlaceholder) {
+
+                photoPlaceholder.hidden =
+                    true;
+
+            }
+
+        }
+    );
+
+}
+
+</script>
+
+{% endblock %}

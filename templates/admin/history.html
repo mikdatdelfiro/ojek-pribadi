@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Riwayat Pesanan
+{% endblock %}
+
+
+{% block content %}
+
+<div class="history-page">
+
+
+    <div class="history-page-glow"></div>
+
+
+    <main class="history-container">
+
+
+        <!-- =====================================
+             HEADER
+        ====================================== -->
+
+        <header class="history-header">
+
+
+            <a
+                href="{{ url_for('driver_dashboard') }}"
+                class="history-back"
+            >
+                ←
+            </a>
+
+
+            <div class="history-header-copy">
+
+                <span>
+                    DRIVER CONTROL
+                </span>
+
+                <h1>
+                    Riwayat
+                </h1>
+
+            </div>
+
+
+        </header>
+
+
+        <!-- =====================================
+             HERO
+        ====================================== -->
+
+        <section class="history-hero">
+
+            <span>
+                PERJALANAN
+            </span>
+
+
+            <h2>
+                Semua perjalanan
+                <strong>tersimpan rapi.</strong>
+            </h2>
+
+
+            <p>
+                Lihat kembali perjalanan selesai
+                maupun pesanan yang ditolak.
+            </p>
+
+        </section>
+
+
+        <!-- =====================================
+             SUMMARY
+        ====================================== -->
+
+        <section class="history-summary">
+
+
+            <article>
+
+                <small>
+                    TOTAL
+                </small>
+
+                <strong>
+                    {{ total_orders }}
+                </strong>
+
+                <span>
+                    Pesanan
+                </span>
+
+            </article>
+
+
+            <article>
+
+                <small>
+                    SELESAI
+                </small>
+
+                <strong>
+                    {{ completed_count }}
+                </strong>
+
+                <span>
+                    Perjalanan
+                </span>
+
+            </article>
+
+
+            <article>
+
+                <small>
+                    DITOLAK
+                </small>
+
+                <strong>
+                    {{ rejected_count }}
+                </strong>
+
+                <span>
+                    Pesanan
+                </span>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             INCOME
+        ====================================== -->
+
+        <section class="history-income">
+
+            <div>
+
+                <small>
+                    PENDAPATAN
+                </small>
+
+                <strong>
+                    {{ total_income | rupiah }}
+                </strong>
+
+                <p>
+                    Dari perjalanan selesai
+                    pada hasil filter saat ini.
+                </p>
+
+            </div>
+
+
+            <span class="history-income-icon">
+                ↗
+            </span>
+
+        </section>
+
+
+        <!-- =====================================
+             FILTER
+        ====================================== -->
+
+        <section class="history-filter-card">
+
+
+            <form
+                method="GET"
+                action="{{ url_for('driver_history') }}"
+                class="history-filter-form"
+            >
+
+
+                <!-- SEARCH -->
+
+                <div class="history-search">
+
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Cari kode, nama, alamat..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        type="submit"
+                    >
+                        Cari
+                    </button>
+
+                </div>
+
+
+                <!-- PERIOD -->
+
+                <div class="history-filter-group">
+
+                    <span>
+                        PERIODE
+                    </span>
+
+
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="period"
+                            value="all"
+                            {% if period == "all" %}
+                            checked
+                            {% endif %}
+                        >
+
+                        <span>
+                            Semua
+                        </span>
+
+                    </label>
+
+
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="period"
+                            value="today"
+                            {% if period == "today" %}
+                            checked
+                            {% endif %}
+                        >
+
+                        <span>
+                            Hari ini
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="history-filter-group">
+
+                    <span>
+                        STATUS
+                    </span>
+
+
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="all"
+                            {% if status_filter == "ALL" %}
+                            checked
+                            {% endif %}
+                        >
+
+                        <span>
+                            Semua
+                        </span>
+
+                    </label>
+
+
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="SELESAI"
+                            {% if status_filter == "SELESAI" %}
+                            checked
+                            {% endif %}
+                        >
+
+                        <span>
+                            Selesai
+                        </span>
+
+                    </label>
+
+
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="DITOLAK"
+                            {% if status_filter == "DITOLAK" %}
+                            checked
+                            {% endif %}
+                        >
+
+                        <span>
+                            Ditolak
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="history-apply-button"
+                >
+
+                    <span>
+                        Terapkan Filter
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+
+            </form>
+
+
+        </section>
+
+
+        <!-- =====================================
+             LIST
+        ====================================== -->
+
+        <section class="history-list-section">
+
+
+            <div class="history-list-heading">
+
+                <div>
+
+                    <span>
+                        RIWAYAT
+                    </span>
+
+                    <h3>
+                        Pesanan Anda
+                    </h3>
+
+                </div>
+
+
+                <strong>
+                    {{ total_orders }}
+                </strong>
+
+            </div>
+
+
+            {% if orders %}
+
+
+                <div class="history-order-list">
+
+
+                    {% for order in orders %}
+
+                    <article class="history-order-card">
+
+
+                        <!-- TOP -->
+
+                        <div class="history-order-top">
+
+
+                            <div>
+
+                                <small>
+                                    KODE PESANAN
+                                </small>
+
+                                <strong>
+                                    {{ order.order_code }}
+                                </strong>
+
+                            </div>
+
+
+                            <span
+                                class="history-status
+                                {% if order.status == 'SELESAI' %}
+                                    is-completed
+                                {% else %}
+                                    is-rejected
+                                {% endif %}"
+                            >
+
+                                {% if order.status == "SELESAI" %}
+
+                                    Selesai
+
+                                {% else %}
+
+                                    Ditolak
+
+                                {% endif %}
+
+                            </span>
+
+
+                        </div>
+
+
+                        <!-- CUSTOMER -->
+
+                        <div class="history-customer">
+
+                            <span class="history-customer-avatar">
+
+                                {{
+                                    order.customer_name[0]
+                                    | upper
+                                }}
+
+                            </span>
+
+
+                            <div>
+
+                                <strong>
+                                    {{ order.customer_name }}
+                                </strong>
+
+                                <span>
+                                    {{ order.whatsapp }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ROUTE -->
+
+                        <div class="history-route">
+
+
+                            <div>
+
+                                <span class="route-dot pickup"></span>
+
+                                <div>
+
+                                    <small>
+                                        JEMPUT
+                                    </small>
+
+                                    <p>
+                                        {{ order.pickup }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <span class="route-dot destination"></span>
+
+                                <div>
+
+                                    <small>
+                                        TUJUAN
+                                    </small>
+
+                                    <p>
+                                        {{ order.destination }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- META -->
+
+                        <div class="history-order-meta">
+
+
+                            <div>
+
+                                <small>
+                                    JARAK
+                                </small>
+
+                                <strong>
+                                    {{ order.distance_km }} km
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    ESTIMASI
+                                </small>
+
+                                <strong>
+                                    {{ order.duration_minutes }} menit
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    TARIF
+                                </small>
+
+                                <strong>
+                                    {{ order.fare | rupiah }}
+                                </strong>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- FOOTER -->
+
+                        <div class="history-order-footer">
+
+
+                            {% if order.status == "SELESAI" %}
+
+                                {{
+                                    order.completed_at
+                                    or order.created_at
+                                }}
+
+                            {% elif order.status == "DITOLAK" %}
+
+                                {{
+                                    order.rejected_at
+                                    or order.created_at
+                                }}
+
+                            {% else %}
+
+                                {{ order.created_at }}
+
+                            {% endif %}
+
+
+                            <a
+                                href="{{
+                                    url_for(
+                                        'driver_order_detail',
+                                        order_id=order.id
+                                    )
+                                }}"
+                            >
+                                Lihat Detail
+                                <span>→</span>
+                            </a>
+
+
+                        </div>
+
+
+                    </article>
+
+                    {% endfor %}
+
+
+                </div>
+
+
+            {% else %}
+
+
+                <div class="history-empty">
+
+                    <span>
+                        ○
+                    </span>
+
+                    <strong>
+                        Belum ada riwayat
+                    </strong>
+
+                    <p>
+                        Pesanan selesai dan ditolak
+                        akan muncul di sini.
+                    </p>
+
+                </div>
+
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+{% endblock %}

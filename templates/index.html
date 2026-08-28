@@ -1,0 +1,924 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+
+<!-- =========================================
+     PREMIUM BACKGROUND
+========================================== -->
+
+<div class="premium-background">
+
+    <div class="premium-orb orb-one"></div>
+
+    <div class="premium-orb orb-two"></div>
+
+    <div class="premium-grid"></div>
+
+</div>
+
+
+<!-- =========================================
+     APP
+========================================== -->
+
+<div class="app">
+
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <header class="header">
+
+        <a
+            href="/"
+            class="brand"
+        >
+
+            <span class="brand-icon">
+                O
+            </span>
+
+            <span class="brand-name">
+                Ojek Pribadi
+            </span>
+
+        </a>
+
+
+        <div
+    class="availability-badge
+    {% if service_open %}
+        is-open
+    {% else %}
+        is-closed
+    {% endif %}"
+    id="headerServiceBadge"
+>
+
+    <span
+        class="availability-dot"
+        id="headerServiceDot"
+    ></span>
+
+    <span
+        id="headerServiceText"
+    >
+        {% if service_open %}
+            Aktif
+        {% else %}
+            Tutup
+        {% endif %}
+    </span>
+
+</div>
+
+    </header>
+
+
+    <!-- =====================================
+         MAIN
+    ====================================== -->
+
+    <main class="main">
+
+
+        <!-- =================================
+             HERO
+        ================================== -->
+
+        <section class="hero">
+
+            <div class="hero-badge">
+                Ojek langsung • Tanpa ribet
+            </div>
+
+
+            <h1>
+                Mau pergi
+                <span>ke mana?</span>
+            </h1>
+
+
+            <p>
+                Tentukan lokasi jemput dan tujuan.
+                Tarif perjalanan akan dihitung
+                berdasarkan jarak.
+            </p>
+
+        </section>
+
+<!-- =====================================
+     CUSTOMER SERVICE STATUS
+====================================== -->
+
+<div
+    class="customer-service-status
+    {% if service_open %}
+        is-open
+    {% else %}
+        is-closed
+    {% endif %}"
+    id="customerServiceStatus"
+    data-service-open="{{
+        'true'
+        if service_open
+        else 'false'
+    }}"
+>
+
+    <span
+        class="customer-service-dot"
+    ></span>
+
+
+    <div class="customer-service-copy">
+
+        <small>
+            STATUS LAYANAN
+        </small>
+
+
+        <strong
+            id="customerServiceLabel"
+        >
+
+            {% if service_open %}
+
+                Ojek sedang tersedia
+
+            {% else %}
+
+                Sedang tidak melayani
+
+            {% endif %}
+
+        </strong>
+
+
+        <p
+            id="customerServiceDescription"
+        >
+
+            {% if service_open %}
+
+                Pesanan dapat dilakukan sekarang.
+
+            {% else %}
+
+                Silakan kembali beberapa saat lagi.
+
+            {% endif %}
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- =====================================
+     PHASE 13
+     PWA INSTALL
+====================================== -->
+
+<section class="pwa-install-card">
+
+    <div class="pwa-install-icon">
+
+        <span>
+            OJ
+        </span>
+
+    </div>
+
+
+    <div class="pwa-install-copy">
+
+        <small>
+            APLIKASI
+        </small>
+
+
+        <strong>
+            Ojek Pribadi
+        </strong>
+
+
+        <p
+            id="pwaInstallStatus"
+        >
+            Tambahkan ke Home Screen
+            untuk akses lebih cepat.
+        </p>
+
+    </div>
+
+
+    <button
+        type="button"
+        class="pwa-install-button"
+        id="pwaInstallButton"
+        hidden
+    >
+
+        Install
+
+    </button>
+
+</section>
+
+        <!-- =================================
+             BOOKING CARD
+        ================================== -->
+
+        <section class="booking-card">
+
+
+            <div class="card-heading">
+
+                <div>
+
+                    <span class="card-label">
+                        Perjalanan
+                    </span>
+
+                    <h2>
+                        Tentukan tujuan Anda
+                    </h2>
+
+                </div>
+
+
+                <div class="motor-icon">
+                    🛵
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 BOOKING FORM
+            ================================== -->
+
+            <form
+                id="bookingForm"
+                novalidate
+            >
+
+
+                <!-- =============================
+                     PICKUP
+                ============================== -->
+
+                <div class="form-group">
+
+                    <label for="pickup">
+                        Lokasi jemput
+                    </label>
+
+
+                    <div class="input-wrapper">
+
+                        <span
+                            class="
+                                input-icon
+                                pickup-icon
+                            "
+                        >
+                            ●
+                        </span>
+
+
+                        <input
+                            type="text"
+                            id="pickup"
+                            name="pickup"
+                            placeholder="Masukkan lokasi jemput"
+                            autocomplete="off"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- =========================
+                         GPS
+                    ========================== -->
+
+                    <button
+                        type="button"
+                        class="current-location-button"
+                        id="useLocationButton"
+                    >
+
+                        <span class="current-location-icon">
+                            ⌖
+                        </span>
+
+
+                        <span class="current-location-content">
+
+                            <strong>
+                                Gunakan lokasi saya
+                            </strong>
+
+                            <small id="locationButtonText">
+                                Ambil titik jemput otomatis
+                            </small>
+
+                        </span>
+
+
+                        <span class="current-location-arrow">
+                            →
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <!-- ROUTE CONNECTOR -->
+
+                <div class="route-line"></div>
+
+
+                <!-- =============================
+                     DESTINATION
+                ============================== -->
+
+                <div class="form-group">
+
+                    <label for="destination">
+                        Mau diantar ke mana?
+                    </label>
+
+
+                    <div class="input-wrapper">
+
+                        <span
+                            class="
+                                input-icon
+                                destination-icon
+                            "
+                        >
+                            ◆
+                        </span>
+
+
+                        <input
+                            type="text"
+                            id="destination"
+                            name="destination"
+                            placeholder="Masukkan tujuan"
+                            autocomplete="off"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================
+                     NOTE
+                ============================== -->
+
+                <div class="form-group note-group">
+
+                    <label for="note">
+
+                        Catatan
+
+                        <span>
+                            Opsional
+                        </span>
+
+                    </label>
+
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            ✎
+                        </span>
+
+
+                        <input
+                            type="text"
+                            id="note"
+                            name="note"
+                            placeholder="Contoh: Saya menunggu di depan minimarket"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================
+                     MESSAGE
+                ============================== -->
+
+                <div
+                    class="form-message"
+                    id="formMessage"
+                    role="alert"
+                ></div>
+
+
+                <!-- =============================
+                     CHECK FARE
+                ============================== -->
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id="checkFareButton"
+                >
+
+                    <span id="buttonText">
+                        Cek Tarif
+                    </span>
+
+                    <span
+                        class="button-arrow"
+                        id="buttonArrow"
+                    >
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =================================
+             FARE RESULT
+        ================================== -->
+
+        <section
+            class="fare-result"
+            id="fareResult"
+        >
+
+
+            <!-- RESULT HEADER -->
+
+            <div class="fare-top">
+
+                <div>
+
+                    <span class="result-label">
+                        Estimasi perjalanan
+                    </span>
+
+                    <h2>
+                        Tarif perjalanan
+                    </h2>
+
+                </div>
+
+
+                <div class="fare-check">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 ROUTE RESULT
+            ================================== -->
+
+            <div class="result-route">
+
+
+                <div class="result-location">
+
+                    <span
+                        class="
+                            location-mark
+                            pickup
+                        "
+                    ></span>
+
+
+                    <div>
+
+                        <span>
+                            Jemput
+                        </span>
+
+                        <strong id="resultPickup">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="result-route-line"></div>
+
+
+                <div class="result-location">
+
+                    <span
+                        class="
+                            location-mark
+                            destination
+                        "
+                    ></span>
+
+
+                    <div>
+
+                        <span>
+                            Tujuan
+                        </span>
+
+                        <strong id="resultDestination">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 TRIP STATS
+            ================================== -->
+
+            <div class="trip-stats">
+
+
+                <div class="trip-stat">
+
+                    <span>
+                        Jarak
+                    </span>
+
+                    <strong id="resultDistance">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="trip-stat">
+
+                    <span>
+                        Estimasi waktu
+                    </span>
+
+                    <strong id="resultDuration">
+                        -
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 PRICE
+            ================================== -->
+
+            <div class="price-section">
+
+                <span>
+                    Estimasi tarif
+                </span>
+
+                <strong id="resultFare">
+                    Rp0
+                </strong>
+
+                <small>
+                    Tarif berdasarkan jarak perjalanan.
+                </small>
+
+            </div>
+
+
+            <!-- =================================
+                 ORDER BUTTON
+            ================================== -->
+
+            <button
+                type="button"
+                class="order-button"
+                id="orderButton"
+            >
+
+                <span>
+                    Pesan Ojek
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+
+            <!-- =================================
+                 CUSTOMER PANEL
+            ================================== -->
+
+            <div
+                class="customer-panel"
+                id="customerPanel"
+            >
+
+
+                <div class="customer-panel-head">
+
+                    <div>
+
+                        <span class="result-label">
+                            Hampir selesai
+                        </span>
+
+                        <h3>
+                            Data pemesan
+                        </h3>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="panel-close"
+                        id="closeCustomerPanel"
+                        aria-label="Tutup form pelanggan"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <!-- NAME -->
+
+                <div class="customer-field">
+
+                    <label for="customerName">
+                        Nama
+                    </label>
+
+                    <input
+                        type="text"
+                        id="customerName"
+                        placeholder="Masukkan nama Anda"
+                        autocomplete="name"
+                    >
+
+                </div>
+
+
+                <!-- WHATSAPP -->
+
+                <div class="customer-field">
+
+                    <label for="customerWhatsapp">
+                        Nomor WhatsApp
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="customerWhatsapp"
+                        placeholder="08xxxxxxxxxx"
+                        autocomplete="tel"
+                        inputmode="tel"
+                    >
+
+                </div>
+
+
+                <!-- ORDER MESSAGE -->
+
+                <div
+                    class="order-message"
+                    id="orderMessage"
+                    role="alert"
+                ></div>
+
+
+                <!-- CONFIRM -->
+
+                <button
+                    type="button"
+                    class="confirm-order-button"
+                    id="confirmOrderButton"
+                >
+
+                    <span id="confirmOrderText">
+                        Konfirmasi Pesanan
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <p class="phase-note">
+                Pastikan lokasi dan nomor WhatsApp Anda benar.
+            </p>
+
+        </section>
+
+
+        <!-- =================================
+             INFO
+        ================================== -->
+
+        <section class="simple-info">
+
+
+            <div class="info-item">
+
+                <div class="info-icon">
+                    ⚡
+                </div>
+
+                <div>
+
+                    <strong>
+                        Cepat
+                    </strong>
+
+                    <span>
+                        Pesan langsung
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <div class="info-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Praktis
+                    </strong>
+
+                    <span>
+                        Tanpa proses rumit
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <div class="info-icon">
+                    ♡
+                </div>
+
+                <div>
+
+                    <strong>
+                        Personal
+                    </strong>
+
+                    <span>
+                        Langsung dengan saya
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             FOOTER
+        ================================== -->
+
+        <div class="footer-note">
+
+            <span></span>
+
+            <p>
+                Melayani perjalanan dengan motor
+            </p>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================
+     ORDER SUCCESS
+========================================== -->
+
+<div
+    class="success-overlay"
+    id="successOverlay"
+>
+
+
+    <div class="success-card">
+
+
+        <div class="success-ring">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+        </div>
+
+
+        <span class="success-label">
+            PESANAN DITERIMA
+        </span>
+
+
+        <h2>
+            Ojek Anda
+            <span>berhasil dipesan.</span>
+        </h2>
+
+
+        <p>
+            Pesanan sedang menunggu
+            konfirmasi pengemudi.
+        </p>
+
+
+        <div class="order-code-box">
+
+            <span>
+                Kode pesanan
+            </span>
+
+            <strong id="successOrderCode">
+                -
+            </strong>
+
+        </div>
+
+
+        <div class="success-status">
+
+            <span class="status-animation"></span>
+
+            Menunggu konfirmasi
+
+        </div>
+
+
+        <button
+            type="button"
+            class="success-button"
+            id="successButton"
+        >
+            Lihat Status Perjalanan
+        </button>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script
+    src="{{ url_for('static', filename='js/app.js') }}"
+></script>
+
+{% endblock %}

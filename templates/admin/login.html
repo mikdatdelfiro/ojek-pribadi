@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Driver Login
+{% endblock %}
+
+
+{% block content %}
+
+<div class="driver-login-page">
+
+
+    <!-- =====================================
+         PREMIUM BACKGROUND
+    ====================================== -->
+
+    <div class="login-background">
+
+        <div class="login-orb login-orb-one"></div>
+
+        <div class="login-orb login-orb-two"></div>
+
+        <div class="login-grid"></div>
+
+    </div>
+
+
+    <!-- =====================================
+         LOGIN CONTAINER
+    ====================================== -->
+
+    <main class="driver-login-container">
+
+
+        <!-- BRAND -->
+
+        <header class="login-brand">
+
+            <div class="login-brand-icon">
+                O
+            </div>
+
+
+            <div>
+
+                <span>
+                    DRIVER ACCESS
+                </span>
+
+                <strong>
+                    Ojek Control
+                </strong>
+
+            </div>
+
+        </header>
+
+
+        <!-- HERO -->
+
+        <section class="login-intro">
+
+            <span class="login-eyebrow">
+                AREA PENGEMUDI
+            </span>
+
+
+            <h1>
+                Selamat
+                <span>datang kembali.</span>
+            </h1>
+
+
+            <p>
+                Masuk untuk mengelola
+                pesanan dan perjalanan Anda.
+            </p>
+
+        </section>
+
+
+        <!-- LOGIN CARD -->
+
+        <section class="login-card">
+
+
+            <div class="login-card-header">
+
+                <div>
+
+                    <span>
+                        SECURE ACCESS
+                    </span>
+
+                    <h2>
+                        Masuk ke Driver Control
+                    </h2>
+
+                </div>
+
+
+                <div class="login-lock">
+                    ◇
+                </div>
+
+            </div>
+
+
+            {% if error %}
+
+            <div
+                class="login-error"
+                role="alert"
+            >
+
+                <span>
+                    !
+                </span>
+
+                <p>
+                    {{ error }}
+                </p>
+
+            </div>
+
+            {% endif %}
+
+
+            <form
+                method="POST"
+                action="{{ url_for('driver_login') }}"
+                class="driver-login-form"
+            >
+
+
+                <!-- USERNAME -->
+
+                <div class="login-field">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+
+                    <div class="login-input-wrapper">
+
+                        <span class="login-input-icon">
+                            ◉
+                        </span>
+
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Masukkan username"
+                            autocomplete="username"
+                            autofocus
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="login-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+
+                    <div class="login-input-wrapper">
+
+                        <span class="login-input-icon">
+                            ◆
+                        </span>
+
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Masukkan password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="passwordToggle"
+                            aria-label="Tampilkan password"
+                        >
+                            Lihat
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="driver-login-button"
+                >
+
+                    <span>
+                        Masuk ke Driver Control
+                    </span>
+
+                    <span class="login-button-arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <div class="login-security">
+
+                <span class="login-security-dot"></span>
+
+                <p>
+                    Session dilindungi • Logout otomatis setelah tidak aktif
+                </p>
+
+            </div>
+
+            <div class="login-session-info">
+
+                    <span>
+                        SESSION
+                    </span>
+
+                    <p>
+                        Driver akan otomatis keluar setelah
+                        {{ (config.PERMANENT_SESSION_LIFETIME.total_seconds() // 60) | int }}
+                        menit tidak aktif.
+                    </p>
+
+                </div>
+
+        </section>
+
+
+        <!-- BACK -->
+
+        <a
+            href="/"
+            class="login-back"
+        >
+            ← Kembali ke aplikasi pelanggan
+        </a>
+
+    </main>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+    const passwordInput =
+        document.getElementById(
+            "password"
+        );
+
+
+    const passwordToggle =
+        document.getElementById(
+            "passwordToggle"
+        );
+
+
+    passwordToggle.addEventListener(
+        "click",
+        function () {
+
+            const hidden =
+                passwordInput.type
+                === "password";
+
+
+            passwordInput.type =
+                hidden
+                ? "text"
+                : "password";
+
+
+            passwordToggle.textContent =
+                hidden
+                ? "Tutup"
+                : "Lihat";
+
+        }
+    );
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Status {{ order.order_code }}
+{% endblock %}
+
+
+{% block content %}
+
+<div
+    class="tracking-page"
+    id="trackingPage"
+    data-order-code="{{ order.order_code }}"
+    data-initial-status="{{ order.status }}"
+>
+
+
+    <!-- =====================================
+         BACKGROUND
+    ====================================== -->
+
+    <div class="tracking-background">
+
+        <div class="tracking-orb tracking-orb-one"></div>
+
+        <div class="tracking-orb tracking-orb-two"></div>
+
+    </div>
+
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <header class="tracking-header">
+
+        <a
+            href="/"
+            class="tracking-brand"
+        >
+
+            <span class="tracking-logo">
+                O
+            </span>
+
+            <div>
+
+                <small>
+                    OJEK PRIBADI
+                </small>
+
+                <strong>
+                    Perjalanan Anda
+                </strong>
+
+            </div>
+
+        </a>
+
+
+        <div class="live-indicator">
+
+            <span></span>
+
+            LIVE
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================
+         ORDER INTRO
+    ====================================== -->
+
+    <section class="tracking-intro">
+
+        <span>
+            KODE PESANAN
+        </span>
+
+        <h1>
+            {{ order.order_code }}
+        </h1>
+
+        <p>
+            Status perjalanan akan
+            diperbarui secara otomatis.
+        </p>
+
+    </section>
+
+
+    <!-- =====================================
+         MAIN STATUS CARD
+    ====================================== -->
+
+    <section
+        class="live-status-card"
+        id="liveStatusCard"
+    >
+
+        <div class="live-visual">
+
+            <div
+                class="live-ring"
+                id="liveRing"
+            >
+
+                <div
+                    class="live-icon"
+                    id="liveIcon"
+                >
+                    •
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <span
+            class="live-status-label"
+            id="liveStatusLabel"
+        >
+            STATUS PERJALANAN
+        </span>
+
+
+        <h2 id="liveStatusTitle">
+            Menunggu konfirmasi
+        </h2>
+
+
+        <p id="liveStatusDescription">
+            Pesanan telah dikirim dan
+            sedang menunggu konfirmasi.
+        </p>
+
+
+        <div class="live-update">
+
+            <span class="live-update-dot"></span>
+
+            <span>
+                Diperbarui otomatis
+            </span>
+
+            <strong id="lastUpdate">
+                baru saja
+            </strong>
+
+        </div>
+
+<!-- =====================================
+     CONTACT DRIVER
+====================================== -->
+
+<a
+    href="{{ url_for(
+        'customer_contact_driver',
+        order_code=order.order_code
+    ) }}"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="customer-driver-contact"
+    id="customerDriverContact"
+>
+
+    <span class="customer-driver-icon">
+        WA
+    </span>
+
+
+    <span class="customer-driver-content">
+
+        <small>
+            BUTUH BANTUAN?
+        </small>
+
+        <strong>
+            Hubungi Driver
+        </strong>
+
+    </span>
+
+
+    <span class="customer-driver-arrow">
+        ↗
+    </span>
+
+</a>
+
+    </section>
+
+
+    <!-- =====================================
+         PROGRESS
+    ====================================== -->
+
+    <section class="tracking-progress">
+
+        <div class="tracking-section-head">
+
+            <span>
+                PROGRESS
+            </span>
+
+            <h2>
+                Perjalanan
+            </h2>
+
+        </div>
+
+
+        <div class="progress-list">
+
+
+            <!-- STEP 1 -->
+
+            <div
+                class="progress-step"
+                data-step="0"
+            >
+
+                <div class="progress-marker">
+
+                    <span></span>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Pesanan dikirim
+                    </strong>
+
+                    <p>
+                        Permintaan perjalanan
+                        berhasil dibuat.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STEP 2 -->
+
+            <div
+                class="progress-step"
+                data-step="1"
+            >
+
+                <div class="progress-marker">
+
+                    <span></span>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Pesanan diterima
+                    </strong>
+
+                    <p>
+                        Pengemudi telah
+                        menerima pesanan Anda.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STEP 3 -->
+
+            <div
+                class="progress-step"
+                data-step="2"
+            >
+
+                <div class="progress-marker">
+
+                    <span></span>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Menuju penjemputan
+                    </strong>
+
+                    <p>
+                        Pengemudi sedang menuju
+                        lokasi jemput.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STEP 4 -->
+
+            <div
+                class="progress-step"
+                data-step="3"
+            >
+
+                <div class="progress-marker">
+
+                    <span></span>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Dalam perjalanan
+                    </strong>
+
+                    <p>
+                        Perjalanan menuju
+                        tujuan sedang berlangsung.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STEP 5 -->
+
+            <div
+                class="progress-step"
+                data-step="4"
+            >
+
+                <div class="progress-marker">
+
+                    <span></span>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Selesai
+                    </strong>
+
+                    <p>
+                        Anda telah sampai
+                        di tujuan.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+    <!-- =====================================
+     DRIVER PROFILE
+====================================== -->
+
+<section
+    class="customer-driver-profile"
+    id="driverProfileCard"
+    hidden
+>
+
+    <div class="customer-driver-profile-top">
+
+
+        <div class="customer-driver-photo">
+
+            <img
+                src=""
+                alt="Driver"
+                id="driverProfilePhoto"
+                hidden
+            >
+
+
+            <span
+                id="driverProfileInitial"
+            >
+                D
+            </span>
+
+        </div>
+
+
+        <div class="customer-driver-identity">
+
+            <small>
+                DRIVER ANDA
+            </small>
+
+            <strong
+                id="driverProfileName"
+            >
+                -
+            </strong>
+
+            <p
+                id="driverProfileBio"
+            ></p>
+
+        </div>
+
+    </div>
+
+
+    <div class="customer-vehicle-info">
+
+        <div>
+
+            <small>
+                KENDARAAN
+            </small>
+
+            <strong
+                id="driverVehicleName"
+            >
+                -
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                WARNA
+            </small>
+
+            <strong
+                id="driverVehicleColor"
+            >
+                -
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                PLAT
+            </small>
+
+            <strong
+                id="driverVehiclePlate"
+            >
+                -
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+    <!-- =====================================
+         ROUTE
+    ====================================== -->
+
+    <section class="tracking-route-card">
+
+        <div class="tracking-section-head">
+
+            <span>
+                RUTE
+            </span>
+
+            <h2>
+                Detail perjalanan
+            </h2>
+
+        </div>
+
+
+        <div class="tracking-route">
+
+
+            <div class="tracking-route-item">
+
+                <span
+                    class="
+                        tracking-route-dot
+                        pickup
+                    "
+                ></span>
+
+
+                <div>
+
+                    <small>
+                        LOKASI JEMPUT
+                    </small>
+
+                    <strong>
+                        {{ order.pickup }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="tracking-route-line"></div>
+
+
+            <div class="tracking-route-item">
+
+                <span
+                    class="
+                        tracking-route-dot
+                        destination
+                    "
+                ></span>
+
+
+                <div>
+
+                    <small>
+                        TUJUAN
+                    </small>
+
+                    <strong>
+                        {{ order.destination }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if order.note %}
+
+        <div class="tracking-note">
+
+            <span>
+                Catatan
+            </span>
+
+            <p>
+                {{ order.note }}
+            </p>
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="tracking-meta">
+
+
+            <div>
+
+                <span>
+                    Jarak
+                </span>
+
+                <strong>
+                    {{ order.distance_km }} km
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Estimasi
+                </span>
+
+                <strong>
+                    {{ order.duration_minutes }} menit
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="tracking-fare">
+
+            <div>
+
+                <span>
+                    Total tarif
+                </span>
+
+                <strong>
+                    Rp{{ "{:,.0f}".format(order.fare).replace(",", ".") }}
+                </strong>
+
+            </div>
+
+
+            <div class="tracking-fare-icon">
+                ✓
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         REJECTED
+    ====================================== -->
+
+    <section
+        class="rejected-card"
+        id="rejectedCard"
+    >
+
+        <div class="rejected-icon">
+            ×
+        </div>
+
+        <div>
+
+            <span>
+                PESANAN TIDAK TERSEDIA
+            </span>
+
+            <h3>
+                Pesanan ditolak
+            </h3>
+
+            <p>
+                Maaf, perjalanan ini
+                tidak dapat diterima.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         NEW ORDER
+    ====================================== -->
+
+    <a
+        href="/"
+        class="new-order-link"
+    >
+        Buat pesanan baru
+    </a>
+
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script
+    src="{{ url_for('static', filename='js/order_status.js') }}"
+></script>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{
+    "id": "/",
+    "name": "Ojek Pribadi",
+    "short_name": "Ojek Pribadi",
+    "description": "Layanan ojek pribadi untuk perjalanan yang cepat, sederhana, dan terpercaya.",
+    "lang": "id-ID",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#09110f",
+    "theme_color": "#09110f",
+    "orientation": "portrait-primary",
+    "categories": [
+        "transportation",
+        "lifestyle"
+    ],
+    "icons": [
+        {
+            "src": "/static/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/static/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/static/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

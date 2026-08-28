@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+{{ order.order_code }}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="order-detail-page">
+
+
+    <main class="order-detail-container">
+
+
+        <!-- =====================================
+             HEADER
+        ====================================== -->
+
+        <header class="order-detail-header">
+
+
+            <a
+                href="{{ url_for('driver_history') }}"
+                class="history-back"
+            >
+                ←
+            </a>
+
+
+            <div>
+
+                <span>
+                    DETAIL PERJALANAN
+                </span>
+
+                <h1>
+                    {{ order.order_code }}
+                </h1>
+
+            </div>
+
+
+        </header>
+
+
+        <!-- =====================================
+             STATUS
+        ====================================== -->
+
+        <section
+            class="order-detail-status
+            {% if order.status == 'SELESAI' %}
+                completed
+            {% elif order.status == 'DITOLAK' %}
+                rejected
+            {% endif %}"
+        >
+
+            <small>
+                STATUS
+            </small>
+
+
+            <strong>
+                {{ order.status }}
+            </strong>
+
+
+            <p>
+                Dibuat {{ order.created_at }}
+            </p>
+
+        </section>
+
+<!-- =====================================
+     JOURNEY TIMESTAMPS
+====================================== -->
+
+<section class="order-detail-card">
+
+
+    <div class="order-detail-section-title">
+
+        <span>
+            00
+        </span>
+
+
+        <div>
+
+            <small>
+                TIMELINE
+            </small>
+
+            <h2>
+                Waktu perjalanan
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="detail-timestamp-list">
+
+
+        <!-- CREATED -->
+
+        <div class="detail-timestamp-item is-done">
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    PESANAN DIBUAT
+                </small>
+
+                <strong>
+                    {{ order.created_at }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACCEPTED -->
+
+        <div
+            class="detail-timestamp-item
+            {% if order.accepted_at %}
+                is-done
+            {% endif %}"
+        >
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    PESANAN DITERIMA
+                </small>
+
+                <strong>
+                    {{
+                        order.accepted_at
+                        or "-"
+                    }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- TO PICKUP -->
+
+        <div
+            class="detail-timestamp-item
+            {% if order.to_pickup_at %}
+                is-done
+            {% endif %}"
+        >
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    MENUJU PENJEMPUTAN
+                </small>
+
+                <strong>
+                    {{
+                        order.to_pickup_at
+                        or "-"
+                    }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- PICKED UP -->
+
+        <div
+            class="detail-timestamp-item
+            {% if order.picked_up_at %}
+                is-done
+            {% endif %}"
+        >
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    PELANGGAN DIJEMPUT
+                </small>
+
+                <strong>
+                    {{
+                        order.picked_up_at
+                        or "-"
+                    }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMPLETED -->
+
+        <div
+            class="detail-timestamp-item
+            {% if order.completed_at %}
+                is-done
+            {% endif %}"
+        >
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    PERJALANAN SELESAI
+                </small>
+
+                <strong>
+                    {{
+                        order.completed_at
+                        or "-"
+                    }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- REJECTED -->
+
+        {% if order.rejected_at %}
+
+        <div class="detail-timestamp-item is-rejected">
+
+            <span class="detail-timestamp-dot"></span>
+
+
+            <div>
+
+                <small>
+                    PESANAN DITOLAK
+                </small>
+
+                <strong>
+                    {{ order.rejected_at }}
+                </strong>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+    </div>
+
+</section>
+
+        <!-- =====================================
+             CUSTOMER
+        ====================================== -->
+
+        <section class="order-detail-card">
+
+
+            <div class="order-detail-section-title">
+
+                <span>
+                    01
+                </span>
+
+
+                <div>
+
+                    <small>
+                        PELANGGAN
+                    </small>
+
+                    <h2>
+                        Informasi pelanggan
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="detail-data-row">
+
+                <span>
+                    Nama
+                </span>
+
+                <strong>
+                    {{ order.customer_name }}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-data-row">
+
+                <span>
+                    WhatsApp
+                </span>
+
+                <strong>
+                    {{ order.whatsapp }}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-data-row">
+
+                <span>
+                    Catatan
+                </span>
+
+                <strong>
+                    {{ order.note or "-" }}
+                </strong>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =====================================
+             ROUTE
+        ====================================== -->
+
+        <section class="order-detail-card">
+
+
+            <div class="order-detail-section-title">
+
+                <span>
+                    02
+                </span>
+
+
+                <div>
+
+                    <small>
+                        RUTE
+                    </small>
+
+                    <h2>
+                        Detail perjalanan
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="detail-route-stop">
+
+                <span class="route-dot pickup"></span>
+
+                <div>
+
+                    <small>
+                        LOKASI JEMPUT
+                    </small>
+
+                    <strong>
+                        {{ order.pickup }}
+                    </strong>
+
+
+                    {% if pickup_map_url %}
+
+                    <a
+                        href="{{ pickup_map_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Buka Maps →
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="detail-route-line"></div>
+
+
+            <div class="detail-route-stop">
+
+                <span class="route-dot destination"></span>
+
+                <div>
+
+                    <small>
+                        TUJUAN
+                    </small>
+
+                    <strong>
+                        {{ order.destination }}
+                    </strong>
+
+
+                    {% if destination_map_url %}
+
+                    <a
+                        href="{{ destination_map_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Buka Maps →
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =====================================
+             TRIP INFO
+        ====================================== -->
+
+        <section class="order-detail-card">
+
+
+            <div class="order-detail-section-title">
+
+                <span>
+                    03
+                </span>
+
+
+                <div>
+
+                    <small>
+                        PERJALANAN
+                    </small>
+
+                    <h2>
+                        Ringkasan
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="order-detail-stats">
+
+
+                <div>
+
+                    <small>
+                        JARAK
+                    </small>
+
+                    <strong>
+                        {{ order.distance_km }} km
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        ESTIMASI
+                    </small>
+
+                    <strong>
+                        {{ order.duration_minutes }}
+                        menit
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        TARIF
+                    </small>
+
+                    <strong class="detail-fare">
+                        {{ order.fare | rupiah }}
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+{% endblock %}
