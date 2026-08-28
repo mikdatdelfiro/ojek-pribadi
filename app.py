@@ -324,34 +324,95 @@ COOKIE_SECURE = (
     == "true"
 )
 
+# ============================================================
+# PRODUCTION CONFIG VALIDATION
+# PHASE 14E
+# ============================================================
+
+SECRET_KEY = (
+    os.getenv(
+        "SECRET_KEY",
+        ""
+    )
+    .strip()
+)
+
+
+if (
+    APP_ENV
+    == "production"
+):
+
+    missing_production_config = []
+
+
+    if (
+        len(
+            SECRET_KEY
+        )
+        < 32
+    ):
+
+        missing_production_config.append(
+            "SECRET_KEY"
+        )
+
+
+    if not DATABASE_URL:
+
+        missing_production_config.append(
+            "DATABASE_URL"
+        )
+
+
+    if not DRIVER_PASSWORD:
+
+        missing_production_config.append(
+            "DRIVER_PASSWORD"
+        )
+
+
+    if not CLOUDINARY_CONFIGURED:
+
+        missing_production_config.append(
+            "CLOUDINARY"
+        )
+
+
+    if missing_production_config:
+
+        raise RuntimeError(
+            "Konfigurasi production tidak lengkap: "
+            +
+            ", ".join(
+                missing_production_config
+            )
+        )
+
+
+else:
+
+    if not SECRET_KEY:
+
+        SECRET_KEY = (
+            "development-only-secret-key"
+        )
 
 # ============================================================
 # APP
 # ============================================================
 
 app = Flask(__name__)
-
 app.config.update(
-    SECRET_KEY=os.getenv(
-        "SECRET_KEY",
-        "development-only-secret-key"
-    ),
-
+    SECRET_KEY=SECRET_KEY,
     SESSION_COOKIE_HTTPONLY=True,
-
     SESSION_COOKIE_SAMESITE="Lax",
-
     SESSION_COOKIE_SECURE=COOKIE_SECURE,
-
     PERMANENT_SESSION_LIFETIME=timedelta(
         minutes=DRIVER_SESSION_MINUTES
     ),
-
     SESSION_REFRESH_EACH_REQUEST=True,
-
-    MAX_CONTENT_LENGTH=
-        5 * 1024 * 1024,
-
+    MAX_CONTENT_LENGTH=5 * 1024 * 1024,
     JSON_SORT_KEYS=False,
 )
 
@@ -5527,6 +5588,7 @@ def update_order_status(
 
 # ============================================================
 # SECURITY HEADERS
+# PHASE 14E
 # ============================================================
 
 @app.after_request
@@ -5560,6 +5622,28 @@ def add_security_headers(
     )
 
 
+    response.headers[
+        "X-Permitted-Cross-Domain-Policies"
+    ] = "none"W
+
+    if (
+        APP_ENV
+        == "production"git add .
+git commit -m "Add production security headers"
+git push
+    ):
+
+        response.headers[
+            "Strict-Transport-Security"
+        ] = (
+            "max-age=31536000"
+        )
+
+
+    # --------------------------------------------------------
+    # PRIVATE DRIVER AREA
+    # --------------------------------------------------------
+
     if (
         request.path.startswith(
             "/driver"
@@ -5578,6 +5662,11 @@ def add_security_headers(
             "must-revalidate, "
             "max-age=0"
         )
+
+
+        response.headers[
+            "Pragma"
+        ] = "no-cache"
 
 
     return response
@@ -5651,6 +5740,11 @@ def cloudinary_health():
     menghapusnya kembali. Dengan demikian yang diuji sama dengan
     fitur upload foto profil driver.
     """
+    if (
+        APP_ENV
+        == "production"
+    ):
+        abort(404)
 
     config = cloudinary.config()
 
