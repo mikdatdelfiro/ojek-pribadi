@@ -2,6 +2,8 @@
 
 
 
+
+
 {% block title %}
 
 Ojek Pribadi
@@ -10,7 +12,11 @@ Ojek Pribadi
 
 
 
+
+
 {% block content %}
+
+
 
 
 
@@ -18,7 +24,7 @@ Ojek Pribadi
 
      PREMIUM BACKGROUND
 
-========================================== -->
+\========================================== -->
 
 <div class="premium-background">
 
@@ -32,13 +38,17 @@ Ojek Pribadi
 
 
 
+
+
 <!-- =========================================
 
      APP
 
-========================================== -->
+\========================================== -->
 
 <div class="app">
+
+
 
 
 
@@ -68,6 +78,8 @@ Ojek Pribadi
 
 
 
+
+
             <span class="brand-name">
 
                 OJEK PRIBADI
@@ -75,6 +87,8 @@ Ojek Pribadi
             </span>
 
         </a>
+
+
 
 
 
@@ -128,6 +142,8 @@ Ojek Pribadi
 
 
 
+
+
     <!-- =====================================
 
          MAIN
@@ -135,6 +151,8 @@ Ojek Pribadi
     ====================================== -->
 
     <main class="main">
+
+
 
 
 
@@ -148,9 +166,11 @@ Ojek Pribadi
 
             <div class="hero-badge">
 
-                Ojek pribadi • Praktis & nyaman
+                Ojek pribadi • Praktis *&* nyaman
 
             </div>
+
+
 
 
 
@@ -161,6 +181,8 @@ Ojek Pribadi
                 <span>Saya antar.</span>
 
             </h1>
+
+
 
 
 
@@ -180,7 +202,7 @@ Ojek Pribadi
 
      CUSTOMER SERVICE STATUS
 
-====================================== -->
+\====================================== -->
 
 <div
 
@@ -218,6 +240,8 @@ Ojek Pribadi
 
 
 
+
+
     <div class="customer-service-copy">
 
         <small>
@@ -225,6 +249,8 @@ Ojek Pribadi
             STATUS LAYANAN
 
         </small>
+
+
 
 
 
@@ -245,6 +271,8 @@ Ojek Pribadi
             {% endif %}
 
         </strong>
+
+
 
 
 
@@ -276,7 +304,7 @@ Ojek Pribadi
 
      PWA INSTALL
 
-====================================== -->
+\====================================== -->
 
 <section class="pwa-install-card">
 
@@ -296,6 +324,8 @@ Ojek Pribadi
 
 
 
+
+
     <div class="pwa-install-copy">
 
         <small>
@@ -303,6 +333,8 @@ Ojek Pribadi
             APLIKASI
 
         </small>
+
+
 
 
 
@@ -314,6 +346,8 @@ Ojek Pribadi
 
 
 
+
+
         <p
 
             id="pwaInstallStatus"
@@ -321,11 +355,14 @@ Ojek Pribadi
         >
 
             Pasang untuk akses lebih cepat
+
             saat Anda membutuhkan perjalanan.
 
         </p>
 
     </div>
+
+
 
 
 
@@ -347,6 +384,157 @@ Ojek Pribadi
 
 </section>
 
+<!-- =====================================
+
+     CUSTOMER ORDER HISTORY
+
+\====================================== -->
+
+<section
+
+    class="customer-history-card"
+
+    id="customerHistoryCard"
+
+>
+
+    <button
+
+        type="button"
+
+        class="customer-history-toggle"
+
+        id="customerHistoryToggle"
+
+        aria-expanded="false"
+
+        aria-controls="customerHistoryPanel"
+
+    >
+
+        <span class="customer-history-icon">
+
+            ↺
+
+        </span>
+
+
+
+        <span class="customer-history-copy">
+
+            <small>
+
+                PERJALANAN ANDA
+
+            </small>
+
+            <strong>
+
+                Riwayat Pesanan
+
+            </strong>
+
+            <span>
+
+                Lihat perjalanan yang pernah Anda buat.
+
+            </span>
+
+        </span>
+
+
+
+        <span
+
+            class="customer-history-count"
+
+            id="customerHistoryCount"
+
+        >
+
+            0
+
+        </span>
+
+
+
+        <span
+
+            class="customer-history-arrow"
+
+            id="customerHistoryArrow"
+
+        >
+
+            ↓
+
+        </span>
+
+    </button>
+
+
+
+    <div
+
+        class="customer-history-panel"
+
+        id="customerHistoryPanel"
+
+        hidden
+
+    >
+
+        <div
+
+            class="customer-history-list"
+
+            id="customerHistoryList"
+
+        >
+
+        </div>
+
+
+
+        <div class="customer-history-summary" id="customerHistorySummary">
+
+            <span>
+                <strong id="customerHistoryActiveCount">0</strong>
+                perjalanan aktif
+            </span>
+
+            <span>
+                Maksimal 10 riwayat terbaru
+            </span>
+
+        </div>
+
+        <div class="customer-history-footer">
+
+            <span>
+
+                Riwayat tersimpan di perangkat ini.
+
+            </span>
+
+            <button
+
+                type="button"
+
+                id="clearCustomerHistory"
+
+            >
+
+                Hapus Riwayat
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
         <!-- =================================
 
              BOOKING CARD
@@ -354,6 +542,8 @@ Ojek Pribadi
         ================================== -->
 
         <section class="booking-card">
+
+
 
 
 
@@ -377,6 +567,8 @@ Ojek Pribadi
 
 
 
+
+
                 <div class="motor-icon">
 
                     🛵
@@ -384,6 +576,8 @@ Ojek Pribadi
                 </div>
 
             </div>
+
+
 
 
 
@@ -403,6 +597,8 @@ Ojek Pribadi
 
 
 
+
+
                 <!-- =============================
 
                      PICKUP
@@ -416,6 +612,8 @@ Ojek Pribadi
                         Jemput saya di
 
                     </label>
+
+
 
 
 
@@ -439,6 +637,8 @@ Ojek Pribadi
 
 
 
+
+
                         <input
 
                             type="text"
@@ -456,6 +656,8 @@ Ojek Pribadi
                         >
 
                     </div>
+
+
 
 
 
@@ -483,6 +685,8 @@ Ojek Pribadi
 
 
 
+
+
                         <span class="current-location-content">
 
                             <strong>
@@ -501,6 +705,8 @@ Ojek Pribadi
 
 
 
+
+
                         <span class="current-location-arrow">
 
                             →
@@ -513,9 +719,13 @@ Ojek Pribadi
 
 
 
+
+
                 <!-- ROUTE CONNECTOR -->
 
                 <div class="route-line"></div>
+
+
 
 
 
@@ -532,6 +742,8 @@ Ojek Pribadi
                         Tujuan perjalanan
 
                     </label>
+
+
 
 
 
@@ -552,6 +764,8 @@ Ojek Pribadi
                             ◆
 
                         </span>
+
+
 
 
 
@@ -577,6 +791,8 @@ Ojek Pribadi
 
 
 
+
+
                 <!-- =============================
 
                      NOTE
@@ -591,11 +807,13 @@ Ojek Pribadi
 
                         <span>
 
-                            Opsional
+                            (Opsional)
 
                         </span>
 
                     </label>
+
+
 
 
 
@@ -606,6 +824,8 @@ Ojek Pribadi
                             ✎
 
                         </span>
+
+
 
 
 
@@ -629,6 +849,8 @@ Ojek Pribadi
 
 
 
+
+
                 <!-- =============================
 
                      MESSAGE
@@ -644,6 +866,8 @@ Ojek Pribadi
                     role="alert"
 
                 ></div>
+
+
 
 
 
@@ -689,6 +913,8 @@ Ojek Pribadi
 
 
 
+
+
         <!-- =================================
 
              FARE RESULT
@@ -702,6 +928,8 @@ Ojek Pribadi
             id="fareResult"
 
         >
+
+
 
 
 
@@ -727,6 +955,8 @@ Ojek Pribadi
 
 
 
+
+
                 <div class="fare-check">
 
                     ✓
@@ -737,6 +967,8 @@ Ojek Pribadi
 
 
 
+
+
             <!-- =================================
 
                  ROUTE RESULT
@@ -744,6 +976,8 @@ Ojek Pribadi
             ================================== -->
 
             <div class="result-route">
+
+
 
 
 
@@ -760,6 +994,8 @@ Ojek Pribadi
                         "
 
                     ></span>
+
+
 
 
 
@@ -783,7 +1019,11 @@ Ojek Pribadi
 
 
 
+
+
                 <div class="result-route-line"></div>
+
+
 
 
 
@@ -800,6 +1040,8 @@ Ojek Pribadi
                         "
 
                     ></span>
+
+
 
 
 
@@ -825,6 +1067,8 @@ Ojek Pribadi
 
 
 
+
+
             <!-- =================================
 
                  TRIP STATS
@@ -832,6 +1076,8 @@ Ojek Pribadi
             ================================== -->
 
             <div class="trip-stats">
+
+
 
 
 
@@ -853,6 +1099,8 @@ Ojek Pribadi
 
 
 
+
+
                 <div class="trip-stat">
 
                     <span>
@@ -870,6 +1118,8 @@ Ojek Pribadi
                 </div>
 
             </div>
+
+
 
 
 
@@ -900,6 +1150,8 @@ Ojek Pribadi
                 </small>
 
             </div>
+
+
 
 
 
@@ -935,6 +1187,8 @@ Ojek Pribadi
 
 
 
+
+
             <!-- =================================
 
                  CUSTOMER PANEL
@@ -948,6 +1202,8 @@ Ojek Pribadi
                 id="customerPanel"
 
             >
+
+
 
 
 
@@ -971,6 +1227,8 @@ Ojek Pribadi
 
 
 
+
+
                     <button
 
                         type="button"
@@ -988,6 +1246,8 @@ Ojek Pribadi
                     </button>
 
                 </div>
+
+
 
 
 
@@ -1014,6 +1274,8 @@ Ojek Pribadi
                     >
 
                 </div>
+
+
 
 
 
@@ -1045,6 +1307,8 @@ Ojek Pribadi
 
 
 
+
+
                 <!-- ORDER MESSAGE -->
 
                 <div
@@ -1056,6 +1320,8 @@ Ojek Pribadi
                     role="alert"
 
                 ></div>
+
+
 
 
 
@@ -1089,6 +1355,8 @@ Ojek Pribadi
 
 
 
+
+
             <p class="phase-note">
 
                 Periksa kembali lokasi, tujuan, dan nomor WhatsApp sebelum memesan.
@@ -1099,6 +1367,8 @@ Ojek Pribadi
 
 
 
+
+
         <!-- =================================
 
              INFO
@@ -1106,6 +1376,8 @@ Ojek Pribadi
         ================================== -->
 
         <section class="simple-info">
+
+
 
 
 
@@ -1137,6 +1409,8 @@ Ojek Pribadi
 
 
 
+
+
             <div class="info-item">
 
                 <div class="info-icon">
@@ -1162,6 +1436,8 @@ Ojek Pribadi
                 </div>
 
             </div>
+
+
 
 
 
@@ -1195,6 +1471,8 @@ Ojek Pribadi
 
 
 
+
+
         <!-- =================================
 
              FOOTER
@@ -1219,11 +1497,13 @@ Ojek Pribadi
 
 
 
+
+
 <!-- =========================================
 
      ORDER SUCCESS
 
-========================================== -->
+\========================================== -->
 
 <div
 
@@ -1235,7 +1515,11 @@ Ojek Pribadi
 
 
 
+
+
     <div class="success-card">
+
+
 
 
 
@@ -1251,6 +1535,8 @@ Ojek Pribadi
 
 
 
+
+
         <span class="success-label">
 
             PESANAN TERKIRIM
@@ -1259,21 +1545,29 @@ Ojek Pribadi
 
 
 
+
+
         <h2>
 
             Pesanan
+
             <span>berhasil dibuat.</span>
 
         </h2>
 
 
 
+
+
         <p>
 
             Permintaan perjalanan Anda sudah dikirim.
+
             Tunggu sebentar hingga driver mengonfirmasi.
 
         </p>
+
+
 
 
 
@@ -1295,6 +1589,8 @@ Ojek Pribadi
 
 
 
+
+
         <div class="success-status">
 
             <span class="status-animation"></span>
@@ -1303,25 +1599,37 @@ Ojek Pribadi
 
         </div>
 
+<div class="success-actions">
 
+    <button
 
-        <button
+        type="button"
 
-            type="button"
+        class="success-button"
 
-            class="success-button"
+        id="successButton"
 
-            id="successButton"
+    >
 
-        >
+        Lihat Status Perjalanan
 
-            Lihat Status Perjalanan
+    </button>
 
-        </button>
+    <a
 
-    </div>
+        href="/"
+
+        class="success-home-button"
+
+    >
+
+        ← Kembali ke Beranda
+
+    </a>
 
 </div>
+
+
 
 
 
@@ -1329,11 +1637,13 @@ Ojek Pribadi
 
 
 
+
+
 {% block scripts %}
 
 <script
 
-    src="{{ url_for('static', filename='js/app.js', v='copy-final-1') }}"
+    src="{{ url_for('static', filename='js/app.js', v='phase17-final-1') }}"
 
 ></script>
 

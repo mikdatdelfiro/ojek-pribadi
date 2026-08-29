@@ -520,20 +520,20 @@ function updateCustomerServiceUI(
 
     if (customerServiceDescription) {
 
-        customerServiceDescription.textContent =
-            serviceOpen
-                ? (
-                    "Saya siap menjemput Anda "
-                    +
-                    "sekarang."
-                )
-                : (
-                    "Layanan sedang tutup. "
-                    +
-                    "Silakan coba kembali nanti."
-                );
+    customerServiceDescription.textContent =
+        serviceOpen
+            ? (
+                "Saya siap menjemput Anda "
+                +
+                "sekarang."
+            )
+            : (
+                "Layanan sedang tutup. "
+                +
+                "Silakan coba kembali nanti."
+            );
 
-    }
+}
 
 
     // --------------------------------------------------------
@@ -1160,7 +1160,6 @@ function setFareLoading(
 
 }
 
-
 // ============================================================
 // CHECK FARE
 // ============================================================
@@ -1567,7 +1566,6 @@ function setOrderLoading(
 
 }
 
-
 // ============================================================
 // CREATE ORDER
 // ============================================================
@@ -1878,6 +1876,9 @@ function showOrderSuccess(
     successOrderCode.textContent =
         orderCode;
 
+    saveCustomerOrderToHistory(
+    orderCode
+    );
 
     if (customerPanel) {
 
@@ -2004,6 +2005,1018 @@ document.addEventListener(
     }
 );
 
+// ============================================================
+// CUSTOMER ORDER HISTORY
+// DEVICE LOCAL STORAGE
+// ============================================================
+
+const CUSTOMER_HISTORY_STORAGE_KEY =
+    "ojek_pribadi_customer_history_v1";
+
+
+const CUSTOMER_HISTORY_MAX_ITEMS =
+    10;
+
+
+// ============================================================
+// HISTORY DOM
+// ============================================================
+
+const customerHistoryToggle =
+    document.getElementById(
+        "customerHistoryToggle"
+    );
+
+
+const customerHistoryPanel =
+    document.getElementById(
+        "customerHistoryPanel"
+    );
+
+
+const customerHistoryList =
+    document.getElementById(
+        "customerHistoryList"
+    );
+
+
+const customerHistoryCount =
+    document.getElementById(
+        "customerHistoryCount"
+    );
+
+
+const customerHistoryArrow =
+    document.getElementById(
+        "customerHistoryArrow"
+    );
+
+
+const clearCustomerHistoryButton =
+    document.getElementById(
+        "clearCustomerHistory"
+    );
+
+
+// ============================================================
+// READ HISTORY
+// ============================================================
+
+function readCustomerOrderHistory() {
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                CUSTOMER_HISTORY_STORAGE_KEY
+            );
+
+
+        if (!raw) {
+
+            return [];
+
+        }
+
+
+        const parsed =
+            JSON.parse(
+                raw
+            );
+
+
+        if (!Array.isArray(parsed)) {
+
+            return [];
+
+        }
+
+
+        return parsed.filter(
+            function (
+                item
+            ) {
+
+                return (
+                    item
+                    &&
+                    typeof item.order_code
+                    === "string"
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[CUSTOMER HISTORY] Gagal membaca riwayat:",
+            error
+        );
+
+
+        return [];
+
+    }
+
+}
+
+
+// ============================================================
+// SAVE HISTORY
+// ============================================================
+
+function saveCustomerOrderToHistory(
+    orderCode
+) {
+
+    const normalizedOrderCode =
+        String(
+            orderCode
+            || ""
+        )
+        .trim();
+
+
+    if (!normalizedOrderCode) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const history =
+            readCustomerOrderHistory()
+                .filter(
+                    function (
+                        item
+                    ) {
+
+                        return (
+                            item.order_code
+                            !== normalizedOrderCode
+                        );
+
+                    }
+                );
+
+
+        history.unshift(
+            {
+                order_code:
+                    normalizedOrderCode,
+
+                saved_at:
+                    Date.now()
+            }
+        );
+
+
+        localStorage.setItem(
+            CUSTOMER_HISTORY_STORAGE_KEY,
+
+            JSON.stringify(
+                history.slice(
+                    0,
+                    CUSTOMER_HISTORY_MAX_ITEMS
+                )
+            )
+        );
+
+
+        refreshCustomerOrderHistory();
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[CUSTOMER HISTORY] Gagal menyimpan riwayat:",
+            error
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// STATUS LABEL
+// ============================================================
+
+function customerHistoryStatusLabel(
+    status
+) {
+
+    const labels = {
+
+        MENUNGGU:
+            "Menunggu",
+
+        DITERIMA:
+            "Diterima",
+
+        MENUJU_JEMPUT:
+            "Menuju Jemput",
+
+        DIJEMPUT:
+            "Dalam Perjalanan",
+
+        SELESAI:
+            "Selesai",
+
+        DITOLAK:
+            "Ditolak"
+
+    };
+
+
+    return (
+        labels[
+            status
+        ]
+        ||
+        status
+        ||
+        "-"
+    );
+
+}
+
+
+// ============================================================
+// FORMAT HISTORY DATE
+// ============================================================
+
+function formatCustomerHistoryDate(
+    value
+) {
+
+    if (!value) {
+
+        return "-";
+
+    }
+
+
+    const match =
+        String(
+            value
+        ).match(
+            /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/
+        );
+
+
+    if (!match) {
+
+        return value;
+
+    }
+
+
+    const monthNames = [
+
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Agu",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Des"
+
+    ];
+
+
+    return (
+        `${Number(match[3])} `
+        +
+        `${monthNames[Number(match[2]) - 1]}`
+        +
+        ` • ${match[4]}:${match[5]}`
+    );
+
+}
+
+
+// ============================================================
+// CREATE EMPTY HISTORY
+// ============================================================
+
+function renderCustomerHistoryEmpty() {
+
+    if (!customerHistoryList) {
+
+        return;
+
+    }
+
+
+    customerHistoryList.innerHTML =
+        "";
+
+
+    const empty =
+        document.createElement(
+            "div"
+        );
+
+
+    empty.className =
+        "customer-history-empty";
+
+
+    const icon =
+        document.createElement(
+            "span"
+        );
+
+
+    icon.textContent =
+        "↺";
+
+
+    const title =
+        document.createElement(
+            "strong"
+        );
+
+
+    title.textContent =
+        "Belum ada riwayat pesanan";
+
+
+    const description =
+        document.createElement(
+            "p"
+        );
+
+
+    description.textContent =
+        (
+            "Perjalanan yang Anda buat "
+            +
+            "akan muncul di sini."
+        );
+
+
+    empty.appendChild(
+        icon
+    );
+
+
+    empty.appendChild(
+        title
+    );
+
+
+    empty.appendChild(
+        description
+    );
+
+
+    customerHistoryList.appendChild(
+        empty
+    );
+
+}
+
+
+// ============================================================
+// CREATE HISTORY ITEM
+// ============================================================
+
+function createCustomerHistoryItem(
+    order
+) {
+
+    const card =
+        document.createElement(
+            "article"
+        );
+
+
+    card.className =
+        (
+            "customer-history-item "
+            +
+            `status-${String(
+                order.status
+                || ""
+            ).toLowerCase()}`
+        );
+
+
+    // --------------------------------------------------------
+    // TOP
+    // --------------------------------------------------------
+
+    const top =
+        document.createElement(
+            "div"
+        );
+
+
+    top.className =
+        "customer-history-item-top";
+
+
+    const codeWrap =
+        document.createElement(
+            "div"
+        );
+
+
+    const codeLabel =
+        document.createElement(
+            "small"
+        );
+
+
+    codeLabel.textContent =
+        "KODE PESANAN";
+
+
+    const code =
+        document.createElement(
+            "strong"
+        );
+
+
+    code.textContent =
+        order.order_code;
+
+
+    codeWrap.appendChild(
+        codeLabel
+    );
+
+
+    codeWrap.appendChild(
+        code
+    );
+
+
+    const status =
+        document.createElement(
+            "span"
+        );
+
+
+    status.className =
+        "customer-history-status";
+
+
+    status.textContent =
+        customerHistoryStatusLabel(
+            order.status
+        );
+
+
+    top.appendChild(
+        codeWrap
+    );
+
+
+    top.appendChild(
+        status
+    );
+
+
+    // --------------------------------------------------------
+    // ROUTE
+    // --------------------------------------------------------
+
+    const route =
+        document.createElement(
+            "div"
+        );
+
+
+    route.className =
+        "customer-history-route";
+
+
+    const pickup =
+        document.createElement(
+            "div"
+        );
+
+
+    const pickupDot =
+        document.createElement(
+            "span"
+        );
+
+
+    pickupDot.className =
+        "customer-history-route-dot pickup";
+
+
+    const pickupText =
+        document.createElement(
+            "p"
+        );
+
+
+    pickupText.textContent =
+        shortenLocation(
+            order.pickup
+        );
+
+
+    pickup.appendChild(
+        pickupDot
+    );
+
+
+    pickup.appendChild(
+        pickupText
+    );
+
+
+    const connector =
+        document.createElement(
+            "span"
+        );
+
+
+    connector.className =
+        "customer-history-route-line";
+
+
+    const destination =
+        document.createElement(
+            "div"
+        );
+
+
+    const destinationDot =
+        document.createElement(
+            "span"
+        );
+
+
+    destinationDot.className =
+        "customer-history-route-dot destination";
+
+
+    const destinationText =
+        document.createElement(
+            "p"
+        );
+
+
+    destinationText.textContent =
+        shortenLocation(
+            order.destination
+        );
+
+
+    destination.appendChild(
+        destinationDot
+    );
+
+
+    destination.appendChild(
+        destinationText
+    );
+
+
+    route.appendChild(
+        pickup
+    );
+
+
+    route.appendChild(
+        connector
+    );
+
+
+    route.appendChild(
+        destination
+    );
+
+
+    // --------------------------------------------------------
+    // META
+    // --------------------------------------------------------
+
+    const meta =
+        document.createElement(
+            "div"
+        );
+
+
+    meta.className =
+        "customer-history-meta";
+
+
+    const fare =
+        document.createElement(
+            "strong"
+        );
+
+
+    fare.textContent =
+        formatRupiah(
+            order.fare
+            || 0
+        );
+
+
+    const date =
+        document.createElement(
+            "span"
+        );
+
+
+    date.textContent =
+        formatCustomerHistoryDate(
+            order.created_at
+        );
+
+
+    meta.appendChild(
+        fare
+    );
+
+
+    meta.appendChild(
+        date
+    );
+
+
+    // --------------------------------------------------------
+    // BUTTON
+    // --------------------------------------------------------
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.className =
+        "customer-history-view";
+
+
+    link.href =
+        (
+            "/order/"
+            +
+            encodeURIComponent(
+                order.order_code
+            )
+        );
+
+
+    link.textContent =
+        "Lihat Status Perjalanan";
+
+
+    // --------------------------------------------------------
+    // COMPLETE
+    // --------------------------------------------------------
+
+    card.appendChild(
+        top
+    );
+
+
+    card.appendChild(
+        route
+    );
+
+
+    card.appendChild(
+        meta
+    );
+
+
+    card.appendChild(
+        link
+    );
+
+
+    return card;
+
+}
+
+
+// ============================================================
+// FETCH HISTORY ORDER
+// ============================================================
+
+async function fetchCustomerHistoryOrder(
+    orderCode
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        orderCode
+                    )
+                    +
+                    "/status"
+                ),
+
+                {
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json"
+
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            return null;
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !data
+            ||
+            data.success !== true
+            ||
+            !data.order
+        ) {
+
+            return null;
+
+        }
+
+
+        return data.order;
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[CUSTOMER HISTORY]",
+            error
+        );
+
+
+        return null;
+
+    }
+
+}
+
+
+// ============================================================
+// REFRESH HISTORY
+// ============================================================
+
+async function refreshCustomerOrderHistory() {
+
+    if (
+        !customerHistoryList
+        ||
+        !customerHistoryCount
+    ) {
+
+        return;
+
+    }
+
+
+    const history =
+        readCustomerOrderHistory();
+
+
+    customerHistoryCount.textContent =
+        String(
+            history.length
+        );
+
+
+    if (
+        history.length
+        === 0
+    ) {
+
+        renderCustomerHistoryEmpty();
+
+        return;
+
+    }
+
+
+    customerHistoryList.innerHTML =
+        "";
+
+
+    const loading =
+        document.createElement(
+            "div"
+        );
+
+
+    loading.className =
+        "customer-history-loading";
+
+
+    loading.textContent =
+        "Memuat riwayat perjalanan...";
+
+
+    customerHistoryList.appendChild(
+        loading
+    );
+
+
+    const orders =
+        await Promise.all(
+            history.map(
+                function (
+                    item
+                ) {
+
+                    return fetchCustomerHistoryOrder(
+                        item.order_code
+                    );
+
+                }
+            )
+        );
+
+
+    customerHistoryList.innerHTML =
+        "";
+
+
+    const validOrders =
+        orders.filter(
+            Boolean
+        );
+
+
+    if (
+        validOrders.length
+        === 0
+    ) {
+
+        renderCustomerHistoryEmpty();
+
+        return;
+
+    }
+
+
+    validOrders.forEach(
+        function (
+            order
+        ) {
+
+            customerHistoryList.appendChild(
+                createCustomerHistoryItem(
+                    order
+                )
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// TOGGLE HISTORY
+// ============================================================
+
+if (
+    customerHistoryToggle
+    &&
+    customerHistoryPanel
+) {
+
+    customerHistoryToggle.addEventListener(
+        "click",
+        function () {
+
+            const isOpen =
+                !customerHistoryPanel.hidden;
+
+
+            customerHistoryPanel.hidden =
+                isOpen;
+
+
+            customerHistoryToggle.setAttribute(
+                "aria-expanded",
+                String(
+                    !isOpen
+                )
+            );
+
+
+            if (customerHistoryArrow) {
+
+                customerHistoryArrow.textContent =
+                    isOpen
+                        ? "↓"
+                        : "↑";
+
+            }
+
+
+            if (!isOpen) {
+
+                refreshCustomerOrderHistory();
+
+            }
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CLEAR HISTORY
+// ============================================================
+
+if (clearCustomerHistoryButton) {
+
+    clearCustomerHistoryButton.addEventListener(
+        "click",
+        function () {
+
+            const confirmed =
+                window.confirm(
+                    "Hapus seluruh riwayat pesanan di perangkat ini?"
+                );
+
+
+            if (!confirmed) {
+
+                return;
+
+            }
+
+
+            try {
+
+                localStorage.removeItem(
+                    CUSTOMER_HISTORY_STORAGE_KEY
+                );
+
+            }
+
+            catch (error) {
+
+                console.warn(
+                    "[CUSTOMER HISTORY]",
+                    error
+                );
+
+            }
+
+
+            refreshCustomerOrderHistory();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// INITIAL HISTORY
+// ============================================================
+
+refreshCustomerOrderHistory();
 
 // ============================================================
 // APP READY
