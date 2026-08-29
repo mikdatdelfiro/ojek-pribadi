@@ -1023,8 +1023,7 @@ textarea::placeholder {
     background:
         linear-gradient(
             145deg,
-            rgba(13, 25, 21, .96),
-            rgba(7, 15, 12, .98)
+            rgba(13, 25, 21, .96),rgba(7, 15, 12, .98)
         ) !important;
 
     border:
@@ -1170,4 +1169,120 @@ textarea::placeholder {
 
     display: block !important;
     object-fit: contain !important;
+}
+
+/* ============================================================
+   DARK PREMIUM — ORDER SUCCESS
+============================================================ */
+
+.success-overlay {
+    background:
+        rgba(2, 8, 6, .92) !important;
+
+    backdrop-filter:
+        blur(18px) !important;
+}
+
+
+.success-card {
+    background:
+        linear-gradient(
+            145deg,
+            #0b1814,
+            #07100d
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+
+    box-shadow:
+        0 35px 90px
+        rgba(0, 0, 0, .50) !important;
+
+    color:
+        #f3f7f5 !important;
+}
+
+
+.success-card h2 {
+    color:
+        #f3f7f5 !important;
+}
+
+
+.success-card h2 span {
+    color:
+        #34d399 !important;
+}
+
+
+.success-card > p {
+    color:
+        rgba(220, 231, 226, .55) !important;
+}
+
+
+.success-label {
+    color:
+        #34d399 !important;
+}
+
+
+.order-code-box {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07) !important;
+}
+
+
+.order-code-box span {
+    color:
+        rgba(220, 231, 226, .45) !important;
+}
+
+
+.order-code-box strong {
+    color:
+        #f3f7f5 !important;
+}
+
+
+.success-status {
+    color:
+        rgba(220, 231, 226, .60) !important;
+}
+
+
+.success-button {
+    background:
+        linear-gradient(
+            135deg,
+            #34d399,
+            #20c98d
+        ) !important;
+
+    color:
+        #03100b !important;
+
+    border:
+        none !important;
+}
+
+
+.success-card a {
+    color:
+        #34d399 !important;
+
+    text-decoration:
+        none !important;
+}
+
+
+.success-card a:hover {
+    color:
+        #6ee7b7 !important;
 }
