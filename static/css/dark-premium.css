@@ -1783,3 +1783,793 @@ textarea::placeholder {
     color:
         #34d399 !important;
 }
+
+/* ============================================================
+   TEST — TRACKING DARK PREMIUM
+============================================================ */
+
+.tracking-page {
+    background: #030806 !important;
+    color: #f4f7f5 !important;
+}
+
+.tracking-progress,
+.tracking-route-card,
+.customer-driver-profile {
+    background: #091511 !important;
+    border: 1px solid rgba(52, 211, 153, .12) !important;
+    color: #f4f7f5 !important;
+}
+
+.tracking-section-head h2,
+.progress-step strong,
+.tracking-route-item strong {
+    color: #f4f7f5 !important;
+}
+
+.progress-step p,
+.tracking-route-item small {
+    color: rgba(220, 231, 226, .45) !important;
+}
+
+.tracking-meta > div {
+    background: rgba(255, 255, 255, .03) !important;
+}
+
+.new-order-link {
+    background: rgba(52, 211, 153, .07) !important;
+    border-color: rgba(52, 211, 153, .15) !important;
+    color: #34d399 !important;
+}
+
+/* ============================================================
+   PHASE 16A — TRACKING DARK PREMIUM FULL
+============================================================ */
+
+/* PAGE */
+
+.tracking-page {
+    position: relative !important;
+    min-height: 100vh !important;
+
+    background:
+        radial-gradient(
+            circle at 90% 5%,
+            rgba(52, 211, 153, .10),
+            transparent 28%
+        ),
+        linear-gradient(
+            180deg,
+            #06100d 0%,
+            #030806 100%
+        ) !important;
+
+    color: #f4f7f5 !important;
+}
+
+
+/* BACKGROUND DECORATION */
+
+.tracking-background {
+    pointer-events: none !important;
+}
+
+.tracking-orb {
+    opacity: .35 !important;
+}
+
+.tracking-orb-one {
+    background: rgba(52, 211, 153, .13) !important;
+}
+
+.tracking-orb-two {
+    background: rgba(20, 184, 166, .08) !important;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.tracking-header {
+    background:
+        rgba(5, 13, 10, .82) !important;
+
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, .05) !important;
+
+    backdrop-filter:
+        blur(18px) !important;
+}
+
+
+.tracking-brand {
+    color: #f4f7f5 !important;
+}
+
+
+.tracking-brand small {
+    color:
+        rgba(220, 231, 226, .42) !important;
+}
+
+
+.tracking-brand strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.tracking-logo {
+    background:
+        #07110e !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+}
+
+
+.live-indicator {
+    background:
+        rgba(52, 211, 153, .07) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+
+    color:
+        #34d399 !important;
+}
+
+
+/* ============================================================
+   INTRO
+============================================================ */
+
+.tracking-intro > span {
+    color:
+        #34d399 !important;
+}
+
+
+.tracking-intro h1 {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.tracking-intro p {
+    color:
+        rgba(220, 231, 226, .48) !important;
+}
+
+
+/* ============================================================
+   LIVE STATUS CARD
+============================================================ */
+
+.live-status-card {
+    background:
+        linear-gradient(
+            145deg,
+            #0b1814 0%,
+            #07100d 100%
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13) !important;
+
+    box-shadow:
+        0 24px 60px
+        rgba(0, 0, 0, .32) !important;
+
+    color:
+        #f4f7f5 !important;
+}
+
+
+.live-ring {
+    background:
+        rgba(52, 211, 153, .08) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12) !important;
+}
+
+
+.live-icon {
+    background:
+        #34d399 !important;
+
+    color:
+        #03100b !important;
+}
+
+
+.live-status-label {
+    color:
+        #34d399 !important;
+}
+
+
+.live-status-card h2 {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.live-status-card > p {
+    color:
+        rgba(220, 231, 226, .52) !important;
+}
+
+
+.live-update {
+    color:
+        rgba(220, 231, 226, .43) !important;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+}
+
+
+.live-update strong {
+    color:
+        rgba(220, 231, 226, .70) !important;
+}
+
+
+.live-update-dot {
+    background:
+        #34d399 !important;
+
+    box-shadow:
+        0 0 10px
+        rgba(52, 211, 153, .55) !important;
+}
+
+
+/* ============================================================
+   CURRENT STATUS TIMESTAMP
+============================================================ */
+
+.live-status-timestamp {
+    background:
+        rgba(52, 211, 153, .05) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .10) !important;
+
+    color:
+        rgba(220, 231, 226, .55) !important;
+}
+
+
+.live-status-timestamp span {
+    color:
+        rgba(52, 211, 153, .65) !important;
+}
+
+
+.live-status-timestamp strong {
+    color:
+        #34d399 !important;
+}
+
+
+/* ============================================================
+   CONTACT DRIVER
+============================================================ */
+
+.customer-driver-contact {
+    background:
+        rgba(52, 211, 153, .055) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13) !important;
+
+    color:
+        #f4f7f5 !important;
+}
+
+
+.customer-driver-icon {
+    background:
+        #34d399 !important;
+
+    color:
+        #03100b !important;
+}
+
+
+.customer-driver-content small {
+    color:
+        rgba(52, 211, 153, .68) !important;
+}
+
+
+.customer-driver-content strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.customer-driver-arrow {
+    color:
+        #34d399 !important;
+}
+
+
+/* ============================================================
+   PROGRESS CARD
+============================================================ */
+
+.tracking-progress {
+    background:
+        linear-gradient(
+            145deg,
+            #0b1814,
+            #07100d
+        ) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .065) !important;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, .25) !important;
+}
+
+
+.tracking-section-head > span {
+    color:
+        #34d399 !important;
+}
+
+
+.tracking-section-head h2 {
+    color:
+        #f4f7f5 !important;
+}
+
+
+/* PROGRESS STEP */
+
+.progress-step strong {
+    color:
+        rgba(244, 247, 245, .62) !important;
+}
+
+
+.progress-step p {
+    color:
+        rgba(220, 231, 226, .32) !important;
+}
+
+
+.progress-marker {
+    border-color:
+        rgba(255, 255, 255, .10) !important;
+
+    background:
+        #07100d !important;
+}
+
+
+.progress-marker span {
+    background:
+        rgba(255, 255, 255, .16) !important;
+}
+
+
+/* CURRENT */
+
+.progress-step.current strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.progress-step.current p {
+    color:
+        rgba(220, 231, 226, .55) !important;
+}
+
+
+.progress-step.current .progress-marker {
+    border-color:
+        #34d399 !important;
+
+    box-shadow:
+        0 0 0 5px
+        rgba(52, 211, 153, .07) !important;
+}
+
+
+.progress-step.current .progress-marker span {
+    background:
+        #34d399 !important;
+}
+
+
+/* DONE */
+
+.progress-step.done strong {
+    color:
+        #dff8ed !important;
+}
+
+
+.progress-step.done p {
+    color:
+        rgba(220, 231, 226, .48) !important;
+}
+
+
+.progress-step.done .progress-marker {
+    border-color:
+        #34d399 !important;
+
+    background:
+        rgba(52, 211, 153, .08) !important;
+}
+
+
+.progress-step.done .progress-marker span {
+    background:
+        #34d399 !important;
+}
+
+
+/* TIMESTAMP */
+
+.progress-timestamp {
+    color:
+        rgba(220, 231, 226, .28) !important;
+}
+
+
+.progress-timestamp.is-set {
+    color:
+        #34d399 !important;
+}
+
+
+/* ============================================================
+   DRIVER PROFILE
+============================================================ */
+
+.customer-driver-profile {
+    background:
+        linear-gradient(
+            145deg,
+            #0b1814,
+            #07100d
+        ) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .065) !important;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, .25) !important;
+
+    color:
+        #f4f7f5 !important;
+}
+
+
+.customer-driver-photo {
+    background:
+        rgba(52, 211, 153, .07) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12) !important;
+
+    color:
+        #34d399 !important;
+}
+
+
+.customer-driver-identity small,
+.customer-vehicle-info small {
+    color:
+        rgba(52, 211, 153, .65) !important;
+}
+
+
+.customer-driver-identity strong,
+.customer-vehicle-info strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.customer-driver-identity p {
+    color:
+        rgba(220, 231, 226, .45) !important;
+}
+
+
+.customer-vehicle-info > div {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+}
+
+
+/* ============================================================
+   ROUTE CARD
+============================================================ */
+
+.tracking-route-card {
+    background:
+        linear-gradient(
+            145deg,
+            #0b1814,
+            #07100d
+        ) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .065) !important;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, .25) !important;
+
+    color:
+        #f4f7f5 !important;
+}
+
+
+.tracking-route-item small {
+    color:
+        rgba(52, 211, 153, .62) !important;
+}
+
+
+.tracking-route-item strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.tracking-route-dot {
+    border-color:
+        #34d399 !important;
+}
+
+
+.tracking-route-dot.pickup {
+    background:
+        #34d399 !important;
+}
+
+
+.tracking-route-dot.destination {
+    background:
+        #0b1814 !important;
+
+    box-shadow:
+        inset 0 0 0 3px #34d399 !important;
+}
+
+
+.tracking-route-line {
+    background:
+        linear-gradient(
+            #34d399,
+            rgba(52, 211, 153, .12)
+        ) !important;
+}
+
+
+/* NOTE */
+
+.tracking-note {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+}
+
+
+.tracking-note span {
+    color:
+        rgba(52, 211, 153, .62) !important;
+}
+
+
+.tracking-note p {
+    color:
+        rgba(230, 238, 235, .72) !important;
+}
+
+
+/* META */
+
+.tracking-meta > div {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+}
+
+
+.tracking-meta span {
+    color:
+        rgba(220, 231, 226, .40) !important;
+}
+
+
+.tracking-meta strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+/* FARE */
+
+.tracking-fare {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(52, 211, 153, .09),
+            rgba(52, 211, 153, .035)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13) !important;
+}
+
+
+.tracking-fare span {
+    color:
+        rgba(220, 231, 226, .48) !important;
+}
+
+
+.tracking-fare strong {
+    color:
+        #34d399 !important;
+}
+
+
+.tracking-fare-icon {
+    background:
+        #34d399 !important;
+
+    color:
+        #03100b !important;
+}
+
+
+/* ============================================================
+   REJECTED
+============================================================ */
+
+.rejected-card {
+    background:
+        rgba(255, 84, 84, .055) !important;
+
+    border:
+        1px solid
+        rgba(255, 110, 110, .13) !important;
+
+    color:
+        #f4f7f5 !important;
+}
+
+
+.rejected-card h3 {
+    color:
+        #ff9696 !important;
+}
+
+
+.rejected-card p {
+    color:
+        rgba(235, 220, 220, .50) !important;
+}
+
+
+.rejected-card > div > span {
+    color:
+        rgba(255, 130, 130, .70) !important;
+}
+
+
+.rejected-icon {
+    background:
+        rgba(255, 110, 110, .10) !important;
+
+    color:
+        #ff8585 !important;
+}
+
+
+/* ============================================================
+   NEW ORDER BUTTON
+============================================================ */
+
+.new-order-link {
+    background:
+        rgba(52, 211, 153, .07) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+
+    color:
+        #34d399 !important;
+
+    text-decoration:
+        none !important;
+}
+
+
+.new-order-link:hover {
+    background:
+        rgba(52, 211, 153, .12) !important;
+
+    border-color:
+        rgba(52, 211, 153, .25) !important;
+}
+
+
+/* ============================================================
+   STATUS TOAST
+============================================================ */
+
+.customer-status-toast {
+    background:
+        #0b1814 !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13) !important;
+
+    color:
+        #f4f7f5 !important;
+
+    box-shadow:
+        0 24px 60px
+        rgba(0, 0, 0, .40) !important;
+}
+
+
+.customer-status-toast-label {
+    color:
+        #34d399 !important;
+}
+
+
+.customer-status-toast strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.customer-status-toast p {
+    color:
+        rgba(220, 231, 226, .50) !important;
+}
