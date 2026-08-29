@@ -4,7 +4,7 @@
 // ============================================================
 // OJEK PRIBADI
 // CUSTOMER APP
-// Clean JavaScript - Phase 9
+// Customer Language System - Final Copy
 // ============================================================
 
 
@@ -508,8 +508,8 @@ function updateCustomerServiceUI(
 
         customerServiceLabel.textContent =
             serviceOpen
-                ? "Ojek sedang tersedia"
-                : "Sedang tidak melayani";
+                ? "Siap menerima perjalanan"
+                : "Sedang tidak menerima perjalanan";
 
     }
 
@@ -523,14 +523,14 @@ function updateCustomerServiceUI(
         customerServiceDescription.textContent =
             serviceOpen
                 ? (
-                    "Pesanan dapat dilakukan "
+                    "Saya siap menjemput Anda "
                     +
                     "sekarang."
                 )
                 : (
-                    "Silakan kembali beberapa "
+                    "Layanan sedang tutup. "
                     +
-                    "saat lagi."
+                    "Silakan coba kembali nanti."
                 );
 
     }
@@ -590,7 +590,7 @@ function updateCustomerServiceUI(
     ) {
 
         showOrderMessage(
-            "Layanan sedang tidak menerima pesanan."
+            "Layanan sedang tutup. Pesanan belum dapat dibuat saat ini."
         );
 
     }
@@ -910,7 +910,7 @@ async function handleLocationSuccess(
         if (locationButtonText) {
 
             locationButtonText.textContent =
-                "GPS berhasil digunakan";
+                "Lokasi GPS berhasil digunakan";
 
         }
 
@@ -950,7 +950,7 @@ function handleLocationError(
 
 
     let message =
-        "Lokasi tidak dapat ditemukan.";
+        "Lokasi belum dapat ditemukan.";
 
 
     switch (
@@ -961,9 +961,9 @@ function handleLocationError(
 
             message =
                 (
-                    "Izin lokasi ditolak. "
+                    "Izin lokasi belum diberikan. "
                     +
-                    "Izinkan akses lokasi pada browser."
+                    "Anda tetap dapat memasukkan lokasi secara manual."
                 );
 
             break;
@@ -973,9 +973,9 @@ function handleLocationError(
 
             message =
                 (
-                    "Lokasi perangkat tidak tersedia. "
+                    "Lokasi perangkat belum tersedia. "
                     +
-                    "Pastikan layanan lokasi aktif."
+                    "Pastikan layanan lokasi di perangkat Anda aktif."
                 );
 
             break;
@@ -985,7 +985,7 @@ function handleLocationError(
 
             message =
                 (
-                    "Pencarian lokasi terlalu lama. "
+                    "Pencarian lokasi membutuhkan waktu terlalu lama. "
                     +
                     "Silakan coba lagi."
                 );
@@ -1026,7 +1026,7 @@ if (useLocationButton) {
             ) {
 
                 showMessage(
-                    "Browser ini tidak mendukung akses lokasi."
+                    "Browser ini belum mendukung akses lokasi. Masukkan lokasi jemput secara manual."
                 );
 
                 return;
@@ -1086,7 +1086,7 @@ if (pickupInput) {
             if (locationButtonText) {
 
                 locationButtonText.textContent =
-                    "Ambil titik jemput otomatis";
+                    "Tentukan titik jemput secara otomatis";
 
             }
 
@@ -1149,8 +1149,8 @@ function setFareLoading(
 
     buttonText.textContent =
         loading
-            ? "Menghitung..."
-            : "Cek Tarif";
+            ? "Menghitung tarif..."
+            : "Lihat Tarif";
 
 
     buttonArrow.textContent =
@@ -1209,7 +1209,7 @@ if (bookingForm) {
             if (!pickup) {
 
                 showMessage(
-                    "Masukkan lokasi jemput."
+                    "Masukkan lokasi penjemputan terlebih dahulu."
                 );
 
 
@@ -1224,7 +1224,7 @@ if (bookingForm) {
             if (!destination) {
 
                 showMessage(
-                    "Masukkan lokasi tujuan."
+                    "Masukkan lokasi tujuan terlebih dahulu."
                 );
 
 
@@ -1309,7 +1309,7 @@ if (bookingForm) {
                     throw new Error(
                         data.message
                         ||
-                        "Gagal menghitung tarif."
+                        "Tarif belum dapat dihitung. Silakan coba lagi."
                     );
 
                 }
@@ -1334,7 +1334,7 @@ if (bookingForm) {
                 showMessage(
                     error.message
                     ||
-                    "Terjadi kesalahan."
+                    "Terjadi kendala. Silakan coba lagi."
                 );
 
 
@@ -1459,7 +1459,7 @@ if (orderButton) {
             if (!serviceOpen) {
 
                 showMessage(
-                    "Layanan sedang tidak menerima pesanan."
+                    "Layanan sedang tutup. Pesanan belum dapat dibuat saat ini."
                 );
 
 
@@ -1475,7 +1475,7 @@ if (orderButton) {
             if (!currentRoute) {
 
                 showMessage(
-                    "Cek tarif terlebih dahulu."
+                    "Lihat tarif terlebih dahulu."
                 );
 
 
@@ -1558,7 +1558,7 @@ function setOrderLoading(
         confirmOrderText.textContent =
             orderSubmitting
                 ? "Mengirim pesanan..."
-                : "Konfirmasi Pesanan";
+                : "Pesan Perjalanan";
 
     }
 
@@ -1589,7 +1589,7 @@ if (confirmOrderButton) {
             if (!serviceOpen) {
 
                 showOrderMessage(
-                    "Layanan sedang tidak menerima pesanan."
+                    "Layanan sedang tutup. Pesanan belum dapat dibuat saat ini."
                 );
 
 
@@ -1601,7 +1601,7 @@ if (confirmOrderButton) {
             if (!currentRoute) {
 
                 showOrderMessage(
-                    "Silakan cek tarif kembali."
+                    "Silakan lihat tarif kembali sebelum memesan."
                 );
 
 
@@ -1666,7 +1666,7 @@ if (confirmOrderButton) {
             ) {
 
                 showOrderMessage(
-                    "Masukkan nama Anda."
+                    "Masukkan nama Anda untuk melanjutkan."
                 );
 
 
@@ -1689,7 +1689,7 @@ if (confirmOrderButton) {
             ) {
 
                 showOrderMessage(
-                    "Masukkan nomor WhatsApp yang valid."
+                    "Masukkan nomor WhatsApp yang valid untuk melanjutkan."
                 );
 
 
@@ -1810,7 +1810,7 @@ if (confirmOrderButton) {
                     throw new Error(
                         data.message
                         ||
-                        "Pesanan gagal dibuat."
+                        "Pesanan belum berhasil dikirim. Silakan coba lagi."
                     );
 
                 }
@@ -1831,7 +1831,7 @@ if (confirmOrderButton) {
                 showOrderMessage(
                     error.message
                     ||
-                    "Pesanan gagal dibuat."
+                    "Pesanan belum berhasil dikirim. Silakan coba lagi."
                 );
 
 

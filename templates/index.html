@@ -1,16 +1,23 @@
 {% extends "base.html" %}
 
 
+
 {% block title %}
+
 Ojek Pribadi
+
 {% endblock %}
+
 
 
 {% block content %}
 
 
+
 <!-- =========================================
+
      PREMIUM BACKGROUND
+
 ========================================== -->
 
 <div class="premium-background">
@@ -24,15 +31,21 @@ Ojek Pribadi
 </div>
 
 
+
 <!-- =========================================
+
      APP
+
 ========================================== -->
 
 <div class="app">
 
 
+
     <!-- =====================================
+
          HEADER
+
     ====================================== -->
 
     <header class="header">
@@ -42,44 +55,71 @@ Ojek Pribadi
             <span class="brand-icon brand-icon-image">
 
                 <img
+
                     src="{{ url_for('static', filename='icons/icon-192.png', v='3') }}"
+
                     alt="Ojek Pribadi"
+
                     class="brand-logo-image"
+
                 >
 
             </span>
 
 
+
             <span class="brand-name">
+
                 OJEK PRIBADI
+
             </span>
 
         </a>
 
 
+
         <div
+
     class="availability-badge
+
     {% if service_open %}
+
         is-open
+
     {% else %}
+
         is-closed
+
     {% endif %}"
+
     id="headerServiceBadge"
+
 >
 
     <span
+
         class="availability-dot"
+
         id="headerServiceDot"
+
     ></span>
 
     <span
+
         id="headerServiceText"
+
     >
+
         {% if service_open %}
+
             Aktif
+
         {% else %}
+
             Tutup
+
         {% endif %}
+
     </span>
 
 </div>
@@ -87,97 +127,140 @@ Ojek Pribadi
     </header>
 
 
+
     <!-- =====================================
+
          MAIN
+
     ====================================== -->
 
     <main class="main">
 
 
+
         <!-- =================================
+
              HERO
+
         ================================== -->
 
         <section class="hero">
 
             <div class="hero-badge">
-                Ojek langsung • Tanpa ribet
+
+                Ojek pribadi • Praktis & nyaman
+
             </div>
 
 
+
             <h1>
-                Mau pergi kemana?
-                <span>Saya antar</span>
+
+                Mau pergi?
+
+                <span>Saya antar.</span>
+
             </h1>
 
 
+
             <p>
+
                 Tentukan lokasi jemput dan tujuan Anda.
-                Cek Tarif terlebih dahulu, lalu pesan
-                perjalanan anda dengan mudah.
+
+                Lihat tarif terlebih dahulu, lalu pesan
+
+                perjalanan dengan mudah.
+
             </p>
 
         </section>
 
 <!-- =====================================
+
      CUSTOMER SERVICE STATUS
+
 ====================================== -->
 
 <div
+
     class="customer-service-status
+
     {% if service_open %}
+
         is-open
+
     {% else %}
+
         is-closed
+
     {% endif %}"
+
     id="customerServiceStatus"
+
     data-service-open="{{
+
         'true'
+
         if service_open
+
         else 'false'
+
     }}"
+
 >
 
     <span
+
         class="customer-service-dot"
+
     ></span>
+
 
 
     <div class="customer-service-copy">
 
         <small>
+
             STATUS LAYANAN
+
         </small>
 
 
+
         <strong
+
             id="customerServiceLabel"
+
         >
 
             {% if service_open %}
 
-                Ojek sedang tersedia
+                Siap menerima perjalanan
 
             {% else %}
 
-                Sedang tidak melayani
+                Sedang tidak menerima perjalanan
 
             {% endif %}
 
         </strong>
 
 
+
         <p
+
             id="customerServiceDescription"
+
         >
 
             {% if service_open %}
 
-                Pesanan dapat dilakukan sekarang.
+                Saya siap menjemput Anda sekarang.
 
             {% else %}
 
-                Silakan kembali beberapa saat lagi.
+                Layanan sedang tutup. Silakan coba kembali nanti.
 
             {% endif %}
 
@@ -188,8 +271,11 @@ Ojek Pribadi
 </div>
 
 <!-- =====================================
+
      PHASE 13
+
      PWA INSTALL
+
 ====================================== -->
 
 <section class="pwa-install-card">
@@ -197,54 +283,78 @@ Ojek Pribadi
     <div class="pwa-install-icon pwa-install-icon-image">
 
     <img
+
         src="{{ url_for('static', filename='icons/icon-192.png', v='3') }}"
+
         alt="Ojek Pribadi"
+
         class="pwa-app-logo-image"
+
     >
 
     </div>
+
 
 
     <div class="pwa-install-copy">
 
         <small>
+
             APLIKASI
+
         </small>
 
 
+
         <strong>
+
             Ojek Pribadi
+
         </strong>
 
 
+
         <p
+
             id="pwaInstallStatus"
+
         >
-            Tambahkan ke Home Screen
-            untuk akses lebih cepat.
+
+            Pasang untuk akses lebih cepat
+            saat Anda membutuhkan perjalanan.
+
         </p>
 
     </div>
 
 
+
     <button
+
         type="button"
+
         class="pwa-install-button"
+
         id="pwaInstallButton"
+
         hidden
+
     >
 
-        Install
+        Pasang
 
     </button>
 
 </section>
 
         <!-- =================================
+
              BOOKING CARD
+
         ================================== -->
 
         <section class="booking-card">
+
 
 
             <div class="card-heading">
@@ -252,98 +362,149 @@ Ojek Pribadi
                 <div>
 
                     <span class="card-label">
-                        Perjalanan
+
+                        PESAN PERJALANAN
+
                     </span>
 
                     <h2>
-                        Tentukan tujuan Anda
+
+                        Ke mana tujuan Anda?
+
                     </h2>
 
                 </div>
 
 
+
                 <div class="motor-icon">
+
                     🛵
+
                 </div>
 
             </div>
 
 
+
             <!-- =================================
+
                  BOOKING FORM
+
             ================================== -->
 
             <form
+
                 id="bookingForm"
+
                 novalidate
+
             >
 
 
+
                 <!-- =============================
+
                      PICKUP
+
                 ============================== -->
 
                 <div class="form-group">
 
                     <label for="pickup">
-                        Lokasi jemput
+
+                        Jemput saya di
+
                     </label>
+
 
 
                     <div class="input-wrapper">
 
                         <span
+
                             class="
+
                                 input-icon
+
                                 pickup-icon
+
                             "
+
                         >
+
                              📍
+
                         </span>
 
 
+
                         <input
+
                             type="text"
+
                             id="pickup"
+
                             name="pickup"
-                            placeholder="Masukkan lokasi jemput"
+
+                            placeholder="Masukkan lokasi penjemputan"
+
                             autocomplete="off"
+
                             required
+
                         >
 
                     </div>
 
 
+
                     <!-- =========================
+
                          GPS
+
                     ========================== -->
 
                     <button
+
                         type="button"
+
                         class="current-location-button"
+
                         id="useLocationButton"
+
                     >
 
                         <span class="current-location-icon">
+
                             ⌖
+
                         </span>
+
 
 
                         <span class="current-location-content">
 
                             <strong>
-                                Gunakan lokasi saya
+
+                                Gunakan lokasi saat ini
+
                             </strong>
 
                             <small id="locationButtonText">
-                                Ambil titik jemput otomatis
+
+                                Tentukan titik jemput secara otomatis
+
                             </small>
 
                         </span>
 
 
+
                         <span class="current-location-arrow">
+
                             →
+
                         </span>
 
                     </button>
@@ -351,41 +512,63 @@ Ojek Pribadi
                 </div>
 
 
+
                 <!-- ROUTE CONNECTOR -->
 
                 <div class="route-line"></div>
 
 
+
                 <!-- =============================
+
                      DESTINATION
+
                 ============================== -->
 
                 <div class="form-group">
 
                     <label for="destination">
-                        Mau diantar ke mana?
+
+                        Tujuan perjalanan
+
                     </label>
+
 
 
                     <div class="input-wrapper">
 
                         <span
+
                             class="
+
                                 input-icon
+
                                 destination-icon
+
                             "
+
                         >
+
                             ◆
+
                         </span>
 
 
+
                         <input
+
                             type="text"
+
                             id="destination"
+
                             name="destination"
-                            placeholder="Masukkan tujuan"
+
+                            placeholder="Cari lokasi tujuan"
+
                             autocomplete="off"
+
                             required
+
                         >
 
                     </div>
@@ -393,36 +576,51 @@ Ojek Pribadi
                 </div>
 
 
+
                 <!-- =============================
+
                      NOTE
+
                 ============================== -->
 
                 <div class="form-group note-group">
 
                     <label for="note">
 
-                        Catatan
+                        Catatan untuk driver
 
                         <span>
+
                             Opsional
+
                         </span>
 
                     </label>
 
 
+
                     <div class="input-wrapper">
 
                         <span class="input-icon">
+
                             ✎
+
                         </span>
 
 
+
                         <input
+
                             type="text"
+
                             id="note"
+
                             name="note"
+
                             placeholder="Contoh: Saya menunggu di depan minimarket"
+
                             autocomplete="off"
+
                         >
 
                     </div>
@@ -430,36 +628,57 @@ Ojek Pribadi
                 </div>
 
 
+
                 <!-- =============================
+
                      MESSAGE
+
                 ============================== -->
 
                 <div
+
                     class="form-message"
+
                     id="formMessage"
+
                     role="alert"
+
                 ></div>
 
 
+
                 <!-- =============================
+
                      CHECK FARE
+
                 ============================== -->
 
                 <button
+
                     type="submit"
+
                     class="primary-button"
+
                     id="checkFareButton"
+
                 >
 
                     <span id="buttonText">
-                        Cek Tarif
+
+                        Lihat Tarif
+
                     </span>
 
                     <span
+
                         class="button-arrow"
+
                         id="buttonArrow"
+
                     >
+
                         →
+
                     </span>
 
                 </button>
@@ -469,14 +688,21 @@ Ojek Pribadi
         </section>
 
 
+
         <!-- =================================
+
              FARE RESULT
+
         ================================== -->
 
         <section
+
             class="fare-result"
+
             id="fareResult"
+
         >
+
 
 
             <!-- RESULT HEADER -->
@@ -486,76 +712,109 @@ Ojek Pribadi
                 <div>
 
                     <span class="result-label">
-                        Estimasi perjalanan
+
+                        ESTIMASI PERJALANAN
+
                     </span>
 
                     <h2>
-                        Tarif perjalanan
+
+                        Perjalanan Anda
+
                     </h2>
 
                 </div>
 
 
+
                 <div class="fare-check">
+
                     ✓
+
                 </div>
 
             </div>
 
 
+
             <!-- =================================
+
                  ROUTE RESULT
+
             ================================== -->
 
             <div class="result-route">
 
 
+
                 <div class="result-location">
 
                     <span
+
                         class="
+
                             location-mark
+
                             pickup
+
                         "
+
                     ></span>
+
 
 
                     <div>
 
                         <span>
-                            Jemput
+
+                            Lokasi jemput
+
                         </span>
 
                         <strong id="resultPickup">
+
                             -
+
                         </strong>
 
                     </div>
 
                 </div>
+
 
 
                 <div class="result-route-line"></div>
 
 
+
                 <div class="result-location">
 
                     <span
+
                         class="
+
                             location-mark
+
                             destination
+
                         "
+
                     ></span>
+
 
 
                     <div>
 
                         <span>
+
                             Tujuan
+
                         </span>
 
                         <strong id="resultDestination">
+
                             -
+
                         </strong>
 
                     </div>
@@ -565,34 +824,47 @@ Ojek Pribadi
             </div>
 
 
+
             <!-- =================================
+
                  TRIP STATS
+
             ================================== -->
 
             <div class="trip-stats">
 
 
+
                 <div class="trip-stat">
 
                     <span>
+
                         Jarak
+
                     </span>
 
                     <strong id="resultDistance">
+
                         -
+
                     </strong>
 
                 </div>
 
 
+
                 <div class="trip-stat">
 
                     <span>
+
                         Estimasi waktu
+
                     </span>
 
                     <strong id="resultDuration">
+
                         -
+
                     </strong>
 
                 </div>
@@ -600,56 +872,83 @@ Ojek Pribadi
             </div>
 
 
+
             <!-- =================================
+
                  PRICE
+
             ================================== -->
 
             <div class="price-section">
 
                 <span>
-                    Estimasi tarif
+
+                    Tarif perjalanan
+
                 </span>
 
                 <strong id="resultFare">
+
                     Rp0
+
                 </strong>
 
                 <small>
-                    Tarif berdasarkan jarak perjalanan.
+
+                    Tarif sudah dihitung berdasarkan rute perjalanan Anda.
+
                 </small>
 
             </div>
 
 
+
             <!-- =================================
+
                  ORDER BUTTON
+
             ================================== -->
 
             <button
+
                 type="button"
+
                 class="order-button"
+
                 id="orderButton"
+
             >
 
                 <span>
-                    Pesan Ojek
+
+                    Pesan Sekarang
+
                 </span>
 
                 <span>
+
                     →
+
                 </span>
 
             </button>
 
 
+
             <!-- =================================
+
                  CUSTOMER PANEL
+
             ================================== -->
 
             <div
+
                 class="customer-panel"
+
                 id="customerPanel"
+
             >
+
 
 
                 <div class="customer-panel-head">
@@ -657,26 +956,39 @@ Ojek Pribadi
                     <div>
 
                         <span class="result-label">
-                            Hampir selesai
+
+                            LANGKAH TERAKHIR
+
                         </span>
 
                         <h3>
-                            Data pemesan
+
+                            Lengkapi data pemesan
+
                         </h3>
 
                     </div>
 
 
+
                     <button
+
                         type="button"
+
                         class="panel-close"
+
                         id="closeCustomerPanel"
+
                         aria-label="Tutup form pelanggan"
+
                     >
+
                         ×
+
                     </button>
 
                 </div>
+
 
 
                 <!-- NAME -->
@@ -684,17 +996,25 @@ Ojek Pribadi
                 <div class="customer-field">
 
                     <label for="customerName">
+
                         Nama
+
                     </label>
 
                     <input
+
                         type="text"
+
                         id="customerName"
-                        placeholder="Masukkan nama Anda"
+
+                        placeholder="Masukkan nama"
+
                         autocomplete="name"
+
                     >
 
                 </div>
+
 
 
                 <!-- WHATSAPP -->
@@ -702,43 +1022,65 @@ Ojek Pribadi
                 <div class="customer-field">
 
                     <label for="customerWhatsapp">
+
                         Nomor WhatsApp
+
                     </label>
 
                     <input
+
                         type="tel"
+
                         id="customerWhatsapp"
-                        placeholder="08xxxxxxxxxx"
+
+                        placeholder="Contoh: 081234567890"
+
                         autocomplete="tel"
+
                         inputmode="tel"
+
                     >
 
                 </div>
 
 
+
                 <!-- ORDER MESSAGE -->
 
                 <div
+
                     class="order-message"
+
                     id="orderMessage"
+
                     role="alert"
+
                 ></div>
+
 
 
                 <!-- CONFIRM -->
 
                 <button
+
                     type="button"
+
                     class="confirm-order-button"
+
                     id="confirmOrderButton"
+
                 >
 
                     <span id="confirmOrderText">
-                        Konfirmasi Pesanan
+
+                        Pesan Perjalanan
+
                     </span>
 
                     <span>
+
                         →
+
                     </span>
 
                 </button>
@@ -746,34 +1088,47 @@ Ojek Pribadi
             </div>
 
 
+
             <p class="phase-note">
-                Pastikan lokasi dan nomor WhatsApp Anda benar.
+
+                Periksa kembali lokasi, tujuan, dan nomor WhatsApp sebelum memesan.
+
             </p>
 
         </section>
 
 
+
         <!-- =================================
+
              INFO
+
         ================================== -->
 
         <section class="simple-info">
 
 
+
             <div class="info-item">
 
                 <div class="info-icon">
+
                     ⚡
+
                 </div>
 
                 <div>
 
                     <strong>
+
                         Cepat
+
                     </strong>
 
                     <span>
-                        Pesan langsung
+
+                        Pesan perjalanan tanpa langkah yang rumit.
+
                     </span>
 
                 </div>
@@ -781,20 +1136,27 @@ Ojek Pribadi
             </div>
 
 
+
             <div class="info-item">
 
                 <div class="info-icon">
+
                     ✓
+
                 </div>
 
                 <div>
 
                     <strong>
+
                         Praktis
+
                     </strong>
 
                     <span>
-                        Tanpa proses rumit
+
+                        Lihat tarif sebelum perjalanan dimulai.
+
                     </span>
 
                 </div>
@@ -802,20 +1164,27 @@ Ojek Pribadi
             </div>
 
 
+
             <div class="info-item">
 
                 <div class="info-icon">
+
                     ♡
+
                 </div>
 
                 <div>
 
                     <strong>
+
                         Personal
+
                     </strong>
 
                     <span>
-                        Langsung dengan saya
+
+                        Layanan yang lebih dekat dan sederhana.
+
                     </span>
 
                 </div>
@@ -825,8 +1194,11 @@ Ojek Pribadi
         </section>
 
 
+
         <!-- =================================
+
              FOOTER
+
         ================================== -->
 
         <div class="footer-note">
@@ -834,7 +1206,9 @@ Ojek Pribadi
             <span></span>
 
             <p>
-                Melayani perjalanan dengan motor
+
+                Perjalanan sederhana, untuk kebutuhan sehari-hari.
+
             </p>
 
         </div>
@@ -844,56 +1218,81 @@ Ojek Pribadi
 </div>
 
 
+
 <!-- =========================================
+
      ORDER SUCCESS
+
 ========================================== -->
 
 <div
+
     class="success-overlay"
+
     id="successOverlay"
+
 >
+
 
 
     <div class="success-card">
 
 
+
         <div class="success-ring">
 
             <div class="success-icon">
+
                 ✓
+
             </div>
 
         </div>
 
 
+
         <span class="success-label">
-            PESANAN DITERIMA
+
+            PESANAN TERKIRIM
+
         </span>
 
 
+
         <h2>
-            Ojek Anda
-            <span>berhasil dipesan.</span>
+
+            Pesanan
+            <span>berhasil dibuat.</span>
+
         </h2>
 
 
+
         <p>
-            Pesanan sedang menunggu
-            konfirmasi pengemudi.
+
+            Permintaan perjalanan Anda sudah dikirim.
+            Tunggu sebentar hingga driver mengonfirmasi.
+
         </p>
+
 
 
         <div class="order-code-box">
 
             <span>
+
                 Kode pesanan
+
             </span>
 
             <strong id="successOrderCode">
+
                 -
+
             </strong>
 
         </div>
+
 
 
         <div class="success-status">
@@ -905,12 +1304,19 @@ Ojek Pribadi
         </div>
 
 
+
         <button
+
             type="button"
+
             class="success-button"
+
             id="successButton"
+
         >
+
             Lihat Status Perjalanan
+
         </button>
 
     </div>
@@ -918,13 +1324,17 @@ Ojek Pribadi
 </div>
 
 
+
 {% endblock %}
+
 
 
 {% block scripts %}
 
 <script
-    src="{{ url_for('static', filename='js/app.js') }}"
+
+    src="{{ url_for('static', filename='js/app.js', v='copy-final-1') }}"
+
 ></script>
 
 {% endblock %}
