@@ -1,0 +1,1010 @@
+/* ============================================================
+   OJEK PRIBADI — DARK PREMIUM THEME
+============================================================ */
+
+:root {
+    --dp-bg: #050a09;
+    --dp-bg-2: #08110f;
+    --dp-panel: rgba(12, 24, 20, .82);
+    --dp-panel-solid: #0c1714;
+    --dp-panel-soft: rgba(255, 255, 255, .035);
+
+    --dp-border: rgba(255, 255, 255, .075);
+    --dp-border-green: rgba(52, 211, 153, .18);
+
+    --dp-text: #f3f7f5;
+    --dp-text-soft: #a0aca7;
+    --dp-text-muted: #6f7c77;
+
+    --dp-green: #34d399;
+    --dp-green-strong: #18c98c;
+    --dp-green-soft: rgba(52, 211, 153, .08);
+
+    --dp-danger: #ff7777;
+
+    --dp-shadow:
+        0 30px 80px rgba(0, 0, 0, .35);
+
+    --dp-radius-lg: 25px;
+    --dp-radius-md: 18px;
+}
+
+
+/* ============================================================
+   BODY
+============================================================ */
+
+html {
+    background: var(--dp-bg);
+}
+
+
+body {
+    background:
+        radial-gradient(
+            circle at 85% 8%,
+            rgba(52, 211, 153, .13),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 5% 72%,
+            rgba(52, 211, 153, .07),
+            transparent 28%
+        ),
+        linear-gradient(
+            180deg,
+            #07100e 0%,
+            #040807 100%
+        ) !important;
+
+    color: var(--dp-text) !important;
+
+    min-height: 100vh;
+}
+
+
+/* ============================================================
+   MAIN APP / PAGE SURFACES
+============================================================ */
+
+main,
+.app,
+.app-shell,
+.page-shell,
+.customer-page,
+.customer-shell {
+    color: var(--dp-text);
+}
+
+
+/* ============================================================
+   BRAND
+============================================================ */
+
+.brand-name {
+    color: var(--dp-text) !important;
+}
+
+
+.brand-icon,
+.brand-icon-image {
+    background:
+        linear-gradient(
+            145deg,
+            #10201b,
+            #07100e
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .18) !important;
+
+    box-shadow:
+        0 8px 28px
+        rgba(0, 0, 0, .35),
+        0 0 24px
+        rgba(52, 211, 153, .07) !important;
+}
+
+
+/* ============================================================
+   HEADER STATUS
+============================================================ */
+
+#headerServiceBadge {
+    background:
+        rgba(255, 255, 255, .045) !important;
+
+    border:
+        1px solid
+        var(--dp-border) !important;
+
+    color:
+        var(--dp-text-soft) !important;
+
+    backdrop-filter:
+        blur(18px);
+}
+
+
+#headerServiceBadge.is-open {
+    border-color:
+        rgba(52, 211, 153, .17) !important;
+
+    background:
+        rgba(52, 211, 153, .055) !important;
+}
+
+
+#headerServiceText {
+    color:
+        #c6d0cc !important;
+}
+
+
+/* ============================================================
+   HERO
+============================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color:
+        var(--dp-text) !important;
+}
+
+
+h1 span,
+.hero-title span {
+    color:
+        var(--dp-green) !important;
+
+    text-shadow:
+        0 0 36px
+        rgba(52, 211, 153, .10);
+}
+
+
+.hero-badge,
+.eyebrow,
+.section-label {
+    background:
+        rgba(52, 211, 153, .08) !important;
+
+    color:
+        var(--dp-green) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .10) !important;
+}
+
+
+.hero p,
+.hero-description,
+.hero-copy p {
+    color:
+        var(--dp-text-soft) !important;
+}
+
+
+/* ============================================================
+   SERVICE STATUS CARD
+============================================================ */
+
+#customerServiceStatus {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(52, 211, 153, .075),
+            rgba(255, 255, 255, .025)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .16) !important;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, .035) !important;
+
+    backdrop-filter:
+        blur(18px);
+}
+
+
+#customerServiceStatus small {
+    color:
+        rgba(52, 211, 153, .68) !important;
+}
+
+
+#customerServiceLabel {
+    color:
+        var(--dp-green) !important;
+}
+
+
+#customerServiceDescription {
+    color:
+        var(--dp-text-muted) !important;
+}
+
+
+#customerServiceStatus.is-closed {
+    background:
+        rgba(255, 119, 119, .045) !important;
+
+    border-color:
+        rgba(255, 119, 119, .14) !important;
+}
+
+
+#customerServiceStatus.is-closed
+#customerServiceLabel {
+    color:
+        var(--dp-danger) !important;
+}
+
+
+/* ============================================================
+   PWA INSTALL CARD
+============================================================ */
+
+.pwa-install-card {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, .045),
+            rgba(52, 211, 153, .035)
+        ) !important;
+
+    border:
+        1px solid
+        var(--dp-border) !important;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, .025) !important;
+
+    backdrop-filter:
+        blur(18px);
+}
+
+
+.pwa-install-copy small {
+    color:
+        var(--dp-green) !important;
+}
+
+
+.pwa-install-copy strong {
+    color:
+        var(--dp-text) !important;
+}
+
+
+.pwa-install-copy p {
+    color:
+        var(--dp-text-muted) !important;
+}
+
+
+.pwa-install-button {
+    background:
+        linear-gradient(
+            135deg,
+            #34d399,
+            #20c98d
+        ) !important;
+
+    color:
+        #03100b !important;
+
+    box-shadow:
+        0 8px 22px
+        rgba(52, 211, 153, .14) !important;
+}
+
+
+.pwa-install-button:hover {
+    box-shadow:
+        0 12px 30px
+        rgba(52, 211, 153, .22) !important;
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* ============================================================
+   CARDS
+============================================================ */
+
+.card,
+.booking-card,
+.trip-card,
+.journey-card,
+.fare-card,
+.form-card,
+.customer-panel,
+.fare-result {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(15, 27, 23, .94),
+            rgba(8, 17, 14, .96)
+        ) !important;
+
+    border:
+        1px solid
+        var(--dp-border) !important;
+
+    box-shadow:
+        var(--dp-shadow) !important;
+
+    color:
+        var(--dp-text) !important;
+
+    backdrop-filter:
+        blur(20px);
+}
+
+
+/* ============================================================
+   TEXT
+============================================================ */
+
+label,
+.field-label,
+.form-label {
+    color:
+        #aab5b1 !important;
+}
+
+
+small,
+.helper-text,
+.muted,
+.form-hint {
+    color:
+        var(--dp-text-muted) !important;
+}
+
+
+/* ============================================================
+   FORM INPUTS
+============================================================ */
+
+input,
+textarea,
+select {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .075) !important;
+
+    color:
+        var(--dp-text) !important;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, .015) !important;
+
+    transition:
+        border-color .25s ease,
+        background .25s ease,
+        box-shadow .25s ease,
+        transform .25s ease !important;
+}
+
+
+input::placeholder,
+textarea::placeholder {
+    color:
+        #58645f !important;
+}
+
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+
+    border-color:
+        rgba(52, 211, 153, .42) !important;
+
+    background:
+        rgba(52, 211, 153, .035) !important;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(52, 211, 153, .055) !important;
+}
+
+
+/* ============================================================
+   GPS BUTTON
+============================================================ */
+
+#useLocationButton {
+    background:
+        rgba(52, 211, 153, .045) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+
+    color:
+        var(--dp-text) !important;
+}
+
+
+#useLocationButton:hover {
+    background:
+        rgba(52, 211, 153, .075) !important;
+
+    border-color:
+        rgba(52, 211, 153, .24) !important;
+}
+
+
+#locationButtonText {
+    color:
+        var(--dp-text-muted) !important;
+}
+
+
+/* ============================================================
+   PRIMARY BUTTONS
+============================================================ */
+
+#checkFareButton,
+#orderButton,
+#confirmOrderButton,
+.primary-button,
+.btn-primary {
+    background:
+        linear-gradient(
+            135deg,
+            #34d399 0%,
+            #1fc98d 100%
+        ) !important;
+
+    color:
+        #03100b !important;
+
+    border:
+        0 !important;
+
+    box-shadow:
+        0 14px 30px
+        rgba(52, 211, 153, .13) !important;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        filter .25s ease !important;
+}
+
+
+#checkFareButton:hover,
+#orderButton:hover,
+#confirmOrderButton:hover,
+.primary-button:hover,
+.btn-primary:hover {
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 18px 38px
+        rgba(52, 211, 153, .22) !important;
+
+    filter:
+        brightness(1.05);
+}
+
+
+/* ============================================================
+   SECONDARY / DARK BUTTONS
+============================================================ */
+
+.secondary-button,
+.btn-secondary {
+    background:
+        rgba(255, 255, 255, .035) !important;
+
+    border:
+        1px solid
+        var(--dp-border) !important;
+
+    color:
+        var(--dp-text-soft) !important;
+}
+
+
+/* ============================================================
+   FARE RESULT
+============================================================ */
+
+#fareResult {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(12, 24, 20, .96),
+            rgba(7, 15, 12, .96)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12) !important;
+
+    color:
+        var(--dp-text) !important;
+}
+
+
+#resultFare {
+    color:
+        var(--dp-green) !important;
+
+    text-shadow:
+        0 0 22px
+        rgba(52, 211, 153, .10);
+}
+
+
+/* ============================================================
+   MESSAGES
+============================================================ */
+
+#formMessage,
+#orderMessage {
+    color:
+        #ff9292 !important;
+}
+
+
+/* ============================================================
+   MODAL / CUSTOMER PANEL
+============================================================ */
+
+.customer-panel,
+.modal,
+.dialog {
+    background:
+        rgba(5, 10, 8, .84) !important;
+
+    backdrop-filter:
+        blur(24px);
+}
+
+
+.customer-panel > div,
+.modal-content,
+.dialog-content {
+    background:
+        #0b1612 !important;
+
+    border:
+        1px solid
+        var(--dp-border) !important;
+
+    box-shadow:
+        0 35px 100px
+        rgba(0, 0, 0, .55) !important;
+}
+
+
+/* ============================================================
+   SCROLLBAR
+============================================================ */
+
+* {
+    scrollbar-width:
+        thin;
+
+    scrollbar-color:
+        rgba(52, 211, 153, .25)
+        transparent;
+}
+
+
+*::-webkit-scrollbar {
+    width: 7px;
+}
+
+
+*::-webkit-scrollbar-track {
+    background:
+        transparent;
+}
+
+
+*::-webkit-scrollbar-thumb {
+    background:
+        rgba(52, 211, 153, .22);
+
+    border-radius:
+        999px;
+}
+
+
+/* ============================================================
+   PREMIUM AMBIENT ANIMATION
+============================================================ */
+
+body::before {
+    content: "";
+
+    position:
+        fixed;
+
+    z-index:
+        -1;
+
+    top:
+        -180px;
+
+    right:
+        -130px;
+
+    width:
+        430px;
+
+    height:
+        430px;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(52, 211, 153, .09);
+
+    filter:
+        blur(100px);
+
+    pointer-events:
+        none;
+
+    animation:
+        darkPremiumGlow
+        8s
+        ease-in-out
+        infinite alternate;
+}
+
+
+@keyframes darkPremiumGlow {
+
+    from {
+        opacity:
+            .55;
+
+        transform:
+            translate3d(
+                0,
+                0,
+                0
+            )
+            scale(.95);
+    }
+
+    to {
+        opacity:
+            .9;
+
+        transform:
+            translate3d(
+                -35px,
+                35px,
+                0
+            )
+            scale(1.08);
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    body {
+        background:
+            radial-gradient(
+                circle at 100% 0%,
+                rgba(52, 211, 153, .105),
+                transparent 28%
+            ),
+            linear-gradient(
+                180deg,
+                #07100e,
+                #040807
+            ) !important;
+    }
+
+
+    .card,
+    .booking-card,
+    .trip-card,
+    .journey-card,
+    .form-card {
+        border-radius:
+            22px !important;
+
+        box-shadow:
+            0 20px 50px
+            rgba(0, 0, 0, .28) !important;
+    }
+
+
+    input,
+    textarea {
+        min-height:
+            54px;
+
+        border-radius:
+            15px !important;
+    }
+
+
+    #checkFareButton,
+    #orderButton,
+    #confirmOrderButton {
+        min-height:
+            54px;
+
+        border-radius:
+            15px !important;
+    }
+
+}
+
+/* ============================================================
+   FORCE DARK PREMIUM — FINAL OVERRIDE
+   Menghilangkan sisa background terang dari style.css lama
+============================================================ */
+
+html,
+body {
+    background: #030806 !important;
+    color: #f4f7f5 !important;
+}
+
+
+/* ============================================================
+   MAIN CUSTOMER WRAPPER
+============================================================ */
+
+main,
+.app,
+.app-shell,
+.page-shell,
+.customer-shell,
+.customer-page,
+.home-page,
+.home-shell,
+.app-container,
+.home-container,
+.site-shell {
+    background:
+        radial-gradient(
+            circle at 90% 5%,
+            rgba(52, 211, 153, .10),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #07110e 0%,
+            #040907 100%
+        ) !important;
+
+    color: #f4f7f5 !important;
+}
+
+
+/* ============================================================
+   JIKA CONTAINER UTAMA ADALAH CHILD LANGSUNG BODY
+============================================================ */
+
+body > main,
+body > .app,
+body > .app-shell,
+body > .page-shell,
+body > .customer-page {
+    background:
+        linear-gradient(
+            180deg,
+            #08120f 0%,
+            #040907 100%
+        ) !important;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+header,
+.header,
+.app-header,
+.customer-header {
+    background: transparent !important;
+}
+
+
+/* ============================================================
+   HERO
+============================================================ */
+
+.hero,
+.hero-section,
+.hero-content,
+.hero-wrapper {
+    background: transparent !important;
+}
+
+
+.hero h1,
+.hero-title {
+    color: #f5f8f6 !important;
+}
+
+
+.hero p,
+.hero-description {
+    color: rgba(224, 234, 230, .58) !important;
+}
+
+
+/* ============================================================
+   STATUS LAYANAN
+============================================================ */
+
+#customerServiceStatus {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(52, 211, 153, .08),
+            rgba(255, 255, 255, .015)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .18) !important;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, .025) !important;
+}
+
+
+/* ============================================================
+   PWA INSTALL
+============================================================ */
+
+.pwa-install-card {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(14, 29, 24, .95),
+            rgba(8, 18, 15, .98)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07) !important;
+
+    box-shadow:
+        0 14px 35px
+        rgba(0, 0, 0, .18) !important;
+}
+
+
+.pwa-install-copy strong {
+    color: #f4f7f5 !important;
+}
+
+
+.pwa-install-copy p {
+    color: rgba(224, 234, 230, .42) !important;
+}
+
+
+/* ============================================================
+   PERJALANAN / BOOKING CARD
+============================================================ */
+
+.card,
+.booking-card,
+.trip-card,
+.journey-card,
+.form-card,
+.customer-card {
+    background:
+        linear-gradient(
+            145deg,
+            #0a1713,
+            #07100d
+        ) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .065) !important;
+
+    box-shadow:
+        0 25px 65px
+        rgba(0, 0, 0, .32) !important;
+}
+
+
+/* ============================================================
+   INPUT
+============================================================ */
+
+input,
+textarea,
+select {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border-color:
+        rgba(255, 255, 255, .08) !important;
+
+    color:
+        #eef4f1 !important;
+}
+
+
+input::placeholder,
+textarea::placeholder {
+    color:
+        rgba(219, 229, 225, .30) !important;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    html,
+    body {
+        background:
+            #030806 !important;
+    }
+
+
+    main,
+    .app,
+    .app-shell,
+    .page-shell,
+    .customer-shell,
+    .customer-page,
+    .home-page,
+    .home-shell,
+    .app-container,
+    .home-container {
+        background:
+            radial-gradient(
+                circle at 100% 0%,
+                rgba(52, 211, 153, .10),
+                transparent 28%
+            ),
+            linear-gradient(
+                180deg,
+                #07110e 0%,
+                #030806 100%
+            ) !important;
+    }
+
+}
