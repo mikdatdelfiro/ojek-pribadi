@@ -1141,3 +1141,33 @@ textarea::placeholder {
     }
 
 }
+
+/* ============================================================
+   FIX ROUTE CONNECTOR MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    .route-line {
+        display: none !important;
+    }
+
+}
+
+/* ============================================================
+   DESTINATION PIN ICON
+============================================================ */
+
+.destination-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.destination-pin-icon {
+    width: 20px !important;
+    height: 20px !important;
+
+    display: block !important;
+    object-fit: contain !important;
+}
