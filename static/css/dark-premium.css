@@ -1286,3 +1286,500 @@ textarea::placeholder {
     color:
         #6ee7b7 !important;
 }
+
+/* ============================================================
+   DARK PREMIUM — CUSTOMER ORDER HISTORY
+============================================================ */
+
+.customer-history-card {
+    width: 100% !important;
+    margin: 18px 0 !important;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(11, 24, 20, .96),
+            rgba(6, 15, 12, .98)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12) !important;
+
+    border-radius: 20px !important;
+
+    overflow: hidden !important;
+
+    box-shadow:
+        0 18px 45px
+        rgba(0, 0, 0, .24) !important;
+
+    color: #f3f7f5 !important;
+}
+
+
+/* TOMBOL UTAMA RIWAYAT */
+
+.customer-history-toggle {
+    width: 100% !important;
+
+    background:
+        transparent !important;
+
+    border: 0 !important;
+
+    color:
+        #f3f7f5 !important;
+
+    padding:
+        18px 20px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    gap:
+        14px !important;
+
+    text-align:
+        left !important;
+
+    cursor:
+        pointer !important;
+}
+
+
+.customer-history-toggle:hover {
+    background:
+        rgba(52, 211, 153, .035) !important;
+}
+
+
+/* ICON */
+
+.customer-history-icon {
+    width: 42px !important;
+    height: 42px !important;
+
+    flex:
+        0 0 42px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    border-radius:
+        13px !important;
+
+    background:
+        rgba(52, 211, 153, .08) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12) !important;
+
+    color:
+        #34d399 !important;
+
+    font-size:
+        20px !important;
+}
+
+
+/* COPY */
+
+.customer-history-copy {
+    min-width: 0 !important;
+
+    flex:
+        1 !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+}
+
+
+.customer-history-copy small {
+    color:
+        #34d399 !important;
+
+    font-size:
+        9px !important;
+
+    font-weight:
+        800 !important;
+
+    letter-spacing:
+        .10em !important;
+}
+
+
+.customer-history-copy strong {
+    margin-top:
+        3px !important;
+
+    color:
+        #f4f7f5 !important;
+
+    font-size:
+        16px !important;
+
+    font-weight:
+        800 !important;
+}
+
+
+.customer-history-copy > span {
+    margin-top:
+        3px !important;
+
+    color:
+        rgba(220, 231, 226, .45) !important;
+
+    font-size:
+        12px !important;
+
+    line-height:
+        1.4 !important;
+}
+
+
+/* JUMLAH */
+
+.customer-history-count {
+    min-width:
+        30px !important;
+
+    height:
+        30px !important;
+
+    padding:
+        0 9px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    border-radius:
+        999px !important;
+
+    background:
+        rgba(52, 211, 153, .09) !important;
+
+    color:
+        #34d399 !important;
+
+    font-size:
+        12px !important;
+
+    font-weight:
+        800 !important;
+}
+
+
+/* PANAH */
+
+.customer-history-arrow {
+    color:
+        rgba(220, 231, 226, .55) !important;
+
+    font-size:
+        16px !important;
+}
+
+
+/* PANEL RIWAYAT */
+
+.customer-history-panel {
+    background:
+        rgba(3, 10, 8, .30) !important;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .05) !important;
+
+    padding:
+        16px 18px 18px !important;
+
+    color:
+        #f3f7f5 !important;
+}
+
+
+/* ITEM YANG DIBUAT OLEH JAVASCRIPT */
+
+.customer-history-list > * {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+
+    color:
+        #f3f7f5 !important;
+
+    border-radius:
+        15px !important;
+}
+
+
+/* SUMMARY */
+
+.customer-history-summary {
+    margin-top:
+        14px !important;
+
+    padding-top:
+        14px !important;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+
+    color:
+        rgba(220, 231, 226, .48) !important;
+}
+
+
+.customer-history-summary strong {
+    color:
+        #34d399 !important;
+}
+
+
+/* FOOTER */
+
+.customer-history-footer {
+    margin-top:
+        14px !important;
+
+    padding-top:
+        14px !important;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .055) !important;
+
+    color:
+        rgba(220, 231, 226, .40) !important;
+}
+
+
+#clearCustomerHistory {
+    background:
+        transparent !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .08) !important;
+
+    color:
+        rgba(220, 231, 226, .62) !important;
+
+    border-radius:
+        10px !important;
+
+    padding:
+        8px 11px !important;
+}
+
+/* ============================================================
+   DARK PREMIUM — ORDER SUCCESS
+============================================================ */
+
+.success-overlay {
+    background:
+        rgba(2, 8, 6, .94) !important;
+
+    backdrop-filter:
+        blur(18px) !important;
+}
+
+
+.success-card {
+    background:
+        linear-gradient(
+            145deg,
+            #0c1915 0%,
+            #07100d 100%
+        ) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14) !important;
+
+    color:
+        #f4f7f5 !important;
+
+    box-shadow:
+        0 40px 100px
+        rgba(0, 0, 0, .52) !important;
+}
+
+
+.success-ring {
+    background:
+        rgba(52, 211, 153, .08) !important;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13) !important;
+}
+
+
+.success-icon {
+    background:
+        #34d399 !important;
+
+    color:
+        #03100b !important;
+}
+
+
+.success-label {
+    color:
+        #34d399 !important;
+}
+
+
+.success-card h2 {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.success-card h2 span {
+    color:
+        #34d399 !important;
+}
+
+
+.success-card > p {
+    color:
+        rgba(220, 231, 226, .52) !important;
+}
+
+
+.order-code-box {
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07) !important;
+}
+
+
+.order-code-box span {
+    color:
+        rgba(220, 231, 226, .42) !important;
+}
+
+
+.order-code-box strong {
+    color:
+        #f4f7f5 !important;
+}
+
+
+.success-status {
+    color:
+        rgba(220, 231, 226, .56) !important;
+}
+
+
+.status-animation {
+    background:
+        #34d399 !important;
+
+    box-shadow:
+        0 0 12px
+        rgba(52, 211, 153, .50) !important;
+}
+
+
+.success-actions {
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    gap:
+        10px !important;
+}
+
+
+.success-button {
+    background:
+        linear-gradient(
+            135deg,
+            #34d399,
+            #20c98d
+        ) !important;
+
+    color:
+        #03100b !important;
+
+    border:
+        none !important;
+}
+
+
+.success-home-button {
+    min-height:
+        48px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07) !important;
+
+    border-radius:
+        14px !important;
+
+    background:
+        rgba(255, 255, 255, .025) !important;
+
+    color:
+        rgba(230, 238, 235, .72) !important;
+
+    text-decoration:
+        none !important;
+
+    font-weight:
+        700 !important;
+}
+
+
+.success-home-button:hover {
+    background:
+        rgba(52, 211, 153, .055) !important;
+
+    color:
+        #34d399 !important;
+}
