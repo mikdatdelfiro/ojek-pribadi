@@ -41,34 +41,25 @@ Ojek Control
 
         </div>
 
-        <a
-                href="{{ url_for('driver_profile') }}"
-                class="driver-profile-link"
-            >
-                <span>
-                    Profil
-                </span>
+        <div class="driver-header-links">
 
-                <span>
-                    →
-                </span>
+    <a
+        href="{{ url_for('driver_profile') }}"
+        class="driver-profile-link"
+    >
+        <span>Profil</span>
+        <span>→</span>
+    </a>
 
-                <a
-                    href="{{ url_for('driver_history') }}"
-                    class="driver-history-link"
-                >
+    <a
+        href="{{ url_for('driver_history') }}"
+        class="driver-history-link"
+    >
+        <span>Riwayat</span>
+        <span>→</span>
+    </a>
 
-                    <span>
-                        Riwayat
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-            </a>
+</div>
 
         <div class="driver-header-actions">
 
@@ -993,7 +984,7 @@ Ojek Control
 
 
 <script
-    src="{{ url_for('static', filename='js/driver.js') }}"
+    src="{{ url_for('static', filename='js/driver.js', v='phase18f-service-fix-1') }}"
 ></script>
 
 

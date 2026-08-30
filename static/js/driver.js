@@ -244,10 +244,11 @@ function showDriverToast(
 
 }
 
-// =====================================================
+// ============================================================
 // PHASE 9
 // DRIVER SERVICE CONTROL
-// =====================================================
+// FIXED + SERVER SYNC
+// ============================================================
 
 const serviceControl =
     document.getElementById(
@@ -279,24 +280,65 @@ const serviceControlMessage =
     );
 
 
-// =====================================================
+let serviceToggleBusy =
+    false;
+
+
+// ============================================================
+// NORMALIZE BOOLEAN
+// ============================================================
+
+function normalizeServiceState(
+    value
+) {
+
+    return (
+        value === true
+        ||
+        value === "true"
+        ||
+        value === 1
+        ||
+        value === "1"
+    );
+
+}
+
+
+// ============================================================
 // UPDATE SERVICE UI
-// =====================================================
+// ============================================================
 
 function updateServiceControlUI(
-    isOpen
+    state
 ) {
 
     if (!serviceControl) {
+
         return;
+
     }
 
+
+    const isOpen =
+        normalizeServiceState(
+            state
+        );
+
+
+    // --------------------------------------------------------
+    // DATASET
+    // --------------------------------------------------------
 
     serviceControl.dataset.serviceOpen =
         isOpen
             ? "true"
             : "false";
 
+
+    // --------------------------------------------------------
+    // CARD STATE
+    // --------------------------------------------------------
 
     serviceControl.classList.toggle(
         "is-open",
@@ -310,6 +352,10 @@ function updateServiceControlUI(
     );
 
 
+    // --------------------------------------------------------
+    // BUTTON
+    // --------------------------------------------------------
+
     if (serviceToggleButton) {
 
         serviceToggleButton.setAttribute(
@@ -322,6 +368,10 @@ function updateServiceControlUI(
     }
 
 
+    // --------------------------------------------------------
+    // LABEL
+    // --------------------------------------------------------
+
     if (serviceStatusLabel) {
 
         serviceStatusLabel.textContent =
@@ -332,17 +382,23 @@ function updateServiceControlUI(
     }
 
 
+    // --------------------------------------------------------
+    // DESCRIPTION
+    // --------------------------------------------------------
+
     if (serviceStatusDescription) {
 
         serviceStatusDescription.textContent =
             isOpen
                 ? (
                     "Pelanggan dapat membuat "
-                    + "pesanan baru."
+                    +
+                    "pesanan baru."
                 )
                 : (
                     "Pesanan baru sedang "
-                    + "dinonaktifkan."
+                    +
+                    "dinonaktifkan."
                 );
 
     }
@@ -350,9 +406,119 @@ function updateServiceControlUI(
 }
 
 
-// =====================================================
+// ============================================================
+// MESSAGE
+// ============================================================
+
+function showServiceMessage(
+    message
+) {
+
+    if (!serviceControlMessage) {
+
+        return;
+
+    }
+
+
+    serviceControlMessage.textContent =
+        message || "";
+
+}
+
+
+// ============================================================
+// SYNCHRONIZE WITH SERVER
+// ============================================================
+
+async function syncDriverServiceStatus() {
+
+    if (!serviceControl) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/service-status"
+                    +
+                    "?t="
+                    +
+                    Date.now()
+                ),
+                {
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Status layanan tidak dapat diperiksa."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !data
+            ||
+            data.success !== true
+        ) {
+
+            throw new Error(
+                "Respons status layanan tidak valid."
+            );
+
+        }
+
+
+        updateServiceControlUI(
+            data.service_open
+        );
+
+
+        console.log(
+            "[SERVICE SYNC]",
+            data.service_open
+        );
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[SERVICE SYNC ERROR]",
+            error
+        );
+
+    }
+
+}
+
+
+// ============================================================
 // TOGGLE SERVICE
-// =====================================================
+// ============================================================
 
 async function toggleDriverService() {
 
@@ -360,14 +526,24 @@ async function toggleDriverService() {
         !serviceControl
         ||
         !serviceToggleButton
+        ||
+        serviceToggleBusy
     ) {
+
         return;
+
     }
 
 
+    serviceToggleBusy =
+        true;
+
+
     const currentlyOpen =
-        serviceControl.dataset.serviceOpen
-        === "true";
+        (
+            serviceControl.dataset.serviceOpen
+            === "true"
+        );
 
 
     const nextState =
@@ -378,43 +554,73 @@ async function toggleDriverService() {
         true;
 
 
-    if (serviceControlMessage) {
-
-        serviceControlMessage.textContent =
-            "Memperbarui status...";
-
-    }
+    showServiceMessage(
+        nextState
+            ? "Membuka layanan..."
+            : "Menutup layanan..."
+    );
 
 
     try {
 
-        const response = await fetch(
-            "/api/driver/service-status",
-            {
-                method:
-                    "POST",
+        const response =
+            await fetch(
+                "/api/driver/service-status",
+                {
+                    method:
+                        "POST",
 
-                headers: {
-                    "Content-Type":
-                        "application/json",
-                },
+                    cache:
+                        "no-store",
 
-                body:
-                    JSON.stringify(
-                        {
-                            service_open:
-                                nextState,
-                        }
-                    ),
-            }
-        );
+                    credentials:
+                        "same-origin",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                service_open:
+                                    nextState
+                            }
+                        )
+                }
+            );
 
 
-        const data =
-            await response.json();
+        let data =
+            null;
 
 
-        // Session expired.
+        try {
+
+            data =
+                await response.json();
+
+        }
+
+        catch (error) {
+
+            throw new Error(
+                "Respons server tidak valid."
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // SESSION EXPIRED
+        // ----------------------------------------------------
+
         if (
             response.status === 401
         ) {
@@ -427,45 +633,86 @@ async function toggleDriverService() {
         }
 
 
+        // ----------------------------------------------------
+        // ERROR
+        // ----------------------------------------------------
+
         if (
             !response.ok
             ||
-            !data.success
+            !data
+            ||
+            data.success !== true
         ) {
 
             throw new Error(
-                data.message
-                ||
-                "Gagal mengubah status layanan."
+                (
+                    data
+                    &&
+                    data.message
+                )
+                    ||
+                    "Gagal mengubah status layanan."
             );
 
         }
 
 
+        // ----------------------------------------------------
+        // SERVER IS SOURCE OF TRUTH
+        // ----------------------------------------------------
+
+        const serverState =
+            normalizeServiceState(
+                data.service_open
+            );
+
+
         updateServiceControlUI(
-            data.service_open
+            serverState
         );
 
 
-        if (serviceControlMessage) {
+        showServiceMessage(
+            data.message
+            ||
+            (
+                serverState
+                    ? "Layanan berhasil dibuka."
+                    : "Layanan berhasil ditutup."
+            )
+        );
 
-            serviceControlMessage.textContent =
-                data.message;
 
-        }
+        console.log(
+            "[SERVICE UPDATED]",
+            {
+                service_open:
+                    serverState
+            }
+        );
+
+
+        // ----------------------------------------------------
+        // VERIFY AGAIN FROM PUBLIC API
+        // ----------------------------------------------------
+
+        window.setTimeout(
+            function () {
+
+                syncDriverServiceStatus();
+
+            },
+            300
+        );
 
 
         window.setTimeout(
             function () {
 
-                if (
-                    serviceControlMessage
-                ) {
-
-                    serviceControlMessage.textContent =
-                        "";
-
-                }
+                showServiceMessage(
+                    ""
+                );
 
             },
             2500
@@ -476,21 +723,28 @@ async function toggleDriverService() {
     catch (error) {
 
         console.error(
-            "[SERVICE STATUS]",
+            "[SERVICE STATUS ERROR]",
             error
         );
 
 
-        if (serviceControlMessage) {
+        showServiceMessage(
+            error.message
+            ||
+            "Status layanan belum berhasil diubah."
+        );
 
-            serviceControlMessage.textContent =
-                error.message;
 
-        }
+        // Kembalikan UI berdasarkan server.
+        await syncDriverServiceStatus();
 
     }
 
     finally {
+
+        serviceToggleBusy =
+            false;
+
 
         serviceToggleButton.disabled =
             false;
@@ -500,9 +754,9 @@ async function toggleDriverService() {
 }
 
 
-// =====================================================
-// EVENT
-// =====================================================
+// ============================================================
+// CLICK EVENT
+// ============================================================
 
 if (serviceToggleButton) {
 
@@ -512,6 +766,55 @@ if (serviceToggleButton) {
     );
 
 }
+
+
+// ============================================================
+// INITIAL STATE
+// ============================================================
+
+if (serviceControl) {
+
+    // Tampilkan state dari HTML terlebih dahulu.
+    updateServiceControlUI(
+        serviceControl.dataset.serviceOpen
+    );
+
+
+    // Kemudian ambil status terbaru langsung dari server.
+    syncDriverServiceStatus();
+
+}
+
+
+// ============================================================
+// RE-SYNC WHEN DRIVER RETURNS TO TAB
+// ============================================================
+
+window.addEventListener(
+    "focus",
+    function () {
+
+        syncDriverServiceStatus();
+
+    }
+);
+
+
+document.addEventListener(
+    "visibilitychange",
+    function () {
+
+        if (
+            document.visibilityState
+            === "visible"
+        ) {
+
+            syncDriverServiceStatus();
+
+        }
+
+    }
+);
 
 // ============================================================
 // PHASE 12
