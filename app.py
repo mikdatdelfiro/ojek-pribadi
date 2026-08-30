@@ -4656,7 +4656,8 @@ def driver_dashboard():
     )
 
 # ============================================================
-# DRIVER ORDER HISTORY
+# PHASE 18E
+# PREMIUM DRIVER HISTORY + INCOME
 # ============================================================
 
 @app.route(
@@ -4665,9 +4666,9 @@ def driver_dashboard():
 @driver_login_required
 def driver_history():
 
-    # --------------------------------------------------------
+    # ========================================================
     # FILTER INPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     period = (
         request.args.get(
@@ -4678,7 +4679,6 @@ def driver_history():
         .lower()
     )
 
-
     status_filter = (
         request.args.get(
             "status",
@@ -4687,7 +4687,6 @@ def driver_history():
         .strip()
         .upper()
     )
-
 
     search_query = (
         request.args.get(
@@ -4698,34 +4697,61 @@ def driver_history():
     )
 
 
-    # --------------------------------------------------------
-    # VALID FILTERS
-    # --------------------------------------------------------
+    # ========================================================
+    # VALIDATION
+    # ========================================================
 
-    if period not in {
+    valid_periods = {
         "all",
         "today",
-    }:
+        "7days",
+        "30days",
+    }
 
-        period = (
-            "all"
-        )
+    if period not in valid_periods:
+        period = "all"
 
 
-    if status_filter not in {
+    valid_statuses = {
         "ALL",
         STATUS_COMPLETED,
         STATUS_REJECTED,
-    }:
+    }
 
-        status_filter = (
-            "ALL"
-        )
+    if status_filter not in valid_statuses:
+        status_filter = "ALL"
 
 
-    # --------------------------------------------------------
+    # ========================================================
+    # TIME
+    # ========================================================
+
+    now = datetime.now(
+        APP_TZ
+    )
+
+    today = now.strftime(
+        "%Y-%m-%d"
+    )
+
+    seven_days_start = (
+        now
+        - timedelta(days=6)
+    ).strftime(
+        "%Y-%m-%d 00:00:00"
+    )
+
+    thirty_days_start = (
+        now
+        - timedelta(days=29)
+    ).strftime(
+        "%Y-%m-%d 00:00:00"
+    )
+
+
+    # ========================================================
     # BASE QUERY
-    # --------------------------------------------------------
+    # ========================================================
 
     query = """
         SELECT *
@@ -4735,111 +4761,114 @@ def driver_history():
         WHERE status IN (?, ?)
     """
 
-
     parameters = [
         STATUS_COMPLETED,
         STATUS_REJECTED,
     ]
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PERIOD FILTER
-    # --------------------------------------------------------
+    # ========================================================
 
-    if (
-        period
-        == "today"
-    ):
+    history_time_column = """
+        (
+            CASE
 
-        today = (
-            datetime.now(APP_TZ)
-            .strftime(
-                "%Y-%m-%d"
-            )
+                WHEN status = 'SELESAI'
+
+                THEN COALESCE(
+                    completed_at,
+                    created_at
+                )
+
+                WHEN status = 'DITOLAK'
+
+                THEN COALESCE(
+                    rejected_at,
+                    created_at
+                )
+
+                ELSE created_at
+
+            END
         )
+    """
 
 
-        query += """
+    if period == "today":
 
-            AND (
-
-                CASE
-
-                    WHEN status = 'SELESAI'
-
-                    THEN COALESCE(
-                        completed_at,
-                        created_at
-                    )
-
-
-                    WHEN status = 'DITOLAK'
-
-                    THEN COALESCE(
-                        rejected_at,
-                        created_at
-                    )
-
-
-                    ELSE created_at
-
-                END
-
-            ) LIKE ?
-        """
-
+        query += (
+            " AND "
+            + history_time_column
+            + " LIKE ?"
+        )
 
         parameters.append(
             f"{today}%"
         )
 
-    # --------------------------------------------------------
-    # STATUS FILTER
-    # --------------------------------------------------------
 
-    if (
-        status_filter
-        != "ALL"
-    ):
+    elif period == "7days":
+
+        query += (
+            " AND "
+            + history_time_column
+            + " >= ?"
+        )
+
+        parameters.append(
+            seven_days_start
+        )
+
+
+    elif period == "30days":
+
+        query += (
+            " AND "
+            + history_time_column
+            + " >= ?"
+        )
+
+        parameters.append(
+            thirty_days_start
+        )
+
+
+    # ========================================================
+    # STATUS FILTER
+    # ========================================================
+
+    if status_filter != "ALL":
 
         query += """
-
             AND status = ?
         """
-
 
         parameters.append(
             status_filter
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # SEARCH
-    # --------------------------------------------------------
+    # ========================================================
 
     if search_query:
 
         search_value = (
-            f"%{search_query}%"
+            f"%{search_query.lower()}%"
         )
 
-
         query += """
-
             AND (
-
-                order_code LIKE ?
-
-                OR customer_name LIKE ?
-
-                OR whatsapp LIKE ?
-
-                OR pickup LIKE ?
-
-                OR destination LIKE ?
+                LOWER(order_code) LIKE ?
+                OR LOWER(customer_name) LIKE ?
+                OR LOWER(whatsapp) LIKE ?
+                OR LOWER(pickup) LIKE ?
+                OR LOWER(destination) LIKE ?
             )
         """
-
 
         parameters.extend(
             [
@@ -4852,22 +4881,23 @@ def driver_history():
         )
 
 
-    query += """
+    # ========================================================
+    # ORDER
+    # ========================================================
 
+    query += """
         ORDER BY id DESC
     """
 
 
-    # --------------------------------------------------------
-    # DATABASE
-    # --------------------------------------------------------
-
-    connection = (
-        get_db()
-    )
+    connection = get_db()
 
 
     try:
+
+        # ====================================================
+        # FILTERED ORDERS
+        # ====================================================
 
         orders = (
             connection.execute(
@@ -4878,56 +4908,522 @@ def driver_history():
         )
 
 
-        # ----------------------------------------------------
-        # SUMMARY
-        # ----------------------------------------------------
+        # ====================================================
+        # FILTERED SUMMARY
+        # ====================================================
 
-        total_orders = (
-            len(
-                orders
-            )
+        total_orders = len(
+            orders
         )
 
 
         completed_count = sum(
             1
             for order in orders
-            if (
-                order[
-                    "status"
-                ]
-                == STATUS_COMPLETED
-            )
+            if order["status"]
+            == STATUS_COMPLETED
         )
 
 
         rejected_count = sum(
             1
             for order in orders
-            if (
-                order[
-                    "status"
-                ]
-                == STATUS_REJECTED
-            )
+            if order["status"]
+            == STATUS_REJECTED
         )
 
 
         total_income = sum(
             int(
-                order[
-                    "fare"
-                ]
+                order["fare"]
                 or 0
             )
             for order in orders
-            if (
-                order[
-                    "status"
+            if order["status"]
+            == STATUS_COMPLETED
+        )
+
+
+        average_income = (
+            int(
+                total_income
+                / completed_count
+            )
+            if completed_count > 0
+            else 0
+        )
+
+
+        # ====================================================
+        # GLOBAL INCOME OVERVIEW
+        # Only completed trips count as income.
+        # ====================================================
+
+        income_overview = (
+            connection.execute(
+                """
+                SELECT
+
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN
+                                    status = ?
+                                    AND COALESCE(
+                                        completed_at,
+                                        created_at
+                                    ) LIKE ?
+                                THEN fare
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS income_today,
+
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN
+                                    status = ?
+                                    AND COALESCE(
+                                        completed_at,
+                                        created_at
+                                    ) >= ?
+                                THEN fare
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS income_7_days,
+
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN
+                                    status = ?
+                                    AND COALESCE(
+                                        completed_at,
+                                        created_at
+                                    ) >= ?
+                                THEN fare
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS income_30_days
+
+                FROM orders
+                """,
+                (
+                    STATUS_COMPLETED,
+                    f"{today}%",
+
+                    STATUS_COMPLETED,
+                    seven_days_start,
+
+                    STATUS_COMPLETED,
+                    thirty_days_start,
+                )
+            )
+            .fetchone()
+        )
+
+
+        income_today = int(
+            income_overview[
+                "income_today"
+            ]
+            or 0
+        )
+
+        income_7_days = int(
+            income_overview[
+                "income_7_days"
+            ]
+            or 0
+        )
+
+        income_30_days = int(
+            income_overview[
+                "income_30_days"
+            ]
+            or 0
+        )
+        # ====================================================
+        # PHASE 18E.4
+        # PERFORMANCE ANALYTICS
+        # ====================================================
+
+        performance_row = (
+            connection.execute(
+                """
+                SELECT
+
+                    COUNT(
+                        CASE
+                            WHEN status = ?
+                            THEN 1
+                        END
+                    ) AS completed_total,
+
+                    COUNT(
+                        CASE
+                            WHEN status = ?
+                            THEN 1
+                        END
+                    ) AS rejected_total,
+
+                    COALESCE(
+                        AVG(
+                            CASE
+                                WHEN status = ?
+                                THEN fare
+                            END
+                        ),
+                        0
+                    ) AS average_fare,
+
+                    COALESCE(
+                        AVG(
+                            CASE
+                                WHEN status = ?
+                                THEN distance_km
+                            END
+                        ),
+                        0
+                    ) AS average_distance,
+
+                    COALESCE(
+                        AVG(
+                            CASE
+                                WHEN status = ?
+                                THEN duration_minutes
+                            END
+                        ),
+                        0
+                    ) AS average_duration,
+
+                    COALESCE(
+                        MAX(
+                            CASE
+                                WHEN status = ?
+                                THEN fare
+                            END
+                        ),
+                        0
+                    ) AS highest_fare,
+
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = ?
+                                THEN distance_km
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS total_distance
+
+                FROM orders
+
+                WHERE status IN (?, ?)
+                """,
+                (
+                    STATUS_COMPLETED,
+                    STATUS_REJECTED,
+
+                    STATUS_COMPLETED,
+                    STATUS_COMPLETED,
+                    STATUS_COMPLETED,
+                    STATUS_COMPLETED,
+                    STATUS_COMPLETED,
+
+                    STATUS_COMPLETED,
+                    STATUS_REJECTED,
+                )
+            )
+            .fetchone()
+        )
+
+
+        analytics_completed = int(
+            performance_row[
+                "completed_total"
+            ]
+            or 0
+        )
+
+
+        analytics_rejected = int(
+            performance_row[
+                "rejected_total"
+            ]
+            or 0
+        )
+
+
+        finalized_orders = (
+            analytics_completed
+            +
+            analytics_rejected
+        )
+
+
+        completion_rate = (
+            round(
+                (
+                    analytics_completed
+                    /
+                    finalized_orders
+                )
+                * 100
+            )
+            if finalized_orders > 0
+            else 0
+        )
+
+
+        average_fare_analytics = int(
+            performance_row[
+                "average_fare"
+            ]
+            or 0
+        )
+
+
+        average_distance = round(
+            float(
+                performance_row[
+                    "average_distance"
                 ]
-                == STATUS_COMPLETED
+                or 0
+            ),
+            1
+        )
+
+
+        average_duration = round(
+            float(
+                performance_row[
+                    "average_duration"
+                ]
+                or 0
             )
         )
+
+
+        highest_fare = int(
+            performance_row[
+                "highest_fare"
+            ]
+            or 0
+        )
+
+
+        total_distance = round(
+            float(
+                performance_row[
+                    "total_distance"
+                ]
+                or 0
+            ),
+            1
+        )
+
+
+        # ====================================================
+        # PERFORMANCE LABEL
+        # ====================================================
+
+        if finalized_orders == 0:
+
+            performance_label = (
+                "Belum ada data"
+            )
+
+            performance_message = (
+                "Selesaikan beberapa perjalanan "
+                "untuk melihat insight performa."
+            )
+
+
+        elif completion_rate >= 90:
+
+            performance_label = (
+                "Sangat Baik"
+            )
+
+            performance_message = (
+                "Sebagian besar pesanan berhasil "
+                "diselesaikan."
+            )
+
+
+        elif completion_rate >= 75:
+
+            performance_label = (
+                "Stabil"
+            )
+
+            performance_message = (
+                "Performa perjalanan berada "
+                "pada tingkat yang stabil."
+            )
+
+
+        else:
+
+            performance_label = (
+                "Perlu Perhatian"
+            )
+
+            performance_message = (
+                "Rasio perjalanan selesai masih "
+                "dapat ditingkatkan."
+            )
+
+
+        # ====================================================
+        # 7 DAY INCOME CHART
+        # ====================================================
+
+        weekday_names = [
+            "Sen",
+            "Sel",
+            "Rab",
+            "Kam",
+            "Jum",
+            "Sab",
+            "Min",
+        ]
+
+
+        income_chart = []
+
+
+        for days_ago in range(
+            6,
+            -1,
+            -1
+        ):
+
+            chart_date = (
+                now
+                -
+                timedelta(
+                    days=days_ago
+                )
+            )
+
+
+            chart_date_string = (
+                chart_date.strftime(
+                    "%Y-%m-%d"
+                )
+            )
+
+
+            chart_row = (
+                connection.execute(
+                    """
+                    SELECT
+                        COALESCE(
+                            SUM(fare),
+                            0
+                        ) AS income,
+
+                        COUNT(*) AS trips
+
+                    FROM orders
+
+                    WHERE status = ?
+
+                    AND COALESCE(
+                        completed_at,
+                        created_at
+                    ) LIKE ?
+                    """,
+                    (
+                        STATUS_COMPLETED,
+                        f"{chart_date_string}%"
+                    )
+                )
+                .fetchone()
+            )
+
+
+            income_chart.append(
+                {
+                    "label":
+                        weekday_names[
+                            chart_date.weekday()
+                        ],
+
+                    "date":
+                        chart_date.strftime(
+                            "%d/%m"
+                        ),
+
+                    "income":
+                        int(
+                            chart_row[
+                                "income"
+                            ]
+                            or 0
+                        ),
+
+                    "trips":
+                        int(
+                            chart_row[
+                                "trips"
+                            ]
+                            or 0
+                        ),
+                }
+            )
+
+
+        # ====================================================
+        # NORMALIZE BAR WIDTH
+        # ====================================================
+
+        chart_max_income = max(
+            (
+                item[
+                    "income"
+                ]
+                for item
+                in income_chart
+            ),
+            default=0
+        )
+
+
+        for item in income_chart:
+
+            if chart_max_income > 0:
+
+                item[
+                    "percentage"
+                ] = max(
+                    3,
+                    round(
+                        (
+                            item[
+                                "income"
+                            ]
+                            /
+                            chart_max_income
+                        )
+                        * 100
+                    )
+                )
+
+            else:
+
+                item[
+                    "percentage"
+                ] = 0
 
 
     finally:
@@ -4938,8 +5434,7 @@ def driver_history():
     return render_template(
         "admin/history.html",
 
-        orders=
-            orders,
+        orders=orders,
 
         total_orders=
             total_orders,
@@ -4953,6 +5448,18 @@ def driver_history():
         total_income=
             total_income,
 
+        average_income=
+            average_income,
+
+        income_today=
+            income_today,
+
+        income_7_days=
+            income_7_days,
+
+        income_30_days=
+            income_30_days,
+
         period=
             period,
 
@@ -4961,6 +5468,39 @@ def driver_history():
 
         search_query=
             search_query,
+            
+                completion_rate=
+            completion_rate,
+
+        average_fare_analytics=
+            average_fare_analytics,
+
+        average_distance=
+            average_distance,
+
+        average_duration=
+            average_duration,
+
+        highest_fare=
+            highest_fare,
+
+        total_distance=
+            total_distance,
+
+        analytics_completed=
+            analytics_completed,
+
+        analytics_rejected=
+            analytics_rejected,
+
+        performance_label=
+            performance_label,
+
+        performance_message=
+            performance_message,
+
+        income_chart=
+            income_chart,    
     )
     
 # ============================================================

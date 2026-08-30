@@ -52,26 +52,24 @@ Riwayat Pesanan
              HERO
         ====================================== -->
 
-        <section class="history-hero">
+            <section class="history-hero">
 
-            <span>
-                PERJALANAN
-            </span>
+                <span>
+                    DRIVER ANALYTICS
+                </span>
 
+                <h2>
+                    Riwayat &
+                    <strong>pendapatan.</strong>
+                </h2>
 
-            <h2>
-                Semua perjalanan
-                <strong>tersimpan rapi.</strong>
-            </h2>
+                <p>
+                    Pantau perjalanan, pendapatan,
+                    dan aktivitas layanan Anda
+                    dalam satu tempat.
+                </p>
 
-
-            <p>
-                Lihat kembali perjalanan selesai
-                maupun pesanan yang ditolak.
-            </p>
-
-        </section>
-
+            </section>
 
         <!-- =====================================
              SUMMARY
@@ -79,11 +77,9 @@ Riwayat Pesanan
 
         <section class="history-summary">
 
-
             <article>
-
                 <small>
-                    TOTAL
+                    HASIL
                 </small>
 
                 <strong>
@@ -93,12 +89,10 @@ Riwayat Pesanan
                 <span>
                     Pesanan
                 </span>
-
             </article>
 
 
             <article>
-
                 <small>
                     SELESAI
                 </small>
@@ -110,12 +104,10 @@ Riwayat Pesanan
                 <span>
                     Perjalanan
                 </span>
-
             </article>
 
 
             <article>
-
                 <small>
                     DITOLAK
                 </small>
@@ -127,43 +119,400 @@ Riwayat Pesanan
                 <span>
                     Pesanan
                 </span>
-
             </article>
 
 
-        </section>
+            <article>
+                <small>
+                    RATA-RATA
+                </small>
 
+                <strong class="history-summary-money">
+                    {{ average_income | rupiah }}
+                </strong>
+
+                <span>
+                    Perjalanan selesai
+                </span>
+            </article>
+
+        </section>
 
         <!-- =====================================
              INCOME
         ====================================== -->
 
-        <section class="history-income">
+        <section class="history-income-panel">
 
-            <div>
+            <div class="history-income-head">
 
-                <small>
-                    PENDAPATAN
-                </small>
+                <div>
+                    <small>
+                        PENDAPATAN
+                    </small>
 
-                <strong>
-                    {{ total_income | rupiah }}
-                </strong>
+                    <h3>
+                        Ringkasan penghasilan
+                    </h3>
 
-                <p>
-                    Dari perjalanan selesai
-                    pada hasil filter saat ini.
-                </p>
+                    <p>
+                        Hanya perjalanan yang telah
+                        selesai dihitung sebagai pendapatan.
+                    </p>
+                </div>
+
+                <span class="history-income-icon">
+                    ↗
+                </span>
 
             </div>
 
 
-            <span class="history-income-icon">
-                ↗
-            </span>
+            <div class="history-income-grid">
+
+                <article>
+
+                    <span>
+                        Hari ini
+                    </span>
+
+                    <strong>
+                        {{ income_today | rupiah }}
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        7 Hari
+                    </span>
+
+                    <strong>
+                        {{ income_7_days | rupiah }}
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        30 Hari
+                    </span>
+
+                    <strong>
+                        {{ income_30_days | rupiah }}
+                    </strong>
+
+                </article>
+
+            </div>
+
+
+            <div class="history-filtered-income">
+
+                <div>
+
+                    <span>
+                        HASIL FILTER SAAT INI
+                    </span>
+
+                    <strong>
+                        {{ total_income | rupiah }}
+                    </strong>
+
+                </div>
+
+                <small>
+                    {{ completed_count }}
+                    perjalanan selesai
+                </small>
+
+            </div>
 
         </section>
 
+<!-- ==========================================
+     PHASE 18E.4
+     PERFORMANCE INSIGHTS
+=========================================== -->
+
+        <section class="history-analytics">
+
+            <div class="history-analytics-head">
+
+                <div>
+
+                    <span>
+                        PERFORMANCE
+                    </span>
+
+                    <h3>
+                        Insight perjalanan
+                    </h3>
+
+                    <p>
+                        Ringkasan performa berdasarkan
+                        seluruh perjalanan yang telah selesai
+                        atau ditolak.
+                    </p>
+
+        </div>
+
+
+                <div class="performance-grade">
+
+                    <small>
+                        STATUS
+                    </small>
+
+                    <strong>
+                        {{ performance_label }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="history-performance-grid">
+
+
+                <!-- COMPLETION -->
+
+                <article class="performance-card primary">
+
+                    <span class="performance-card-label">
+                        RASIO SELESAI
+                    </span>
+
+                    <strong>
+                        {{ completion_rate }}%
+                    </strong>
+
+                    <div class="performance-progress">
+
+                        <span
+                            style="width: {{ completion_rate }}%;"
+                        ></span>
+
+                    </div>
+
+                    <small>
+                        {{ analytics_completed }}
+                        selesai dari
+                        {{
+                            analytics_completed
+                            + analytics_rejected
+                        }}
+                        pesanan final
+                    </small>
+
+                </article>
+
+
+                <!-- AVERAGE FARE -->
+
+                <article class="performance-card">
+
+                    <span class="performance-card-label">
+                        RATA-RATA TARIF
+                    </span>
+
+                    <strong>
+                        {{ average_fare_analytics | rupiah }}
+                    </strong>
+
+                    <small>
+                        Per perjalanan selesai
+                    </small>
+
+                </article>
+
+
+                <!-- DISTANCE -->
+
+                <article class="performance-card">
+
+                    <span class="performance-card-label">
+                        RATA-RATA JARAK
+                    </span>
+
+                    <strong>
+                        {{ average_distance }} km
+                    </strong>
+
+                    <small>
+                        Per perjalanan selesai
+                    </small>
+
+                </article>
+
+
+                <!-- DURATION -->
+
+                <article class="performance-card">
+
+                    <span class="performance-card-label">
+                        RATA-RATA DURASI
+                    </span>
+
+                    <strong>
+                        {{ average_duration }} menit
+                    </strong>
+
+                    <small>
+                        Estimasi perjalanan
+                    </small>
+
+                </article>
+
+
+                <!-- HIGHEST FARE -->
+
+                <article class="performance-card highlight">
+
+                    <span class="performance-card-label">
+                        TARIF TERTINGGI
+                    </span>
+
+                    <strong>
+                        {{ highest_fare | rupiah }}
+                    </strong>
+
+                    <small>
+                        Perjalanan selesai
+                    </small>
+
+                </article>
+
+
+                <!-- TOTAL DISTANCE -->
+
+                <article class="performance-card">
+
+                    <span class="performance-card-label">
+                        TOTAL JARAK
+                    </span>
+
+                    <strong>
+                        {{ total_distance }} km
+                    </strong>
+
+                    <small>
+                        Seluruh perjalanan selesai
+                    </small>
+
+                </article>
+
+            </div>
+
+
+            <div class="performance-insight-message">
+
+                <span>
+                    ✦
+                </span>
+
+                <div>
+
+                    <strong>
+                        {{ performance_label }}
+                    </strong>
+
+                    <p>
+                        {{ performance_message }}
+                    </p>
+
+                </div>
+
+            </div>
+
+</section>
+
+<!-- ==========================================
+     7 DAY INCOME CHART
+=========================================== -->
+
+<section class="history-income-chart">
+
+    <div class="income-chart-head">
+
+        <div>
+
+            <span>
+                7 HARI TERAKHIR
+            </span>
+
+            <h3>
+                Tren pendapatan
+            </h3>
+
+        </div>
+
+
+        <strong>
+            {{ income_7_days | rupiah }}
+        </strong>
+
+    </div>
+
+
+    <div class="income-chart-list">
+
+        {% for day in income_chart %}
+
+        <article class="income-chart-row">
+
+
+            <div class="income-chart-date">
+
+                <strong>
+                    {{ day.label }}
+                </strong>
+
+                <span>
+                    {{ day.date }}
+                </span>
+
+            </div>
+
+
+            <div class="income-chart-track">
+
+                <span
+                    class="income-chart-bar"
+                    style="
+                        width:
+                        {{ day.percentage }}%;
+                    "
+                ></span>
+
+            </div>
+
+
+            <div class="income-chart-value">
+
+                <strong>
+                    {{ day.income | rupiah }}
+                </strong>
+
+                <span>
+                    {{ day.trips }}
+                    perjalanan
+                </span>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+</section>
 
         <!-- =====================================
              FILTER
@@ -204,47 +553,75 @@ Riwayat Pesanan
 
                 <div class="history-filter-group">
 
+                <span>
+                    PERIODE
+                </span>
+
+
+                <label>
+                    <input
+                        type="radio"
+                        name="period"
+                        value="all"
+                        {% if period == "all" %}
+                            checked
+                        {% endif %}
+                    >
+
                     <span>
-                        PERIODE
+                        Semua
                     </span>
+                </label>
 
 
-                    <label>
-
-                        <input
-                            type="radio"
-                            name="period"
-                            value="all"
-                            {% if period == "all" %}
+                <label>
+                    <input
+                        type="radio"
+                        name="period"
+                        value="today"
+                        {% if period == "today" %}
                             checked
-                            {% endif %}
-                        >
+                        {% endif %}
+                    >
 
-                        <span>
-                            Semua
-                        </span>
+                    <span>
+                        Hari ini
+                    </span>
+                </label>
 
-                    </label>
 
-
-                    <label>
-
-                        <input
-                            type="radio"
-                            name="period"
-                            value="today"
-                            {% if period == "today" %}
+                <label>
+                    <input
+                        type="radio"
+                        name="period"
+                        value="7days"
+                        {% if period == "7days" %}
                             checked
-                            {% endif %}
-                        >
+                        {% endif %}
+                    >
 
-                        <span>
-                            Hari ini
-                        </span>
+                    <span>
+                        7 Hari
+                    </span>
+                </label>
 
-                    </label>
 
-                </div>
+                <label>
+                    <input
+                        type="radio"
+                        name="period"
+                        value="30days"
+                        {% if period == "30days" %}
+                            checked
+                        {% endif %}
+                    >
+
+                    <span>
+                        30 Hari
+                    </span>
+                </label>
+
+            </div>
 
 
                 <!-- STATUS -->
@@ -327,6 +704,20 @@ Riwayat Pesanan
 
                 </button>
 
+                {% if
+                period != "all"
+                or status_filter != "ALL"
+                or search_query
+            %}
+
+            <a
+                href="{{ url_for('driver_history') }}"
+                class="history-reset-filter"
+            >
+                Reset semua filter
+            </a>
+
+            {% endif %}
 
             </form>
 
@@ -371,218 +762,294 @@ Riwayat Pesanan
 
                     {% for order in orders %}
 
-                    <article class="history-order-card">
+                <article
+                    class="
+                        history-order-card
+                        {% if order.status == 'SELESAI' %}
+                            history-card-completed
+                        {% else %}
+                            history-card-rejected
+                        {% endif %}
+                    "
+                >
+
+                    <!-- =====================================
+                        CARD HEADER
+                    ====================================== -->
+
+                    <div class="history-order-top">
+
+                        <div class="history-order-identity">
+
+                            <small>
+                                KODE PESANAN
+                            </small>
+
+                            <strong>
+                                {{ order.order_code }}
+                            </strong>
+
+                        </div>
 
 
-                        <!-- TOP -->
-
-                        <div class="history-order-top">
-
-
-                            <div>
-
-                                <small>
-                                    KODE PESANAN
-                                </small>
-
-                                <strong>
-                                    {{ order.order_code }}
-                                </strong>
-
-                            </div>
-
-
-                            <span
-                                class="history-status
+                        <span
+                            class="
+                                history-status
                                 {% if order.status == 'SELESAI' %}
                                     is-completed
                                 {% else %}
                                     is-rejected
-                                {% endif %}"
-                            >
+                                {% endif %}
+                            "
+                        >
+
+                            <span class="history-status-dot"></span>
+
+                            {% if order.status == "SELESAI" %}
+                                Selesai
+                            {% else %}
+                                Ditolak
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- =====================================
+                        CUSTOMER
+                    ====================================== -->
+
+                    <div class="history-customer">
+
+                        <span class="history-customer-avatar">
+
+                            {{
+                                order.customer_name[0]
+                                | upper
+                            }}
+
+                        </span>
+
+
+                        <div class="history-customer-copy">
+
+                            <small>
+                                PELANGGAN
+                            </small>
+
+                            <strong>
+                                {{ order.customer_name }}
+                            </strong>
+
+                            <span>
+                                {{ order.whatsapp }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                        ROUTE
+                    ====================================== -->
+
+                    <div class="history-route-premium">
+
+                        <div class="history-route-stop">
+
+                            <div class="history-route-marker">
+                                <span class="history-route-dot pickup"></span>
+                                <span class="history-route-connector"></span>
+                            </div>
+
+
+                            <div class="history-route-copy">
+
+                                <small>
+                                    LOKASI JEMPUT
+                                </small>
+
+                                <strong>
+                                    {{ order.pickup }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="history-route-stop">
+
+                            <div class="history-route-marker">
+                                <span class="history-route-dot destination"></span>
+                            </div>
+
+
+                            <div class="history-route-copy">
+
+                                <small>
+                                    TUJUAN
+                                </small>
+
+                                <strong>
+                                    {{ order.destination }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                        NOTE
+                    ====================================== -->
+
+                    {% if order.note %}
+
+                    <div class="history-card-note">
+
+                        <span>
+                            CATATAN
+                        </span>
+
+                        <p>
+                            {{ order.note }}
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- =====================================
+                        META
+                    ====================================== -->
+
+                    <div class="history-order-meta premium">
+
+                        <div>
+
+                            <span class="history-meta-icon">
+                                ↗
+                            </span>
+
+                            <small>
+                                JARAK
+                            </small>
+
+                            <strong>
+                                {{ order.distance_km }} km
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="history-meta-icon">
+                                ◷
+                            </span>
+
+                            <small>
+                                ESTIMASI
+                            </small>
+
+                            <strong>
+                                {{ order.duration_minutes }} menit
+                            </strong>
+
+                        </div>
+
+
+                        <div class="history-meta-fare">
+
+                            <span class="history-meta-icon">
+                                Rp
+                            </span>
+
+                            <small>
+                                TARIF
+                            </small>
+
+                            <strong>
+                                {{ order.fare | rupiah }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                        FOOTER
+                    ====================================== -->
+
+                    <div class="history-order-footer">
+
+                        <div class="history-order-time">
+
+                            <small>
+                                {% if order.status == "SELESAI" %}
+                                    SELESAI
+                                {% else %}
+                                    DITOLAK
+                                {% endif %}
+                            </small>
+
+                            <span>
 
                                 {% if order.status == "SELESAI" %}
 
-                                    Selesai
+                                    {{
+                                        order.completed_at
+                                        or order.created_at
+                                    }}
+
+                                {% elif order.status == "DITOLAK" %}
+
+                                    {{
+                                        order.rejected_at
+                                        or order.created_at
+                                    }}
 
                                 {% else %}
 
-                                    Ditolak
+                                    {{ order.created_at }}
 
                                 {% endif %}
 
                             </span>
 
-
                         </div>
 
 
-                        <!-- CUSTOMER -->
+                        <a
+                            href="{{
+                                url_for(
+                                    'driver_order_detail',
+                                    order_id=order.id
+                                )
+                            }}"
+                            class="history-detail-button"
+                        >
 
-                        <div class="history-customer">
-
-                            <span class="history-customer-avatar">
-
-                                {{
-                                    order.customer_name[0]
-                                    | upper
-                                }}
-
+                            <span>
+                                Lihat Detail
                             </span>
 
+                            <span class="history-detail-arrow">
+                                →
+                            </span>
 
-                            <div>
+                        </a>
 
-                                <strong>
-                                    {{ order.customer_name }}
-                                </strong>
+                    </div>
 
-                                <span>
-                                    {{ order.whatsapp }}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- ROUTE -->
-
-                        <div class="history-route">
-
-
-                            <div>
-
-                                <span class="route-dot pickup"></span>
-
-                                <div>
-
-                                    <small>
-                                        JEMPUT
-                                    </small>
-
-                                    <p>
-                                        {{ order.pickup }}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <span class="route-dot destination"></span>
-
-                                <div>
-
-                                    <small>
-                                        TUJUAN
-                                    </small>
-
-                                    <p>
-                                        {{ order.destination }}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <!-- META -->
-
-                        <div class="history-order-meta">
-
-
-                            <div>
-
-                                <small>
-                                    JARAK
-                                </small>
-
-                                <strong>
-                                    {{ order.distance_km }} km
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <small>
-                                    ESTIMASI
-                                </small>
-
-                                <strong>
-                                    {{ order.duration_minutes }} menit
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <small>
-                                    TARIF
-                                </small>
-
-                                <strong>
-                                    {{ order.fare | rupiah }}
-                                </strong>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <!-- FOOTER -->
-
-                        <div class="history-order-footer">
-
-
-                            {% if order.status == "SELESAI" %}
-
-                                {{
-                                    order.completed_at
-                                    or order.created_at
-                                }}
-
-                            {% elif order.status == "DITOLAK" %}
-
-                                {{
-                                    order.rejected_at
-                                    or order.created_at
-                                }}
-
-                            {% else %}
-
-                                {{ order.created_at }}
-
-                            {% endif %}
-
-
-                            <a
-                                href="{{
-                                    url_for(
-                                        'driver_order_detail',
-                                        order_id=order.id
-                                    )
-                                }}"
-                            >
-                                Lihat Detail
-                                <span>→</span>
-                            </a>
-
-
-                        </div>
-
-
-                    </article>
-
+                </article>
                     {% endfor %}
 
 

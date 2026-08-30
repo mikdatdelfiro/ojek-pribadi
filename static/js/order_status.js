@@ -4,7 +4,7 @@
 // ============================================================
 // OJEK PRIBADI
 // CUSTOMER LIVE ORDER STATUS
-// Clean Version - Phase 10
+// Phase 16 - Customer Tracking Dark Premium Final
 // ============================================================
 
 
@@ -243,7 +243,7 @@ const statusConfig = {
             "⌛",
 
         title:
-            "Menunggu konfirmasi",
+            "Menunggu konfirmasi driver",
 
         description:
             (
@@ -266,11 +266,11 @@ const statusConfig = {
             "✓",
 
         title:
-            "Pesanan diterima",
+            "Perjalanan dikonfirmasi",
 
         description:
             (
-                "Pengemudi telah menerima "
+                "Driver telah menerima "
                 +
                 "pesanan Anda dan akan "
                 +
@@ -289,11 +289,11 @@ const statusConfig = {
             "🛵",
 
         title:
-            "Menuju lokasi Anda",
+            "Driver menuju lokasi Anda",
 
         description:
             (
-                "Pengemudi sedang dalam "
+                "Driver sedang dalam "
                 +
                 "perjalanan menuju lokasi jemput."
             )
@@ -310,7 +310,7 @@ const statusConfig = {
             "→",
 
         title:
-            "Perjalanan berlangsung",
+            "Perjalanan sedang berlangsung",
 
         description:
             (
@@ -1153,13 +1153,13 @@ const customerStatusNotificationConfig = {
 
     DITERIMA: {
         title:
-            "Pesanan diterima",
+            "Perjalanan dikonfirmasi",
 
         message:
             (
-                "Pengemudi telah menerima "
+                "Driver telah menerima "
                 +
-                "pesanan Anda."
+                "perjalanan Anda."
             )
     },
 
@@ -1205,13 +1205,13 @@ const customerStatusNotificationConfig = {
 
     DITOLAK: {
         title:
-            "Pesanan ditolak",
+            "Perjalanan belum dapat diterima",
 
         message:
             (
-                "Maaf, pesanan tidak dapat "
+                "Maaf, perjalanan Anda belum "
                 +
-                "diterima."
+                "dapat diterima oleh driver."
             )
     }
 
@@ -1558,7 +1558,7 @@ if (
         if (liveStatusTitle) {
 
             liveStatusTitle.textContent =
-                "Pesanan ditolak";
+                "Perjalanan belum dapat diterima";
 
         }
 
@@ -1567,9 +1567,9 @@ if (
 
             liveStatusDescription.textContent =
                 (
-                    "Maaf, perjalanan ini "
+                    "Maaf, perjalanan ini belum "
                     +
-                    "tidak dapat diterima."
+                    "dapat diterima oleh driver."
                 );
 
         }
