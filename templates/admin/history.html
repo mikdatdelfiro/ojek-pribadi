@@ -536,8 +536,9 @@ Riwayat Pesanan
                         type="search"
                         name="q"
                         value="{{ search_query }}"
-                        placeholder="Cari kode, nama, alamat..."
+                        placeholder="Cari kode order, pelanggan, atau lokasi..."
                         autocomplete="off"
+                        aria-label="Cari riwayat perjalanan"
                     >
 
                     <button
@@ -728,6 +729,54 @@ Riwayat Pesanan
         <!-- =====================================
              LIST
         ====================================== -->
+        {% if
+            period != "all"
+            or status_filter != "ALL"
+            or search_query
+        %}
+
+        <div class="history-active-filter">
+
+            <span>
+                FILTER AKTIF
+            </span>
+
+
+            <div>
+
+                {% if period == "today" %}
+                    <strong>Hari ini</strong>
+                {% elif period == "7days" %}
+                    <strong>7 Hari</strong>
+                {% elif period == "30days" %}
+                    <strong>30 Hari</strong>
+                {% endif %}
+
+
+                {% if status_filter == "SELESAI" %}
+                    <strong>Selesai</strong>
+                {% elif status_filter == "DITOLAK" %}
+                    <strong>Ditolak</strong>
+                {% endif %}
+
+
+                {% if search_query %}
+                    <strong>
+                        “{{ search_query }}”
+                    </strong>
+                {% endif %}
+
+            </div>
+
+
+            <a href="{{ url_for('driver_history') }}">
+                Reset
+            </a>
+
+        </div>
+
+        {% endif %}
+
 
         <section class="history-list-section">
 
@@ -1059,23 +1108,66 @@ Riwayat Pesanan
             {% else %}
 
 
-                <div class="history-empty">
+            <div class="history-empty premium">
 
-                    <span>
-                        ○
-                    </span>
-
-                    <strong>
-                        Belum ada riwayat
-                    </strong>
-
-                    <p>
-                        Pesanan selesai dan ditolak
-                        akan muncul di sini.
-                    </p>
-
+                <div class="history-empty-icon">
+                    ↺
                 </div>
 
+                <span>
+                    RIWAYAT PERJALANAN
+                </span>
+
+                <strong>
+                    Belum ada perjalanan di sini.
+                </strong>
+
+                <p>
+
+                    {% if
+                        period != "all"
+                        or status_filter != "ALL"
+                        or search_query
+                    %}
+
+                        Tidak ada perjalanan yang cocok
+                        dengan filter atau pencarian Anda.
+
+                    {% else %}
+
+                        Perjalanan yang selesai atau ditolak
+                        akan tersimpan otomatis di halaman ini.
+
+                    {% endif %}
+
+                </p>
+
+
+                {% if
+                    period != "all"
+                    or status_filter != "ALL"
+                    or search_query
+                %}
+
+                <a
+                    href="{{ url_for('driver_history') }}"
+                    class="history-empty-reset"
+                >
+                    Hapus Filter
+                </a>
+
+                {% else %}
+
+                <a
+                    href="{{ url_for('driver_dashboard') }}"
+                    class="history-empty-reset"
+                >
+                    Kembali ke Dashboard
+                </a>
+
+                {% endif %}
+
+            </div>
 
             {% endif %}
 

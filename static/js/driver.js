@@ -26,9 +26,137 @@ const driverToastMessage =
 // UPDATE STATUS
 // =====================================================
 
+// ============================================================
+// PHASE 18F
+// DRIVER SAFE ORDER ACTION
+// ============================================================
+
+const activeOrderRequests =
+    new Set();
+
+
+// ============================================================
+// LOCK / UNLOCK CARD ACTIONS
+// ============================================================
+
+function setOrderCardBusy(
+    card,
+    busy
+) {
+
+    if (!card) {
+        return;
+    }
+
+
+    card.classList.toggle(
+        "is-processing",
+        busy
+    );
+
+
+    const buttons =
+        card.querySelectorAll(
+            ".driver-actions button"
+        );
+
+
+    buttons.forEach(
+        function (item) {
+
+            item.disabled =
+                Boolean(
+                    busy
+                );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CONFIRM IMPORTANT ACTION
+// ============================================================
+
+function confirmDriverAction(
+    status
+) {
+
+    if (
+        status === "DITOLAK"
+    ) {
+
+        return window.confirm(
+            "Tolak pesanan ini?\n\n"
+            +
+            "Pesanan akan ditandai sebagai ditolak "
+            +
+            "dan tidak dapat dilanjutkan."
+        );
+
+    }
+
+
+    if (
+        status === "SELESAI"
+    ) {
+
+        return window.confirm(
+            "Selesaikan perjalanan?\n\n"
+            +
+            "Pastikan penumpang sudah sampai "
+            +
+            "di tujuan sebelum menyelesaikan perjalanan."
+        );
+
+    }
+
+
+    return true;
+
+}
+
+
+// ============================================================
+// SAFE RESPONSE JSON
+// ============================================================
+
+async function readDriverResponse(
+    response
+) {
+
+    try {
+
+        return await response.json();
+
+    }
+
+    catch (error) {
+
+        return {
+            success: false,
+            message:
+                "Respons server tidak valid."
+        };
+
+    }
+
+}
+
+
+// ============================================================
+// UPDATE ORDER STATUS
+// ============================================================
+
 async function updateOrderStatus(
     button
 ) {
+
+    if (!button) {
+        return;
+    }
+
 
     const orderId =
         button.dataset.id;
@@ -38,27 +166,92 @@ async function updateOrderStatus(
         button.dataset.status;
 
 
-    // Konfirmasi khusus penolakan.
-    if (status === "DITOLAK") {
+    if (
+        !orderId
+        ||
+        !status
+    ) {
 
-        const confirmed =
-            window.confirm(
-                "Tolak pesanan ini?"
-            );
+        alert(
+            "Data pesanan tidak lengkap."
+        );
 
-
-        if (!confirmed) {
-            return;
-        }
+        return;
 
     }
 
 
-    const originalText =
+    // --------------------------------------------------------
+    // INTERNET CHECK
+    // --------------------------------------------------------
+
+    if (
+        navigator.onLine
+        === false
+    ) {
+
+        showDriverToast(
+            "Tidak ada koneksi internet."
+        );
+
+        return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // DUPLICATE REQUEST PROTECTION
+    // --------------------------------------------------------
+
+    if (
+        activeOrderRequests.has(
+            String(
+                orderId
+            )
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // CONFIRM DANGEROUS ACTION
+    // --------------------------------------------------------
+
+    if (
+        !confirmDriverAction(
+            status
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const card =
+        button.closest(
+            ".driver-order-card"
+        );
+
+
+    const originalHTML =
         button.innerHTML;
 
 
-    button.disabled = true;
+    activeOrderRequests.add(
+        String(
+            orderId
+        )
+    );
+
+
+    setOrderCardBusy(
+        card,
+        true
+    );
 
 
     button.innerHTML =
@@ -66,6 +259,25 @@ async function updateOrderStatus(
         <span class="button-loading-dot"></span>
         Memproses...
         `;
+
+
+    // --------------------------------------------------------
+    // REQUEST TIMEOUT
+    // --------------------------------------------------------
+
+    const controller =
+        new AbortController();
+
+
+    const timeoutId =
+        window.setTimeout(
+            function () {
+
+                controller.abort();
+
+            },
+            12000
+        );
 
 
     try {
@@ -77,9 +289,20 @@ async function updateOrderStatus(
                     method:
                         "POST",
 
+                    cache:
+                        "no-store",
+
+                    credentials:
+                        "same-origin",
+
                     headers: {
+
                         "Content-Type":
+                            "application/json",
+
+                        "Accept":
                             "application/json"
+
                     },
 
                     body:
@@ -88,24 +311,40 @@ async function updateOrderStatus(
                                 status:
                                     status
                             }
-                        )
+                        ),
+
+                    signal:
+                        controller.signal
                 }
             );
 
 
         const data =
-            await response.json();
+            await readDriverResponse(
+                response
+            );
+
+
+        // ----------------------------------------------------
+        // SESSION EXPIRED
+        // ----------------------------------------------------
 
         if (
-            response.status === 401
+            response.status
+            === 401
         ) {
 
             window.location.href =
-                 "/driver/login?expired=1";
+                "/driver/login?expired=1";
 
-                return;
+            return;
 
-        }    
+        }
+
+
+        // ----------------------------------------------------
+        // BACKEND ERROR
+        // ----------------------------------------------------
 
         if (
             !response.ok
@@ -116,21 +355,21 @@ async function updateOrderStatus(
             throw new Error(
                 data.message
                 ||
-                "Gagal memperbarui pesanan."
+                "Status perjalanan belum berhasil diperbarui."
             );
 
         }
 
 
+        // ----------------------------------------------------
+        // SUCCESS
+        // ----------------------------------------------------
+
         showDriverToast(
             data.message
+            ||
+            "Status perjalanan berhasil diperbarui."
         );
-
-
-        const card =
-            button.closest(
-                ".driver-order-card"
-            );
 
 
         if (card) {
@@ -142,33 +381,81 @@ async function updateOrderStatus(
         }
 
 
-        setTimeout(
+        // Reload from server so server remains source of truth.
+        window.setTimeout(
             function () {
 
                 window.location.reload();
 
             },
-            650
+            550
         );
 
     }
 
     catch (error) {
 
-        alert(
-            error.message
+        console.error(
+            "[DRIVER ORDER STATUS]",
+            error
         );
 
 
-        button.disabled = false;
+        let message =
+            (
+                error.message
+                ||
+                "Status perjalanan belum berhasil diperbarui."
+            );
+
+
+        if (
+            error.name
+            === "AbortError"
+        ) {
+
+            message =
+                (
+                    "Server membutuhkan waktu terlalu lama. "
+                    +
+                    "Periksa koneksi lalu coba lagi."
+                );
+
+        }
+
+
+        showDriverToast(
+            message
+        );
+
 
         button.innerHTML =
-            originalText;
+            originalHTML;
+
+
+        setOrderCardBusy(
+            card,
+            false
+        );
+
+    }
+
+    finally {
+
+        window.clearTimeout(
+            timeoutId
+        );
+
+
+        activeOrderRequests.delete(
+            String(
+                orderId
+            )
+        );
 
     }
 
 }
-
 
 // =====================================================
 // NORMAL BUTTONS
@@ -1738,3 +2025,64 @@ window.setInterval(
     pollDriverNewOrders,
     4000
 );
+
+// ============================================================
+// PHASE 18F
+// DRIVER NETWORK STATUS
+// ============================================================
+
+const driverNetworkStatus =
+    document.getElementById(
+        "driverNetworkStatus"
+    );
+
+
+function updateDriverNetworkStatus() {
+
+    const isOffline =
+        navigator.onLine
+        === false;
+
+
+    if (driverNetworkStatus) {
+
+        driverNetworkStatus.hidden =
+            !isOffline;
+
+    }
+
+
+    document.body.classList.toggle(
+        "driver-is-offline",
+        isOffline
+    );
+
+}
+
+
+window.addEventListener(
+    "online",
+    function () {
+
+        updateDriverNetworkStatus();
+
+
+        showDriverToast(
+            "Koneksi internet kembali aktif."
+        );
+
+    }
+);
+
+
+window.addEventListener(
+    "offline",
+    function () {
+
+        updateDriverNetworkStatus();
+
+    }
+);
+
+
+updateDriverNetworkStatus();

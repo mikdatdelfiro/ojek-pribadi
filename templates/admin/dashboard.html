@@ -11,6 +11,25 @@ Ojek Control
 
 <div class="driver-page">
 
+<div
+    class="driver-network-status"
+    id="driverNetworkStatus"
+    hidden
+>
+    <span></span>
+
+    <div>
+        <strong>
+            Tidak ada koneksi
+        </strong>
+
+        <small>
+            Tindakan perjalanan akan tersedia
+            kembali setelah internet tersambung.
+        </small>
+    </div>
+</div>
+
 
     <!-- PREMIUM BACKGROUND -->
 
@@ -684,13 +703,12 @@ Ojek Control
         <span class="whatsapp-content">
 
             <small>
-                HUBUNGI PENUMPANG
+                KONTAK PENUMPANG
             </small>
 
             <strong>
-                Chat melalui WhatsApp
+                Hubungi via WhatsApp
             </strong>
-
         </span>
 
 
@@ -741,13 +759,12 @@ Ojek Control
             <span>
 
                 <small>
-                    NAVIGASI
+                    GOOGLE MAPS
                 </small>
 
-                <strong>
-                    Buka rute ke penumpang
-                </strong>
-
+            <strong>
+                Navigasi ke Lokasi Jemput
+            </strong>
             </span>
 
 
@@ -790,7 +807,7 @@ Ojek Control
                 </small>
 
                 <strong>
-                    Buka rute ke tujuan
+                Navigasi ke Tujuan
                 </strong>
 
             </span>
@@ -984,7 +1001,11 @@ Ojek Control
 
 
 <script
-    src="{{ url_for('static', filename='js/driver.js', v='phase18f-notification-toggle-1') }}"
+    src="{{ url_for(
+        'static',
+        filename='js/driver.js',
+        v='phase18f-final-1'
+    ) }}"
 ></script>
 
 
