@@ -919,10 +919,22 @@ let notifyAudioUnlocked =
 function updateDriverNotificationControl() {
 
     if (!notifyEnableButton) {
-
         return;
-
     }
+
+
+    notifyEnableButton.setAttribute(
+        "aria-pressed",
+        notifyOptIn
+            ? "true"
+            : "false"
+    );
+
+
+    notifyEnableButton.classList.toggle(
+        "is-active",
+        notifyOptIn
+    );
 
 
     if (!notifyOptIn) {
@@ -934,38 +946,7 @@ function updateDriverNotificationControl() {
         if (notifyStatusText) {
 
             notifyStatusText.textContent =
-                (
-                    "Aktifkan suara dan "
-                    +
-                    "notifikasi browser."
-                );
-
-        }
-
-
-        return;
-
-    }
-
-
-    if (
-        notifyOptIn
-        &&
-        !notifyAudioUnlocked
-    ) {
-
-        notifyEnableButton.textContent =
-            "Aktifkan Suara";
-
-
-        if (notifyStatusText) {
-
-            notifyStatusText.textContent =
-                (
-                    "Notifikasi aktif. "
-                    +
-                    "Klik untuk mengaktifkan suara."
-                );
+                "Notifikasi pesanan sedang nonaktif.";
 
         }
 
@@ -976,17 +957,15 @@ function updateDriverNotificationControl() {
 
 
     notifyEnableButton.textContent =
-        "Notifikasi Aktif";
+        "Nonaktifkan";
 
 
     if (notifyStatusText) {
 
         notifyStatusText.textContent =
-            (
-                "Siap memberi tahu "
-                +
-                "ketika pesanan baru masuk."
-            );
+            notifyAudioUnlocked
+                ? "Notifikasi dan suara pesanan aktif."
+                : "Notifikasi aktif. Suara akan aktif setelah interaksi.";
 
     }
 
@@ -1277,28 +1256,24 @@ async function enableDriverNotifications() {
     if (
         "Notification"
         in window
+        &&
+        Notification.permission
+            === "default"
     ) {
 
-        if (
-            Notification.permission
-            === "default"
-        ) {
+        try {
 
-            try {
+            await Notification
+                .requestPermission();
 
-                await Notification
-                    .requestPermission();
+        }
 
-            }
+        catch (error) {
 
-            catch (error) {
-
-                console.warn(
-                    "[NOTIFICATION PERMISSION]",
-                    error
-                );
-
-            }
+            console.warn(
+                "[NOTIFICATION PERMISSION]",
+                error
+            );
 
         }
 
@@ -1306,6 +1281,96 @@ async function enableDriverNotifications() {
 
 
     updateDriverNotificationControl();
+
+}
+
+
+// ============================================================
+// DISABLE NOTIFICATIONS
+// ============================================================
+
+async function disableDriverNotifications() {
+
+    notifyOptIn =
+        false;
+
+
+    localStorage.setItem(
+        "driverNotificationsEnabled",
+        "0"
+    );
+
+
+    notifyAudioUnlocked =
+        false;
+
+
+    if (
+        notifyAudioContext
+        &&
+        notifyAudioContext.state
+            === "running"
+    ) {
+
+        try {
+
+            await notifyAudioContext.suspend();
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "[NOTIFICATION AUDIO]",
+                error
+            );
+
+        }
+
+    }
+
+
+    notifyUnreadCount =
+        0;
+
+
+    updateDriverNotificationCount();
+
+
+    if (notifyToast) {
+
+        notifyToast.classList.remove(
+            "show"
+        );
+
+
+        notifyToast.hidden =
+            true;
+
+    }
+
+
+    updateDriverNotificationControl();
+
+}
+
+
+// ============================================================
+// TOGGLE NOTIFICATIONS
+// ============================================================
+
+async function toggleDriverNotifications() {
+
+    if (notifyOptIn) {
+
+        await disableDriverNotifications();
+
+        return;
+
+    }
+
+
+    await enableDriverNotifications();
 
 }
 
@@ -1557,53 +1622,57 @@ async function pollDriverNewOrders() {
 
 
         if (
+    newOrders.length
+    > 0
+) {
+
+    const latestNewOrder =
+        newOrders[
+            newOrders.length - 1
+        ];
+
+
+    if (notifyOptIn) {
+
+        notifyUnreadCount +=
+            newOrders.length;
+
+
+        updateDriverNotificationCount();
+
+
+        showDriverNewOrderToast(
+            latestNewOrder,
             newOrders.length
-            > 0
+        );
+
+
+        playDriverOrderSound();
+
+
+        showDriverBrowserNotification(
+            latestNewOrder
+        );
+
+
+        if (
+            "vibrate"
+            in navigator
         ) {
 
-            const latestNewOrder =
-                newOrders[
-                    newOrders.length - 1
-                ];
-
-
-            notifyUnreadCount +=
-                newOrders.length;
-
-
-            updateDriverNotificationCount();
-
-
-            showDriverNewOrderToast(
-                latestNewOrder,
-                newOrders.length
+            navigator.vibrate(
+                [
+                    150,
+                    80,
+                    150
+                ]
             );
-
-
-            playDriverOrderSound();
-
-
-            showDriverBrowserNotification(
-                latestNewOrder
-            );
-
-
-            if (
-                "vibrate"
-                in navigator
-            ) {
-
-                navigator.vibrate(
-                    [
-                        150,
-                        80,
-                        150
-                    ]
-                );
-
-            }
 
         }
+
+    }
+
+}
 
 
         const serverLatestId =
@@ -1641,7 +1710,7 @@ if (notifyEnableButton) {
 
     notifyEnableButton.addEventListener(
         "click",
-        enableDriverNotifications
+        toggleDriverNotifications
     );
 
 }
