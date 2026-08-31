@@ -646,6 +646,22 @@ REVIEW_ALLOWED_TAGS_LABELS = {
 }
 
 # ============================================================
+# PHASE 19F
+# REVIEW HISTORY CONFIG
+# ============================================================
+
+REVIEW_HISTORY_PAGE_SIZE = 20
+
+REVIEW_HISTORY_MAX_PAGE_SIZE = 50
+
+# ============================================================
+# PHASE 19F.3
+# REVIEW SEARCH CONFIG
+# ============================================================
+
+REVIEW_HISTORY_SEARCH_MAX_LENGTH = 100
+
+# ============================================================
 # PHASE 19E
 # REVIEW SAFETY CONFIG
 # ============================================================
@@ -4383,7 +4399,978 @@ def customer_review_payload(
                 "created_at"
             ],
     }
+    
+    # ============================================================
+# PHASE 19F.1
+# DRIVER REVIEW HISTORY PAYLOAD
+# ============================================================
 
+def driver_review_history_payload(
+    review
+):
+
+    if not review:
+
+        return None
+
+
+    return {
+
+        "review_id":
+            int(
+                review[
+                    "review_id"
+                ]
+            ),
+
+        "order_id":
+            int(
+                review[
+                    "order_id"
+                ]
+            ),
+
+        "order_code":
+            review[
+                "order_code"
+            ],
+
+        "customer_name":
+            review[
+                "customer_name"
+            ],
+
+        "rating":
+            int(
+                review[
+                    "rating"
+                ]
+                or 0
+            ),
+
+        "feedback":
+            (
+                review[
+                    "feedback"
+                ]
+                or ""
+            ).strip(),
+
+        "tags":
+            decode_review_tags(
+                review[
+                    "tags"
+                ]
+            ),
+
+        "review_created_at":
+            review[
+                "review_created_at"
+            ],
+
+        "completed_at":
+            review[
+                "completed_at"
+            ],
+
+        "pickup":
+            review[
+                "pickup"
+            ],
+
+        "destination":
+            review[
+                "destination"
+            ],
+
+        "distance_km":
+            float(
+                review[
+                    "distance_km"
+                ]
+                or 0
+            ),
+
+        "duration_minutes":
+            int(
+                review[
+                    "duration_minutes"
+                ]
+                or 0
+            ),
+
+        "fare":
+            int(
+                review[
+                    "fare"
+                ]
+                or 0
+            ),
+    }
+    
+    # ============================================================
+# PHASE 19F.2
+# REVIEW RATING FILTER
+# ============================================================
+
+def normalize_review_rating_filter(
+    value
+):
+
+    if value is None:
+
+        return None
+
+
+    value = str(
+        value
+    ).strip().lower()
+
+
+    if value in (
+        "",
+        "all",
+        "semua"
+    ):
+
+        return None
+
+
+    try:
+
+        rating = int(
+            value
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
+
+
+    if rating not in (
+        1,
+        2,
+        3,
+        4,
+        5
+    ):
+
+        return None
+
+
+    return rating
+
+# ============================================================
+# PHASE 19F.3
+# NORMALIZE REVIEW SEARCH
+# ============================================================
+
+def normalize_review_search(
+    value
+):
+
+    if value is None:
+
+        return ""
+
+
+    value = str(
+        value
+    )
+
+
+    # Hilangkan spasi berlebihan.
+    value = " ".join(
+        value
+        .strip()
+        .split()
+    )
+
+
+    return value
+    
+# ============================================================
+# PHASE 19F.4
+# DRIVER REVIEW STATISTICS
+# ============================================================
+
+def get_driver_review_statistics(
+    connection
+):
+
+    # ========================================================
+    # DATABASE STATISTICS
+    # ========================================================
+
+    row = (
+        connection.execute(
+            """
+            SELECT
+
+                COUNT(*)
+                    AS total_reviews,
+
+                COALESCE(
+                    AVG(r.rating),
+                    0
+                )
+                    AS average_rating,
+
+
+                SUM(
+                    CASE
+                        WHEN r.rating = 5
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS rating_5,
+
+                SUM(
+                    CASE
+                        WHEN r.rating = 4
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS rating_4,
+
+                SUM(
+                    CASE
+                        WHEN r.rating = 3
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS rating_3,
+
+                SUM(
+                    CASE
+                        WHEN r.rating = 2
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS rating_2,
+
+                SUM(
+                    CASE
+                        WHEN r.rating = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS rating_1,
+
+
+                SUM(
+                    CASE
+                        WHEN r.rating >= 4
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS positive_reviews,
+
+
+                SUM(
+                    CASE
+                        WHEN
+                            NULLIF(
+                                TRIM(
+                                    COALESCE(
+                                        r.feedback,
+                                        ''
+                                    )
+                                ),
+                                ''
+                            )
+                            IS NOT NULL
+
+                        THEN 1
+                        ELSE 0
+                    END
+                )
+                    AS feedback_count
+
+            FROM order_reviews r
+
+            INNER JOIN orders o
+                ON o.id = r.order_id
+
+            WHERE o.status = ?
+            """,
+            (
+                STATUS_COMPLETED,
+            )
+        )
+        .fetchone()
+    )
+
+
+    # ========================================================
+    # TOTAL REVIEWS
+    # ========================================================
+
+    total_reviews = int(
+        row[
+            "total_reviews"
+        ]
+        or 0
+    )
+
+
+    # ========================================================
+    # AVERAGE RATING
+    # ========================================================
+
+    average_rating = round(
+        float(
+            row[
+                "average_rating"
+            ]
+            or 0
+        ),
+        1
+    )
+
+
+    # ========================================================
+    # RATING COUNTS
+    # ========================================================
+
+    rating_counts = {
+
+        5:
+            int(
+                row[
+                    "rating_5"
+                ]
+                or 0
+            ),
+
+        4:
+            int(
+                row[
+                    "rating_4"
+                ]
+                or 0
+            ),
+
+        3:
+            int(
+                row[
+                    "rating_3"
+                ]
+                or 0
+            ),
+
+        2:
+            int(
+                row[
+                    "rating_2"
+                ]
+                or 0
+            ),
+
+        1:
+            int(
+                row[
+                    "rating_1"
+                ]
+                or 0
+            ),
+    }
+
+
+    # ========================================================
+    # RATING DISTRIBUTION
+    # ========================================================
+
+    distribution = {}
+
+
+    for rating in (
+        5,
+        4,
+        3,
+        2,
+        1
+    ):
+
+        count = (
+            rating_counts[
+                rating
+            ]
+        )
+
+
+        percentage = (
+
+            round(
+                (
+                    count
+                    /
+                    total_reviews
+                )
+                * 100,
+                1
+            )
+
+            if total_reviews > 0
+
+            else 0.0
+
+        )
+
+
+        distribution[
+            str(
+                rating
+            )
+        ] = {
+
+            "count":
+                count,
+
+            "percentage":
+                percentage,
+        }
+
+
+    # ========================================================
+    # POSITIVE RATING
+    # ========================================================
+
+    positive_reviews = int(
+        row[
+            "positive_reviews"
+        ]
+        or 0
+    )
+
+
+    positive_percentage = (
+
+        round(
+            (
+                positive_reviews
+                /
+                total_reviews
+            )
+            * 100,
+            1
+        )
+
+        if total_reviews > 0
+
+        else 0.0
+
+    )
+
+
+    # ========================================================
+    # FEEDBACK COUNT
+    # ========================================================
+
+    feedback_count = int(
+        row[
+            "feedback_count"
+        ]
+        or 0
+    )
+
+
+    # ========================================================
+    # REPUTATION LABEL
+    # ========================================================
+
+    if total_reviews == 0:
+
+        reputation_label = (
+            "Belum Ada Ulasan"
+        )
+
+
+    elif total_reviews < 3:
+
+        reputation_label = (
+            "Mulai Terbentuk"
+        )
+
+
+    elif average_rating >= 4.8:
+
+        reputation_label = (
+            "Pelayanan Istimewa"
+        )
+
+
+    elif average_rating >= 4.5:
+
+        reputation_label = (
+            "Sangat Baik"
+        )
+
+
+    elif average_rating >= 4.0:
+
+        reputation_label = (
+            "Pelayanan Baik"
+        )
+
+
+    elif average_rating >= 3.0:
+
+        reputation_label = (
+            "Cukup Baik"
+        )
+
+
+    else:
+
+        reputation_label = (
+            "Terus Tingkatkan"
+        )
+
+
+    # ========================================================
+    # RESULT
+    # ========================================================
+
+    return {
+
+        "total_reviews":
+            total_reviews,
+
+        "average_rating":
+            average_rating,
+
+        "positive_reviews":
+            positive_reviews,
+
+        "positive_percentage":
+            positive_percentage,
+
+        "feedback_count":
+            feedback_count,
+
+        "reputation_label":
+            reputation_label,
+
+        "distribution":
+            distribution,
+    }
+
+# ============================================================
+# PHASE 19F.3
+# DRIVER REVIEW HISTORY
+# RATING FILTER + SEARCH + PAGINATION
+# ============================================================
+
+def get_driver_review_history_page(
+    connection,
+    page=1,
+    page_size=REVIEW_HISTORY_PAGE_SIZE,
+    rating=None,
+    search=""
+):
+
+    # ========================================================
+    # SAFE PAGE
+    # ========================================================
+
+    try:
+
+        page = int(
+            page
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        page = 1
+
+
+    page = max(
+        1,
+        page
+    )
+
+
+    # ========================================================
+    # SAFE PAGE SIZE
+    # ========================================================
+
+    try:
+
+        page_size = int(
+            page_size
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        page_size = (
+            REVIEW_HISTORY_PAGE_SIZE
+        )
+
+
+    page_size = max(
+        1,
+        min(
+            page_size,
+            REVIEW_HISTORY_MAX_PAGE_SIZE
+        )
+    )
+
+
+    # ========================================================
+    # RATING
+    # ========================================================
+
+    rating = (
+        normalize_review_rating_filter(
+            rating
+        )
+    )
+
+
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
+    search = (
+        normalize_review_search(
+            search
+        )
+    )
+
+
+    # ========================================================
+    # WHERE
+    # ========================================================
+
+    where_parts = [
+
+        "o.status = ?"
+
+    ]
+
+
+    where_params = [
+
+        STATUS_COMPLETED
+
+    ]
+
+
+    # ========================================================
+    # RATING FILTER
+    # ========================================================
+
+    if rating is not None:
+
+        where_parts.append(
+            "r.rating = ?"
+        )
+
+
+        where_params.append(
+            rating
+        )
+
+
+    # ========================================================
+    # SEARCH FILTER
+    # ========================================================
+
+    if search:
+
+        search_pattern = (
+            "%"
+            +
+            search
+            +
+            "%"
+        )
+
+
+        where_parts.append(
+            """
+            (
+                o.order_code ILIKE ?
+                OR
+                o.customer_name ILIKE ?
+                OR
+                COALESCE(
+                    r.feedback,
+                    ''
+                ) ILIKE ?
+                OR
+                o.pickup ILIKE ?
+                OR
+                o.destination ILIKE ?
+            )
+            """
+        )
+
+
+        where_params.extend(
+            [
+                search_pattern,
+                search_pattern,
+                search_pattern,
+                search_pattern,
+                search_pattern,
+            ]
+        )
+
+
+    # ========================================================
+    # BUILD WHERE SQL
+    # ========================================================
+
+    where_sql = (
+        " AND ".join(
+            where_parts
+        )
+    )
+
+
+    # ========================================================
+    # TOTAL FILTERED REVIEWS
+    # ========================================================
+
+    total_row = (
+        connection.execute(
+            f"""
+            SELECT
+                COUNT(*) AS total
+
+            FROM order_reviews r
+
+            INNER JOIN orders o
+                ON o.id = r.order_id
+
+            WHERE {where_sql}
+            """,
+            tuple(
+                where_params
+            )
+        )
+        .fetchone()
+    )
+
+
+    total = int(
+        total_row[
+            "total"
+        ]
+        or 0
+    )
+
+
+    # ========================================================
+    # TOTAL PAGES
+    # ========================================================
+
+    total_pages = (
+
+        math.ceil(
+            total
+            /
+            page_size
+        )
+
+        if total > 0
+
+        else 0
+
+    )
+
+
+    # ========================================================
+    # NORMALIZE CURRENT PAGE
+    # ========================================================
+
+    if (
+        total_pages > 0
+        and
+        page > total_pages
+    ):
+
+        page = (
+            total_pages
+        )
+
+
+    offset = (
+        (page - 1)
+        *
+        page_size
+    )
+
+
+    # ========================================================
+    # FINAL QUERY PARAMS
+    # ========================================================
+
+    query_params = (
+
+        where_params
+        +
+        [
+            page_size,
+            offset,
+        ]
+
+    )
+
+
+    # ========================================================
+    # REVIEW DATA
+    # ========================================================
+
+    rows = (
+        connection.execute(
+            f"""
+            SELECT
+
+                r.id
+                    AS review_id,
+
+                r.order_id
+                    AS order_id,
+
+                r.rating
+                    AS rating,
+
+                r.feedback
+                    AS feedback,
+
+                r.tags
+                    AS tags,
+
+                r.created_at
+                    AS review_created_at,
+
+
+                o.order_code
+                    AS order_code,
+
+                o.customer_name
+                    AS customer_name,
+
+                o.pickup
+                    AS pickup,
+
+                o.destination
+                    AS destination,
+
+                o.distance_km
+                    AS distance_km,
+
+                o.duration_minutes
+                    AS duration_minutes,
+
+                o.fare
+                    AS fare,
+
+                o.completed_at
+                    AS completed_at
+
+            FROM order_reviews r
+
+            INNER JOIN orders o
+                ON o.id = r.order_id
+
+            WHERE {where_sql}
+
+            ORDER BY
+                r.id DESC
+
+            LIMIT ?
+
+            OFFSET ?
+            """,
+            tuple(
+                query_params
+            )
+        )
+        .fetchall()
+    )
+
+
+    # ========================================================
+    # PAYLOAD
+    # ========================================================
+
+    reviews = [
+
+        driver_review_history_payload(
+            row
+        )
+
+        for row
+        in rows
+
+    ]
+
+
+    # ========================================================
+    # RESPONSE DATA
+    # ========================================================
+
+    return {
+
+        "reviews":
+            reviews,
+
+        "filters": {
+
+            "rating":
+                rating,
+
+            "search":
+                search,
+
+        },
+
+        "pagination": {
+
+            "page":
+                page,
+
+            "page_size":
+                page_size,
+
+            "total":
+                total,
+
+            "total_pages":
+                total_pages,
+
+            "has_previous":
+                page > 1,
+
+            "has_next":
+                (
+                    total_pages > 0
+                    and
+                    page < total_pages
+                ),
+
+        },
+
+    }
 # ============================================================
 # PHASE 19E
 # REVIEW SECURITY HELPERS
@@ -5258,8 +6245,406 @@ def customer_order_review(
     finally:
 
         connection.close()
+        
+# ============================================================
+# PHASE 19F.4
+# DRIVER REVIEW HISTORY API
+# FILTER + SEARCH + STATISTICS
+# ============================================================
+
+@app.route(
+    "/api/driver/reviews",
+    methods=["GET"]
+)
+@driver_api_required
+def driver_review_history_api():
+
+    connection = None
+
+
+    try:
+
+        # ====================================================
+        # PAGE
+        # ====================================================
+
+        raw_page = str(
+            request.args.get(
+                "page",
+                "1"
+            )
+            or "1"
+        ).strip()
+
+
+        try:
+
+            page = int(
+                raw_page
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            page = 1
+
+
+        page = max(
+            1,
+            page
+        )
+
+
+        # ====================================================
+        # RATING
+        # ====================================================
+
+        raw_rating = str(
+            request.args.get(
+                "rating",
+                ""
+            )
+            or ""
+        ).strip()
+
+
+        rating = (
+            normalize_review_rating_filter(
+                raw_rating
+            )
+        )
+
+
+        if (
+            raw_rating
+            and
+            raw_rating.lower()
+            not in (
+                "all",
+                "semua"
+            )
+            and
+            rating is None
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Filter rating harus "
+                            "bernilai 1 sampai 5."
+                        ),
+                }
+            ), 400
+
+
+        # ====================================================
+        # SEARCH
+        # ====================================================
+
+        raw_search = str(
+            request.args.get(
+                "search",
+                ""
+            )
+            or ""
+        )
+
+
+        search = (
+            normalize_review_search(
+                raw_search
+            )
+        )
+
+
+        if (
+            len(
+                search
+            )
+            >
+            REVIEW_HISTORY_SEARCH_MAX_LENGTH
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Pencarian maksimal "
+                            f"{REVIEW_HISTORY_SEARCH_MAX_LENGTH} "
+                            "karakter."
+                        ),
+                }
+            ), 400
+
+
+        # ====================================================
+        # DATABASE
+        # ====================================================
+
+        connection = (
+            get_db()
+        )
+
+
+        # ====================================================
+        # REVIEW HISTORY
+        # ====================================================
+
+        result = (
+            get_driver_review_history_page(
+                connection,
+                page=page,
+                rating=rating,
+                search=search
+            )
+        )
+
+
+        # ====================================================
+        # REVIEW STATISTICS
+        # ====================================================
+
+        statistics = (
+            get_driver_review_statistics(
+                connection
+            )
+        )
+
+
+        # ====================================================
+        # RESPONSE
+        # ====================================================
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "statistics":
+                    statistics,
+
+                "reviews":
+                    result[
+                        "reviews"
+                    ],
+
+                "filters":
+                    result[
+                        "filters"
+                    ],
+
+                "pagination":
+                    result[
+                        "pagination"
+                    ],
+            }
+        )
+
+
+    except Exception as error:
+
+        app.logger.exception(
+            "[DRIVER REVIEW HISTORY ERROR]"
+        )
+
+
+        response_data = {
+
+            "success":
+                False,
+
+            "message":
+                (
+                    "Riwayat ulasan belum "
+                    "dapat dimuat."
+                ),
+        }
+
+
+        if APP_ENV == "development":
+
+            response_data[
+                "debug"
+            ] = (
+                f"{type(error).__name__}: "
+                f"{str(error)}"
+            )
+
+
+        return jsonify(
+            response_data
+        ), 500
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()
 
 # ============================================================
+# PHASE 19F.5
+# DRIVER REVIEW HISTORY
+# ============================================================
+
+@app.route(
+    '/api/driver/review-history',
+    methods=[
+        'GET'
+    ]
+)
+
+def driver_review_history():
+
+    # ========================================================
+    # PARAMETERS
+    # ========================================================
+
+    page = (
+        request.args.get(
+            'page',
+            1,
+            type=int
+        )
+    )
+
+    rating = (
+        request.args.get(
+            'rating',
+            '',
+            type=str
+        )
+    )
+
+    search = (
+        request.args.get(
+            'search',
+            '',
+            type=str
+        )
+    )
+
+    # ========================================================
+    # DATABASE
+    # ========================================================
+
+    connection = (
+        get_db()
+    )
+
+
+    try:
+
+        # ========================================================
+        # REVIEW HISTORY
+        # ========================================================
+
+        result = (
+            get_driver_review_history_page(
+                connection,
+                page=page,
+                rating=rating,
+                search=search
+                
+                )
+            )
+
+
+        # ========================================================
+        # REVIEW STATISTICS
+        # ========================================================
+
+        statistics = (
+            get_driver_review_statistics(
+                 connection
+                
+                )
+            )
+
+    except Exception:
+
+        app.logger.exception(
+                "[DRIVER REVIEW HISTORY ERROR]"
+            )
+
+
+        return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Riwayat ulasan belum "
+                            "dapat dimuat."
+                        ),
+                }
+            ), 500
+
+    finally:
+
+        connection.close()
+
+
+    # ========================================================
+    # RESPONSE
+    # ========================================================
+
+    return jsonify(
+        {
+            "success":
+                True,
+
+
+            # ====================================================
+            # STATISTICS
+            # ====================================================
+
+            "statistics":
+                statistics,
+
+
+            # ====================================================
+            # REVIEW HISTORY
+            # ====================================================
+
+            "reviews":
+                result[
+                    "reviews"
+                ],
+
+
+            # ====================================================
+            # ACTIVE FILTERS
+            # ====================================================
+
+            "filters":
+                result[
+                    "filters"
+                ],
+
+
+            # ====================================================
+            # PAGINATION
+            # ====================================================
+
+            "pagination":
+                result[
+                    "pagination"
+                ],
+
+        }
+    )
+
 # CUSTOMER CONTACT DRIVER
 # ============================================================
 
@@ -7336,6 +8721,156 @@ def driver_history():
 
         income_chart=
             income_chart,
+    )
+    
+# ============================================================
+# PHASE 19F.6
+# PREMIUM DRIVER REVIEW HISTORY PAGE
+# ============================================================
+
+@app.route(
+    "/driver/reviews"
+)
+@driver_login_required
+def driver_reviews():
+
+    # ========================================================
+    # PAGE
+    # ========================================================
+
+    raw_page = str(
+        request.args.get(
+            "page",
+            "1"
+        )
+        or "1"
+    ).strip()
+
+
+    try:
+
+        page = int(
+            raw_page
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        page = 1
+
+
+    page = max(
+        1,
+        page
+    )
+
+
+    # ========================================================
+    # RATING FILTER
+    # ========================================================
+
+    raw_rating = str(
+        request.args.get(
+            "rating",
+            ""
+        )
+        or ""
+    ).strip()
+
+
+    rating = (
+        normalize_review_rating_filter(
+            raw_rating
+        )
+    )
+
+
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
+    search = (
+        normalize_review_search(
+            request.args.get(
+                "search",
+                ""
+            )
+        )
+    )
+
+
+    if (
+        len(
+            search
+        )
+        >
+        REVIEW_HISTORY_SEARCH_MAX_LENGTH
+    ):
+
+        search = search[
+            :REVIEW_HISTORY_SEARCH_MAX_LENGTH
+        ]
+
+
+    # ========================================================
+    # DATABASE
+    # ========================================================
+
+    connection = (
+        get_db()
+    )
+
+
+    try:
+
+        result = (
+            get_driver_review_history_page(
+                connection,
+                page=page,
+                rating=rating,
+                search=search
+            )
+        )
+
+
+        statistics = (
+            get_driver_review_statistics(
+                connection
+            )
+        )
+
+
+    finally:
+
+        connection.close()
+
+
+    # ========================================================
+    # TEMPLATE
+    # ========================================================
+
+    return render_template(
+        "admin/reviews.html",
+
+        reviews=
+            result[
+                "reviews"
+            ],
+
+        pagination=
+            result[
+                "pagination"
+            ],
+
+        filters=
+            result[
+                "filters"
+            ],
+
+        statistics=
+            statistics,
     )
     
 # ============================================================

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+    name="viewport"
+    content="width=device-width,
+    initial-scale=1.0,
+    viewport-fit=cover
+    "
+>
+
+    <meta
+        name="theme-color"
+        content="#09110f"
+    >
+
+    <title>
+        Ulasan Pelanggan • Ojek Pribadi
+    </title>
+
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/style.css',
+            v='phase19f8-1'
+        ) }}""
+    >
+
+</head>
+
+
+<body class="review-history-page">
+
+    <div
+        class="review-history-glow"
+        aria-hidden="true"
+    ></div>
+
+
+    <main class="review-history-container">
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="review-history-header">
+
+            <a
+                href="{{ url_for('driver_dashboard') }}"
+                class="review-history-back"
+                aria-label="Kembali ke dashboard"
+            >
+                ←
+            </a>
+
+
+            <div>
+
+                <span>
+                    DRIVER CONTROL
+                </span>
+
+                <h1>
+                    Ulasan Pelanggan
+                </h1>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             HERO
+        ================================================== -->
+
+        <section class="review-history-hero">
+
+            <span>
+                REPUTASI & PENGALAMAN
+            </span>
+
+            <h2>
+                Apa kata
+                <strong>
+                    pelanggan.
+                </strong>
+            </h2>
+
+            <p>
+                Lihat pengalaman pelanggan dari
+                perjalanan yang telah selesai.
+            </p>
+
+        </section>
+
+
+        <!-- =================================================
+             REPUTATION SUMMARY
+        ================================================== -->
+
+        <section class="review-statistics-card">
+
+            <div class="review-statistics-score">
+
+                <span class="review-statistics-star">
+                    ★
+                </span>
+
+                <strong>
+                    {{
+                        "%.1f"|format(
+                            statistics.average_rating
+                        )
+                    }}
+                </strong>
+
+                <small>
+                    {{
+                        statistics.reputation_label
+                    }}
+                </small>
+
+            </div>
+
+
+            <div class="review-statistics-meta">
+
+                <article>
+
+                    <strong>
+                        {{
+                            statistics.total_reviews
+                        }}
+                    </strong>
+
+                    <span>
+                        Total Ulasan
+                    </span>
+
+                </article>
+
+
+                <article>
+
+                    <strong>
+                        {{
+                            statistics.positive_percentage
+                        }}%
+                    </strong>
+
+                    <span>
+                        Rating Positif
+                    </span>
+
+                </article>
+
+
+                <article>
+
+                    <strong>
+                        {{
+                            statistics.feedback_count
+                        }}
+                    </strong>
+
+                    <span>
+                        Komentar
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RATING DISTRIBUTION
+        ================================================== -->
+
+        <section class="review-distribution-card">
+
+            <div class="review-section-heading">
+
+                <span>
+                    DISTRIBUSI
+                </span>
+
+                <strong>
+                    Rating pelanggan
+                </strong>
+
+            </div>
+
+
+            {% for rating in [5, 4, 3, 2, 1] %}
+
+                {% set item =
+                    statistics.distribution[
+                        rating|string
+                    ]
+                %}
+
+                <div class="review-distribution-row">
+
+                    <span class="review-distribution-rating">
+                        {{ rating }}★
+                    </span>
+
+
+                    <div class="review-distribution-track">
+
+                        <span
+                            style="
+                                width:
+                                {{ item.percentage }}%;
+                            "
+                        ></span>
+
+                    </div>
+
+
+                    <span class="review-distribution-count">
+                        {{ item.count }}
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+
+        <!-- =================================================
+             FILTER
+        ================================================== -->
+
+        <section class="review-filter-panel">
+
+            <form
+                method="GET"
+                action="{{ url_for('driver_reviews') }}"
+                class="review-search-form"
+            >
+
+                <input
+                    type="hidden"
+                    name="rating"
+                    value="{{
+                        filters.rating
+                        if filters.rating
+                        else ''
+                    }}"
+                >
+
+
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ filters.search }}"
+                    maxlength="100"
+                    placeholder="Cari order, pelanggan, feedback..."
+                    autocomplete="off"
+                    enterkeyhint="search"
+                    inputmode="search"
+                    aria-label="Cari ulasan pelanggan"
+                >
+
+
+                <button type="submit">
+                    Cari
+                </button>
+
+            </form>
+
+
+            <div class="review-rating-filter">
+
+                <a
+                    href="{{
+                        url_for(
+                            'driver_reviews',
+                            search=filters.search
+                        )
+                    }}"
+                    class="
+                        review-rating-filter-button
+                        {% if not filters.rating %}
+                            is-active
+                        {% endif %}
+                    "
+                    aria-label="Tampilkan semua rating"
+                >
+                    Semua
+                </a>
+
+
+                {% for rating in [5, 4, 3, 2, 1] %}
+
+                    <a
+                        href="{{
+                            url_for(
+                                'driver_reviews',
+                                rating=rating,
+                                search=filters.search
+                            )
+                        }}"
+                        class="
+                            review-rating-filter-button
+                            {% if filters.rating == rating %}
+                                is-active
+                            {% endif %}
+                        "
+                            aria-label="Tampilkan rating {{ rating }} bintang"
+                    >
+                        {{ rating }}★
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RESULT INFO
+        ================================================== -->
+
+        <div class="review-result-heading">
+
+            <div>
+
+                <span>
+                    REVIEW HISTORY
+                </span>
+
+                <strong>
+
+                    {% if filters.rating %}
+
+                        Rating
+                        {{ filters.rating }}★
+
+                    {% else %}
+
+                        Semua ulasan
+
+                    {% endif %}
+
+                </strong>
+
+            </div>
+
+
+            <small>
+                {{ pagination.total }}
+                hasil
+            </small>
+
+        </div>
+
+
+        <!-- =================================================
+             REVIEW LIST
+        ================================================== -->
+
+        {% set tag_labels = {
+
+            "ramah":
+                "Ramah",
+
+            "tepat_waktu":
+                "Tepat Waktu",
+
+            "aman":
+                "Aman",
+
+            "nyaman":
+                "Nyaman",
+
+            "komunikatif":
+                "Komunikatif",
+
+            "berkendara_baik":
+                "Berkendara Baik"
+
+        } %}
+
+
+<!-- =================================================
+     REVIEW LIST / EMPTY STATE
+================================================== -->
+
+<section class="premium-review-list">
+
+    {% if reviews %}
+
+        {% for review in reviews %}
+
+            <article class="premium-review-card">
+
+                <!-- =====================================
+                     TOP
+                ====================================== -->
+
+                <div class="premium-review-top">
+
+                    <div class="premium-review-stars">
+
+                        {% for star in range(1, 6) %}
+
+                            <span
+                                class="{{
+                                    'is-active'
+                                    if star <= review.rating
+                                    else ''
+                                }}"
+                            >
+                                ★
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <strong class="premium-review-score">
+                        {{ review.rating }}.0
+                    </strong>
+
+                </div>
+
+
+                <!-- =====================================
+                     CUSTOMER
+                ====================================== -->
+
+                <div class="premium-review-customer">
+
+                    <div class="premium-review-avatar">
+
+                        {{
+                            review.customer_name[0]|upper
+                            if review.customer_name
+                            else "P"
+                        }}
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            {{
+                                review.customer_name
+                                or "Pelanggan"
+                            }}
+                        </strong>
+
+                        <span>
+                            {{ review.order_code }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     TAGS
+                ====================================== -->
+
+                {% if review.tags %}
+
+                    <div class="premium-review-tags">
+
+                        {% for tag in review.tags %}
+
+                            <span>
+
+                                {{
+                                    tag_labels.get(
+                                        tag,
+                                        tag
+                                    )
+                                }}
+
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- =====================================
+                     FEEDBACK
+                ====================================== -->
+
+                {% if review.feedback %}
+
+                    <blockquote class="premium-review-feedback">
+
+                        “{{ review.feedback }}”
+
+                    </blockquote>
+
+                {% else %}
+
+                    <p class="premium-review-no-feedback">
+
+                        Pelanggan memberikan rating
+                        tanpa komentar tertulis.
+
+                    </p>
+
+                {% endif %}
+
+
+                <!-- =====================================
+                     TRIP
+                ====================================== -->
+
+                <div class="premium-review-trip">
+
+                    <div>
+
+                        <span>
+                            JEMPUT
+                        </span>
+
+                        <strong>
+                            {{ review.pickup }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="premium-review-trip-line">
+
+                        <span></span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            TUJUAN
+                        </span>
+
+                        <strong>
+                            {{ review.destination }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     FOOTER
+                ====================================== -->
+
+                <footer class="premium-review-footer">
+
+                    <span>
+
+                        {{ review.distance_km }}
+                        km
+
+                        ·
+
+                        {{ review.duration_minutes }}
+                        menit
+
+                    </span>
+
+
+                    <time>
+
+                        {{
+                            review.review_created_at
+                            or review.completed_at
+                            or "-"
+                        }}
+
+                    </time>
+
+                </footer>
+
+            </article>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <!-- =============================================
+             EMPTY STATE
+        ============================================== -->
+
+        <article class="review-empty-state">
+
+            <div
+                class="review-empty-orbit"
+                aria-hidden="true"
+            >
+
+                <span></span>
+
+                <div class="review-empty-icon">
+                    ★
+                </div>
+
+            </div>
+
+
+            <div class="review-empty-content">
+
+                <span class="review-empty-eyebrow">
+
+                    {% if statistics.total_reviews == 0 %}
+
+                        REPUTASI BARU
+
+                    {% elif filters.search %}
+
+                        PENCARIAN KOSONG
+
+                    {% elif filters.rating %}
+
+                        FILTER KOSONG
+
+                    {% else %}
+
+                        BELUM ADA HASIL
+
+                    {% endif %}
+
+                </span>
+
+
+                <h3>
+
+                    {% if statistics.total_reviews == 0 %}
+
+                        Belum ada ulasan
+                        <strong>
+                            pelanggan.
+                        </strong>
+
+                    {% elif filters.search and filters.rating %}
+
+                        Tidak ada ulasan
+                        <strong>
+                            yang cocok.
+                        </strong>
+
+                    {% elif filters.search %}
+
+                        Pencarian belum
+                        <strong>
+                            menemukan ulasan.
+                        </strong>
+
+                    {% elif filters.rating %}
+
+                        Belum ada rating
+                        <strong>
+                            {{ filters.rating }} bintang.
+                        </strong>
+
+                    {% else %}
+
+                        Belum ada
+                        <strong>
+                            ulasan ditemukan.
+                        </strong>
+
+                    {% endif %}
+
+                </h3>
+
+
+                <p>
+
+                    {% if statistics.total_reviews == 0 %}
+
+                        Ulasan pelanggan akan muncul
+                        di sini setelah perjalanan selesai
+                        dan pelanggan memberikan penilaian.
+
+                    {% elif filters.search and filters.rating %}
+
+                        Tidak ada review rating
+                        {{ filters.rating }} bintang
+                        yang sesuai dengan pencarian
+                        “{{ filters.search }}”.
+
+                    {% elif filters.search %}
+
+                        Tidak ditemukan ulasan yang
+                        sesuai dengan pencarian
+                        “{{ filters.search }}”.
+
+                    {% elif filters.rating %}
+
+                        Saat ini belum ada pelanggan
+                        yang memberikan rating
+                        {{ filters.rating }} bintang.
+
+                    {% else %}
+
+                        Coba ubah filter atau kata
+                        pencarian untuk melihat
+                        ulasan lainnya.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- =========================================
+                 EMPTY STATE ACTION
+            ========================================== -->
+
+            <div class="review-empty-actions">
+
+                {% if
+                    filters.rating
+                    or
+                    filters.search
+                %}
+
+                    <a
+                        href="{{ url_for('driver_reviews') }}"
+                        class="review-empty-primary"
+                    >
+                        Hapus Semua Filter
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{{ url_for('driver_dashboard') }}"
+                        class="review-empty-primary"
+                    >
+                        Kembali ke Dashboard
+                    </a>
+
+                {% endif %}
+
+
+                {% if statistics.total_reviews > 0 %}
+
+                    <span class="review-empty-total">
+
+                        {{ statistics.total_reviews }}
+                        ulasan tersedia
+
+                    </span>
+
+                {% else %}
+
+                    <span class="review-empty-total">
+
+                        Ulasan pertama akan muncul
+                        setelah perjalanan selesai
+
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <div
+                class="review-empty-decoration"
+                aria-hidden="true"
+            >
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </div>
+
+        </article>
+
+    {% endif %}
+
+</section>
+
+
+        <!-- =================================================
+             PAGINATION
+        ================================================== -->
+
+        {% if pagination.total_pages > 1 %}
+
+            <nav class="review-pagination">
+
+                {% if pagination.has_previous %}
+
+                    <a
+                        href="{{
+                            url_for(
+                                'driver_reviews',
+                                page=pagination.page - 1,
+                                rating=filters.rating,
+                                search=filters.search
+                            )
+                        }}"
+                    >
+                        ← Sebelumnya
+                    </a>
+
+                {% else %}
+
+                    <span></span>
+
+                {% endif %}
+
+
+                <strong>
+                    {{ pagination.page }}
+                    /
+                    {{ pagination.total_pages }}
+                </strong>
+
+
+                {% if pagination.has_next %}
+
+                    <a
+                        href="{{
+                            url_for(
+                                'driver_reviews',
+                                page=pagination.page + 1,
+                                rating=filters.rating,
+                                search=filters.search
+                            )
+                        }}"
+                    >
+                        Berikutnya →
+                    </a>
+
+                {% else %}
+
+                    <span></span>
+
+                {% endif %}
+
+            </nav>
+
+        {% endif %}
+
+    </main>
+
+</body>
+
+</html>
