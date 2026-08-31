@@ -227,6 +227,59 @@ const driverVehiclePlate =
         false
     );
 
+    // ============================================================
+// PHASE 19D
+// DRIVER TRUST
+// ============================================================
+
+const driverTrustArea =
+    getElement(
+        "driverTrustArea",
+        false
+    );
+
+
+const driverTrustRating =
+    getElement(
+        "driverTrustRating",
+        false
+    );
+
+
+const driverTrustLabel =
+    getElement(
+        "driverTrustLabel",
+        false
+    );
+
+
+const driverTrustReviewCount =
+    getElement(
+        "driverTrustReviewCount",
+        false
+    );
+
+
+const driverTrustCompleted =
+    getElement(
+        "driverTrustCompleted",
+        false
+    );
+
+
+const driverTrustVehicle =
+    getElement(
+        "driverTrustVehicle",
+        false
+    );
+
+
+const driverTrustContact =
+    getElement(
+        "driverTrustContact",
+        false
+    );
+
 // ============================================================
 // PHASE 19A
 // CUSTOMER REVIEW ELEMENTS
@@ -799,6 +852,178 @@ function updateDriverProfile(
 
 }
 
+// ============================================================
+// PHASE 19D
+// UPDATE DRIVER TRUST
+// ============================================================
+
+function updateDriverTrust(
+    trust
+) {
+
+    if (!driverTrustArea) {
+
+        return;
+
+    }
+
+
+    if (!trust) {
+
+        driverTrustArea.hidden =
+            true;
+
+        return;
+
+    }
+
+
+    driverTrustArea.hidden =
+        false;
+
+
+    const reviewCount =
+        Number(
+            trust.review_count
+        )
+        || 0;
+
+
+    const averageRating =
+        Number(
+            trust.average_rating
+        )
+        || 0;
+
+
+    const completedTrips =
+        Number(
+            trust.completed_trips
+        )
+        || 0;
+
+
+    // ========================================================
+    // RATING
+    // ========================================================
+
+    if (driverTrustRating) {
+
+        driverTrustRating.textContent =
+            (
+                reviewCount > 0
+                ? averageRating.toFixed(
+                    1
+                )
+                : "—"
+            );
+
+    }
+
+
+    // ========================================================
+    // LABEL
+    // ========================================================
+
+    if (driverTrustLabel) {
+
+        driverTrustLabel.textContent =
+            (
+                trust.reputation_label
+                ||
+                "Reputasi driver"
+            );
+
+    }
+
+
+    // ========================================================
+    // REVIEW COUNT
+    // ========================================================
+
+    if (driverTrustReviewCount) {
+
+        if (reviewCount === 0) {
+
+            driverTrustReviewCount
+                .textContent =
+                    "Belum ada ulasan";
+
+        }
+
+        else if (reviewCount === 1) {
+
+            driverTrustReviewCount
+                .textContent =
+                    "Berdasarkan 1 ulasan";
+
+        }
+
+        else {
+
+            driverTrustReviewCount
+                .textContent =
+                    (
+                        "Berdasarkan "
+                        +
+                        reviewCount
+                        +
+                        " ulasan"
+                    );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // COMPLETED TRIPS
+    // ========================================================
+
+    if (driverTrustCompleted) {
+
+        driverTrustCompleted.textContent =
+            (
+                completedTrips
+                +
+                " perjalanan selesai"
+            );
+
+    }
+
+
+    // ========================================================
+    // VEHICLE
+    // ========================================================
+
+    if (driverTrustVehicle) {
+
+        driverTrustVehicle.hidden =
+            (
+                trust
+                    .vehicle_data_available
+                !== true
+            );
+
+    }
+
+
+    // ========================================================
+    // CONTACT
+    // ========================================================
+
+    if (driverTrustContact) {
+
+        driverTrustContact.hidden =
+            (
+                trust
+                    .contact_available
+                !== true
+            );
+
+    }
+
+}
 
 // ============================================================
 // DRIVER CONTACT
@@ -2310,7 +2535,8 @@ if (customerReviewSubmit) {
 
 function updateStatusUI(
     status,
-    driverProfile = null
+    driverProfile = null,
+    driverTrust = null
 ) {
 
     if (!status) {
@@ -2334,8 +2560,12 @@ function updateStatusUI(
     );
 
 
-    updateLastUpdate();
+    updateDriverTrust(
+        driverTrust
+    );
 
+
+    updateLastUpdate();
     updateCustomerReviewVisibility(
     status
 );
@@ -2678,7 +2908,11 @@ async function fetchOrderStatus() {
 
         updateStatusUI(
             data.order.status,
+
             data.order.driver_profile
+            || null,
+
+            data.order.driver_trust
             || null
         );
 
@@ -2759,6 +2993,7 @@ function stopPolling() {
 
 updateStatusUI(
     initialStatus,
+    null,
     null
 );
 

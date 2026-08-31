@@ -2081,7 +2081,6 @@ body {
 
 }
 
-
 /* ========================================
    SUCCESS OVERLAY
 ======================================== */
@@ -19254,6 +19253,1180 @@ textarea::placeholder {
 
     .customer-review-comment textarea {
         min-height: 115px;
+    }
+
+}
+
+/* ============================================================
+   PHASE 19C
+   DRIVER REPUTATION DASHBOARD
+============================================================ */
+
+.driver-reputation {
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 14px;
+
+    padding: 20px;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .075);
+
+    border-radius: 23px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, .055),
+            rgba(255, 255, 255, .025)
+        );
+
+    box-shadow:
+        0 22px 60px
+        rgba(0, 0, 0, .12);
+
+    animation:
+        driverItemIn
+        .75s
+        .28s
+        both;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.driver-reputation-head {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+
+.driver-reputation-head
+> div:first-child
+> span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #34d399;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: .13em;
+}
+
+
+.driver-reputation-head h2 {
+    color: rgba(255,255,255,.94);
+
+    font-size: 17px;
+
+    letter-spacing: -.035em;
+}
+
+
+/* ============================================================
+   BADGE
+============================================================ */
+
+.driver-reputation-badge {
+    flex: 0 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 10px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .14);
+
+    border-radius: 999px;
+
+    background:
+        rgba(52, 211, 153, .07);
+
+    color: #34d399;
+}
+
+
+.driver-reputation-badge span {
+    font-size: 10px;
+}
+
+
+.driver-reputation-badge strong {
+    font-size: 7px;
+
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.driver-reputation-summary {
+    margin-top: 18px;
+
+    padding-top: 18px;
+
+    display: grid;
+
+    grid-template-columns:
+        135px
+        minmax(0, 1fr);
+
+    gap: 20px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.055);
+}
+
+
+/* ============================================================
+   MAIN SCORE
+============================================================ */
+
+.driver-rating-main {
+    min-width: 0;
+}
+
+
+.driver-rating-score {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+
+.driver-rating-score span {
+    color: #34d399;
+
+    font-size: 20px;
+
+    text-shadow:
+        0 0 18px
+        rgba(52, 211, 153, .24);
+}
+
+
+.driver-rating-score strong {
+    color: #ffffff;
+
+    font-size: 40px;
+
+    line-height: 1;
+
+    letter-spacing: -.06em;
+}
+
+
+.driver-rating-main p {
+    margin-top: 7px;
+
+    color:
+        rgba(255,255,255,.55);
+
+    font-size: 8px;
+
+    font-weight: 700;
+}
+
+
+.driver-rating-main small {
+    display: block;
+
+    margin-top: 6px;
+
+    color:
+        rgba(255,255,255,.28);
+
+    font-size: 7px;
+
+    line-height: 1.55;
+}
+
+
+/* ============================================================
+   RATING DISTRIBUTION
+============================================================ */
+
+.driver-rating-distribution {
+    display: grid;
+
+    gap: 8px;
+}
+
+
+.driver-rating-row {
+    display: grid;
+
+    grid-template-columns:
+        22px
+        minmax(0, 1fr)
+        22px;
+
+    gap: 8px;
+
+    align-items: center;
+}
+
+
+.driver-rating-row-label {
+    color:
+        rgba(255,255,255,.42);
+
+    font-size: 7px;
+
+    font-weight: 700;
+}
+
+
+.driver-rating-track {
+    position: relative;
+
+    height: 5px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,.06);
+}
+
+
+.driver-rating-fill {
+    position: absolute;
+
+    inset:
+        0
+        auto
+        0
+        0;
+
+    min-width: 0;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            #10b981,
+            #34d399
+        );
+
+    box-shadow:
+        0 0 10px
+        rgba(52,211,153,.14);
+}
+
+
+.driver-rating-row strong {
+    color:
+        rgba(255,255,255,.52);
+
+    font-size: 7px;
+
+    text-align: right;
+}
+
+
+/* ============================================================
+   REVIEWS
+============================================================ */
+
+.driver-reviews-section {
+    margin-top: 22px;
+
+    padding-top: 18px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.055);
+}
+
+
+.driver-reviews-heading {
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 12px;
+}
+
+
+.driver-reviews-heading span {
+    display: block;
+
+    color: #34d399;
+
+    font-size: 6px;
+
+    font-weight: 800;
+
+    letter-spacing: .12em;
+}
+
+
+.driver-reviews-heading h3 {
+    margin-top: 4px;
+
+    color: rgba(255,255,255,.92);
+
+    font-size: 14px;
+}
+
+
+.driver-reviews-heading
+> strong {
+    color:
+        rgba(255,255,255,.24);
+
+    font-size: 10px;
+}
+
+
+.driver-review-list {
+    display: grid;
+
+    gap: 8px;
+}
+
+
+/* ============================================================
+   REVIEW CARD
+============================================================ */
+
+.driver-review-card {
+    padding: 14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.055);
+
+    border-radius: 16px;
+
+    background:
+        rgba(255,255,255,.025);
+}
+
+
+.driver-review-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+
+.driver-review-stars {
+    display: flex;
+
+    gap: 2px;
+}
+
+
+.driver-review-stars span {
+    color:
+        rgba(255,255,255,.13);
+
+    font-size: 12px;
+}
+
+
+.driver-review-stars
+span.is-active {
+    color: #34d399;
+
+    text-shadow:
+        0 0 11px
+        rgba(52,211,153,.20);
+}
+
+
+.driver-review-order {
+    color:
+        rgba(255,255,255,.26);
+
+    font-size: 6px;
+
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   REVIEW TAGS
+============================================================ */
+
+.driver-review-tags {
+    margin-top: 10px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 5px;
+}
+
+
+.driver-review-tags span {
+    padding:
+        5px 8px;
+
+    border:
+        1px solid
+        rgba(52,211,153,.10);
+
+    border-radius: 999px;
+
+    background:
+        rgba(52,211,153,.045);
+
+    color:
+        rgba(52,211,153,.78);
+
+    font-size: 6px;
+
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   REVIEW FEEDBACK
+============================================================ */
+
+.driver-review-feedback {
+    margin-top: 11px;
+
+    color:
+        rgba(255,255,255,.63);
+
+    font-size: 8px;
+
+    line-height: 1.65;
+}
+
+
+.driver-review-feedback.is-empty {
+    color:
+        rgba(255,255,255,.25);
+
+    font-style: italic;
+}
+
+
+/* ============================================================
+   REVIEW META
+============================================================ */
+
+.driver-review-meta {
+    margin-top: 11px;
+
+    padding-top: 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.04);
+}
+
+
+.driver-review-meta span {
+    color:
+        rgba(255,255,255,.24);
+
+    font-size: 6px;
+}
+
+
+/* ============================================================
+   EMPTY REVIEW
+============================================================ */
+
+.driver-review-empty {
+    padding:
+        25px
+        15px;
+
+    border:
+        1px dashed
+        rgba(255,255,255,.065);
+
+    border-radius: 16px;
+
+    text-align: center;
+}
+
+
+.driver-review-empty > span {
+    display: block;
+
+    color: #34d399;
+
+    font-size: 21px;
+}
+
+
+.driver-review-empty strong {
+    display: block;
+
+    margin-top: 7px;
+
+    color:
+        rgba(255,255,255,.72);
+
+    font-size: 10px;
+}
+
+
+.driver-review-empty p {
+    max-width: 240px;
+
+    margin:
+        5px
+        auto
+        0;
+
+    color:
+        rgba(255,255,255,.25);
+
+    font-size: 7px;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 480px) {
+
+    .driver-reputation {
+        padding: 17px;
+    }
+
+
+    .driver-reputation-summary {
+        grid-template-columns:
+            112px
+            minmax(0, 1fr);
+
+        gap: 14px;
+    }
+
+
+    .driver-rating-score strong {
+        font-size: 34px;
+    }
+
+
+    .driver-reputation-badge {
+        padding:
+            7px 8px;
+    }
+
+}
+
+
+@media (max-width: 360px) {
+
+    .driver-reputation-summary {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .driver-rating-main {
+        padding-bottom: 14px;
+
+        border-bottom:
+            1px solid
+            rgba(255,255,255,.045);
+    }
+
+
+    .driver-review-meta {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 4px;
+    }
+
+}
+
+/* ============================================================
+   PHASE 19D
+   CUSTOMER TRUST UI
+============================================================ */
+
+
+/* ============================================================
+   HOME TRUST CARD
+============================================================ */
+
+.customer-trust-card {
+    position: relative;
+
+    margin-top: 14px;
+
+    padding: 18px;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .13);
+
+    border-radius: 21px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #0d1b17,
+            #091511
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, .13);
+}
+
+
+.customer-trust-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: -90px;
+    right: -80px;
+
+    width: 180px;
+    height: 180px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(52, 211, 153, .08);
+
+    filter:
+        blur(8px);
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   HOME TRUST HEADER
+============================================================ */
+
+.customer-trust-head {
+    position: relative;
+
+    z-index: 2;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+
+.customer-trust-driver {
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+}
+
+
+.customer-trust-photo {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    overflow: hidden;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(52,211,153,.12);
+
+    border-radius: 15px;
+
+    background:
+        rgba(52,211,153,.08);
+
+    color: #34d399;
+
+    font-size: 15px;
+
+    font-weight: 800;
+}
+
+
+.customer-trust-photo img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+}
+
+
+.customer-trust-identity {
+    min-width: 0;
+}
+
+
+.customer-trust-identity small {
+    display: block;
+
+    color: #34d399;
+
+    font-size: 6px;
+
+    font-weight: 800;
+
+    letter-spacing: .12em;
+}
+
+
+.customer-trust-identity strong {
+    display: block;
+
+    margin-top: 4px;
+
+    color:
+        rgba(255,255,255,.92);
+
+    font-size: 12px;
+}
+
+
+.customer-trust-identity p {
+    margin-top: 3px;
+
+    color:
+        rgba(255,255,255,.32);
+
+    font-size: 7px;
+}
+
+
+/* ============================================================
+   HOME RATING
+============================================================ */
+
+.customer-trust-rating {
+    flex: 0 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 8px 10px;
+
+    border:
+        1px solid
+        rgba(52,211,153,.12);
+
+    border-radius: 12px;
+
+    background:
+        rgba(52,211,153,.065);
+}
+
+
+.customer-trust-rating span {
+    color: #34d399;
+
+    font-size: 12px;
+}
+
+
+.customer-trust-rating strong {
+    color: #ffffff;
+
+    font-size: 15px;
+}
+
+
+/* ============================================================
+   REPUTATION
+============================================================ */
+
+.customer-trust-reputation {
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 15px;
+
+    padding-top: 14px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.055);
+}
+
+
+.customer-trust-reputation strong {
+    display: block;
+
+    color: #34d399;
+
+    font-size: 9px;
+}
+
+
+.customer-trust-reputation span {
+    display: block;
+
+    margin-top: 4px;
+
+    color:
+        rgba(255,255,255,.32);
+
+    font-size: 7px;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   METRICS
+============================================================ */
+
+.customer-trust-metrics {
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 13px;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 7px;
+}
+
+
+.customer-trust-metrics > div {
+    padding: 11px;
+
+    border-radius: 13px;
+
+    background:
+        rgba(255,255,255,.035);
+}
+
+
+.customer-trust-metrics strong {
+    display: block;
+
+    color:
+        rgba(255,255,255,.88);
+
+    font-size: 14px;
+}
+
+
+.customer-trust-metrics span {
+    display: block;
+
+    margin-top: 3px;
+
+    color:
+        rgba(255,255,255,.28);
+
+    font-size: 6px;
+}
+
+
+/* ============================================================
+   SIGNALS
+============================================================ */
+
+.customer-trust-signals {
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 12px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+}
+
+
+.customer-trust-signals span {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding:
+        6px 8px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.055);
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,.025);
+
+    color:
+        rgba(255,255,255,.46);
+
+    font-size: 6px;
+}
+
+
+.customer-trust-signals i {
+    color: #34d399;
+
+    font-style: normal;
+
+    font-weight: 800;
+}
+
+
+.customer-trust-note {
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 12px;
+
+    color:
+        rgba(255,255,255,.20);
+
+    font-size: 6px;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   TRACKING DRIVER TRUST
+============================================================ */
+
+.customer-driver-trust {
+    margin-top: 14px;
+
+    padding: 13px;
+
+    border:
+        1px solid
+        rgba(52,211,153,.11);
+
+    border-radius: 15px;
+
+    background:
+        rgba(52,211,153,.045);
+}
+
+
+.customer-driver-trust[hidden] {
+    display: none !important;
+}
+
+
+.customer-driver-trust-main {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.customer-driver-rating {
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    padding: 7px 9px;
+
+    border-radius: 11px;
+
+    background:
+        rgba(52,211,153,.085);
+}
+
+
+.customer-driver-rating span {
+    color: #34d399;
+
+    font-size: 11px;
+}
+
+
+.customer-driver-rating strong {
+    color: #34d399;
+
+    font-size: 15px;
+}
+
+
+.customer-driver-trust-main
+> div:last-child
+> strong {
+    display: block;
+
+    color: #26332f;
+
+    font-size: 9px;
+}
+
+
+.customer-driver-trust-main
+> div:last-child
+> small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #8a9892;
+
+    font-size: 6px;
+}
+
+
+.customer-driver-trust-meta {
+    margin-top: 10px;
+
+    padding-top: 9px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    border-top:
+        1px solid
+        rgba(24,40,34,.055);
+}
+
+
+.customer-driver-trust-meta span {
+    padding: 5px 7px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,.40);
+
+    color: #74827c;
+
+    font-size: 6px;
+
+    font-weight: 700;
+}
+
+
+.customer-driver-trust-meta
+span[hidden] {
+    display: none !important;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 420px) {
+
+    .customer-trust-card {
+        padding: 16px;
+    }
+
+
+    .customer-trust-photo {
+        width: 45px;
+        height: 45px;
+
+        flex-basis: 45px;
+    }
+
+
+    .customer-trust-rating {
+        padding:
+            7px 8px;
+    }
+
+
+    .customer-trust-rating strong {
+        font-size: 13px;
     }
 
 }

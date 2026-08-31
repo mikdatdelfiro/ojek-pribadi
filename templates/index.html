@@ -299,6 +299,238 @@ Ojek Pribadi
 </div>
 
 <!-- =====================================
+     PHASE 19D
+     CUSTOMER TRUST
+====================================== -->
+
+<section class="customer-trust-card">
+
+    <!-- DRIVER -->
+
+    <div class="customer-trust-head">
+
+        <div class="customer-trust-driver">
+
+            <div class="customer-trust-photo">
+
+                {% if (
+                    driver_profile
+                    and
+                    driver_profile.photo_url
+                ) %}
+
+                    <img
+                        src="{{ driver_profile.photo_url }}"
+                        alt="Foto pengemudi"
+                    >
+
+                {% else %}
+
+                    <span>
+                        {{
+                            (
+                                driver_profile.driver_name[0]
+                                if (
+                                    driver_profile
+                                    and
+                                    driver_profile.driver_name
+                                )
+                                else "D"
+                            )|upper
+                        }}
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="customer-trust-identity">
+
+                <small>
+                    DRIVER & REPUTASI
+                </small>
+
+                <strong>
+
+                    {% if (
+                        driver_profile
+                        and
+                        driver_profile.driver_name
+                    ) %}
+
+                        {{ driver_profile.driver_name }}
+
+                    {% else %}
+
+                        Pengemudi Ojek Pribadi
+
+                    {% endif %}
+
+                </strong>
+
+                <p>
+
+                    {% if (
+                        driver_profile
+                        and
+                        driver_profile.vehicle_name
+                    ) %}
+
+                        {{ driver_profile.vehicle_name }}
+
+                    {% else %}
+
+                        Ojek Pribadi
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- RATING -->
+
+        <div class="customer-trust-rating">
+
+            <span>
+                ★
+            </span>
+
+            {% if driver_trust.review_count > 0 %}
+
+                <strong>
+                    {{
+                        "%.1f"|format(
+                            driver_trust.average_rating
+                        )
+                    }}
+                </strong>
+
+            {% else %}
+
+                <strong>
+                    —
+                </strong>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- REPUTATION -->
+
+    <div class="customer-trust-reputation">
+
+        <strong>
+            {{ driver_trust.reputation_label }}
+        </strong>
+
+        <span>
+
+            {% if driver_trust.review_count == 1 %}
+
+                Berdasarkan 1 ulasan pelanggan
+
+            {% elif driver_trust.review_count > 1 %}
+
+                Berdasarkan
+                {{ driver_trust.review_count }}
+                ulasan pelanggan
+
+            {% else %}
+
+                Rating akan muncul setelah
+                pelanggan memberikan penilaian
+
+            {% endif %}
+
+        </span>
+
+    </div>
+
+
+    <!-- METRICS -->
+
+    <div class="customer-trust-metrics">
+
+        <div>
+
+            <strong>
+                {{ driver_trust.completed_trips }}
+            </strong>
+
+            <span>
+                Perjalanan selesai
+            </span>
+
+        </div>
+
+
+        <div>
+
+            <strong>
+                {{ driver_trust.review_count }}
+            </strong>
+
+            <span>
+                Ulasan pelanggan
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- SIGNALS -->
+
+    <div class="customer-trust-signals">
+
+        {% if driver_trust.profile_available %}
+
+            <span>
+                <i>✓</i>
+                Profil driver tersedia
+            </span>
+
+        {% endif %}
+
+
+        {% if driver_trust.vehicle_data_available %}
+
+            <span>
+                <i>✓</i>
+                Data kendaraan tersedia
+            </span>
+
+        {% endif %}
+
+
+        {% if driver_trust.contact_available %}
+
+            <span>
+                <i>✓</i>
+                Kontak tersedia saat perjalanan aktif
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <p class="customer-trust-note">
+        Rating berasal dari perjalanan selesai
+        yang dinilai oleh pelanggan.
+    </p>
+
+</section>
+
+<!-- =====================================
 
      PHASE 13
 

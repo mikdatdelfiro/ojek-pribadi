@@ -662,9 +662,72 @@ Status {{ order.order_code }}
 
     </div>
 
+<!-- =====================================
+     PHASE 19D
+     DRIVER TRUST
+====================================== -->
+
+<div
+    class="customer-driver-trust"
+    id="driverTrustArea"
+    hidden
+>
+
+    <div class="customer-driver-trust-main">
+
+        <div class="customer-driver-rating">
+
+            <span>
+                ★
+            </span>
+
+            <strong id="driverTrustRating">
+                —
+            </strong>
+
+        </div>
 
 
+        <div>
 
+            <strong id="driverTrustLabel">
+                Reputasi driver
+            </strong>
+
+            <small id="driverTrustReviewCount">
+                Belum ada ulasan
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <div class="customer-driver-trust-meta">
+
+        <span id="driverTrustCompleted">
+            0 perjalanan selesai
+        </span>
+
+
+        <span
+            id="driverTrustVehicle"
+            hidden
+        >
+            ✓ Data kendaraan tersedia
+        </span>
+
+
+        <span
+            id="driverTrustContact"
+            hidden
+        >
+            ✓ Kontak tersedia
+        </span>
+
+    </div>
+
+</div>
 
     <div class="customer-vehicle-info">
 
@@ -1347,7 +1410,7 @@ Status {{ order.order_code }}
 
 <script
 
-    src="{{ url_for('static', filename='js/order_status.js', v='phase19b-1') }}"
+    src="{{ url_for('static', filename='js/order_status.js', v='phase19d-1') }}"
 
 ></script>
 

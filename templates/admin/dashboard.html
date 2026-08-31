@@ -431,6 +431,304 @@ Ojek Control
 
     </section>
 
+    <!-- =========================================================
+     PHASE 19C
+     DRIVER REPUTATION
+========================================================== -->
+
+<section class="driver-reputation">
+
+    <!-- HEADER -->
+
+    <div class="driver-reputation-head">
+
+        <div>
+
+            <span>
+                REPUTASI DRIVER
+            </span>
+
+            <h2>
+                Penilaian pelanggan
+            </h2>
+
+        </div>
+
+
+        <div class="driver-reputation-badge">
+
+            <span>
+                ★
+            </span>
+
+            <strong>
+                {{ reputation_label }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================
+         RATING SUMMARY
+    ================================================= -->
+
+    <div class="driver-reputation-summary">
+
+        <div class="driver-rating-main">
+
+            <div class="driver-rating-score">
+
+                <span>
+                    ★
+                </span>
+
+                {% if review_count > 0 %}
+
+                    <strong>
+                        {{ "%.1f"|format(average_rating) }}
+                    </strong>
+
+                {% else %}
+
+                    <strong>
+                        —
+                    </strong>
+
+                {% endif %}
+
+            </div>
+
+
+            <p>
+
+                {% if review_count == 1 %}
+
+                    Berdasarkan 1 ulasan
+
+                {% elif review_count > 1 %}
+
+                    Berdasarkan
+                    {{ review_count }}
+                    ulasan
+
+                {% else %}
+
+                    Belum ada ulasan
+
+                {% endif %}
+
+            </p>
+
+
+            <small>
+                {{ reputation_message }}
+            </small>
+
+        </div>
+
+
+        <!-- ============================================
+             DISTRIBUTION
+        ============================================= -->
+
+        <div class="driver-rating-distribution">
+
+            {% for star in [5, 4, 3, 2, 1] %}
+
+                {% set item = rating_distribution[star] %}
+
+                <div class="driver-rating-row">
+
+                    <span class="driver-rating-row-label">
+                        {{ star }}★
+                    </span>
+
+
+                    <div class="driver-rating-track">
+
+                        <span
+                            class="driver-rating-fill"
+                            style="
+                                width:
+                                {{ item.percentage }}%;
+                            "
+                        ></span>
+
+                    </div>
+
+
+                    <strong>
+                        {{ item.count }}
+                    </strong>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================
+         LATEST REVIEWS
+    ================================================= -->
+
+    <div class="driver-reviews-section">
+
+        <div class="driver-reviews-heading">
+
+            <div>
+
+                <span>
+                    FEEDBACK
+                </span>
+
+                <h3>
+                    Ulasan terbaru
+                </h3>
+
+            </div>
+
+
+            <strong>
+                {{ review_count }}
+            </strong>
+
+        </div>
+
+
+        {% if recent_reviews %}
+
+            <div class="driver-review-list">
+
+                {% for review in recent_reviews %}
+
+                    <article class="driver-review-card">
+
+                        <!-- TOP -->
+
+                        <div class="driver-review-top">
+
+                            <div
+                                class="driver-review-stars"
+                                aria-label="{{ review.rating }} dari 5 bintang"
+                            >
+
+                                {% for star in range(1, 6) %}
+
+                                    <span
+                                        class="
+                                            {% if star <= review.rating %}
+                                                is-active
+                                            {% endif %}
+                                        "
+                                    >
+                                        ★
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <span class="driver-review-order">
+                                {{ review.order_code }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- TAGS -->
+
+                        {% if review.tags %}
+
+                            <div class="driver-review-tags">
+
+                                {% for tag in review.tags %}
+
+                                    <span>
+                                        {{ tag }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- FEEDBACK -->
+
+                        {% if review.feedback %}
+
+                            <p class="driver-review-feedback">
+                                “{{ review.feedback }}”
+                            </p>
+
+                        {% else %}
+
+                            <p
+                                class="
+                                    driver-review-feedback
+                                    is-empty
+                                "
+                            >
+                                Pelanggan memberikan rating
+                                tanpa komentar.
+                            </p>
+
+                        {% endif %}
+
+
+                        <!-- META -->
+
+                        <div class="driver-review-meta">
+
+                            <span>
+                                {{ review.customer_name }}
+                            </span>
+
+                            <span>
+                                {{ review.created_at }}
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <div class="driver-review-empty">
+
+                <span>
+                    ☆
+                </span>
+
+                <strong>
+                    Belum ada ulasan
+                </strong>
+
+                <p>
+                    Penilaian dari perjalanan yang
+                    selesai akan muncul di sini.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
 
     <!-- ==========================================
          ORDERS

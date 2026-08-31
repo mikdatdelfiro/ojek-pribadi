@@ -613,6 +613,27 @@ REVIEW_ALLOWED_TAGS = {
     "berkendara_baik",
 }
 
+REVIEW_TAG_LABELS = {
+
+    "ramah":
+        "Ramah",
+
+    "tepat_waktu":
+        "Tepat Waktu",
+
+    "aman":
+        "Aman",
+
+    "nyaman":
+        "Nyaman",
+
+    "komunikatif":
+        "Komunikatif",
+
+    "berkendara_baik":
+        "Berkendara Baik",
+}
+
 # ============================================================
 # SERVICE STATUS
 # ============================================================
@@ -1768,6 +1789,239 @@ def driver_profile_payload(
             ),
     }
 
+# ============================================================
+# PHASE 19D
+# PUBLIC DRIVER TRUST
+# ============================================================
+
+def get_public_driver_trust(
+    connection,
+    profile=None
+):
+
+    if profile is None:
+
+        profile = (
+            get_driver_profile(
+                connection
+            )
+        )
+
+
+    # ========================================================
+    # PUBLIC REPUTATION STATS
+    # ========================================================
+
+    trust_row = (
+        connection.execute(
+            """
+            SELECT
+
+                (
+                    SELECT
+                        COUNT(*)
+
+                    FROM orders
+
+                    WHERE status = ?
+                ) AS completed_trips,
+
+
+                (
+                    SELECT
+                        COUNT(*)
+
+                    FROM order_reviews r
+
+                    INNER JOIN orders o
+                        ON o.id = r.order_id
+
+                    WHERE o.status = ?
+                ) AS review_count,
+
+
+                (
+                    SELECT
+                        COALESCE(
+                            AVG(r.rating),
+                            0
+                        )
+
+                    FROM order_reviews r
+
+                    INNER JOIN orders o
+                        ON o.id = r.order_id
+
+                    WHERE o.status = ?
+                ) AS average_rating
+            """,
+            (
+                STATUS_COMPLETED,
+
+                STATUS_COMPLETED,
+
+                STATUS_COMPLETED,
+            )
+        )
+        .fetchone()
+    )
+
+
+    completed_trips = int(
+        trust_row[
+            "completed_trips"
+        ]
+        or 0
+    )
+
+
+    review_count = int(
+        trust_row[
+            "review_count"
+        ]
+        or 0
+    )
+
+
+    average_rating = round(
+        float(
+            trust_row[
+                "average_rating"
+            ]
+            or 0
+        ),
+        1
+    )
+
+
+    # ========================================================
+    # PROFILE AVAILABILITY
+    # ========================================================
+
+    profile_available = bool(
+        profile
+        and
+        str(
+            profile.get(
+                "driver_name"
+            )
+            or ""
+        ).strip()
+    )
+
+
+    vehicle_name = (
+        str(
+            profile.get(
+                "vehicle_name"
+            )
+            or ""
+        ).strip()
+        if profile
+        else ""
+    )
+
+
+    vehicle_plate = (
+        str(
+            profile.get(
+                "vehicle_plate"
+            )
+            or ""
+        ).strip()
+        if profile
+        else ""
+    )
+
+
+    vehicle_data_available = bool(
+        vehicle_name
+        and
+        vehicle_plate
+        and
+        vehicle_plate != "-"
+    )
+
+
+    contact_available = (
+        len(
+            normalize_whatsapp_number(
+                DRIVER_WHATSAPP
+            )
+        )
+        >= 10
+    )
+
+
+    # ========================================================
+    # PUBLIC REPUTATION LABEL
+    # ========================================================
+
+    if review_count == 0:
+
+        reputation_label = (
+            "Belum ada ulasan"
+        )
+
+
+    elif review_count < 3:
+
+        reputation_label = (
+            "Rating mulai terbentuk"
+        )
+
+
+    elif average_rating >= 4.8:
+
+        reputation_label = (
+            "Pelayanan Istimewa"
+        )
+
+
+    elif average_rating >= 4.5:
+
+        reputation_label = (
+            "Sangat Baik"
+        )
+
+
+    elif average_rating >= 4.0:
+
+        reputation_label = (
+            "Pelayanan Baik"
+        )
+
+
+    else:
+
+        reputation_label = (
+            "Terus Ditingkatkan"
+        )
+
+
+    return {
+
+        "average_rating":
+            average_rating,
+
+        "review_count":
+            review_count,
+
+        "completed_trips":
+            completed_trips,
+
+        "reputation_label":
+            reputation_label,
+
+        "profile_available":
+            profile_available,
+
+        "vehicle_data_available":
+            vehicle_data_available,
+
+        "contact_available":
+            contact_available,
+    }
 
 # ============================================================
 # LOGIN SECURITY
@@ -2816,16 +3070,57 @@ def pwa_service_worker():
 
 # ============================================================
 # CUSTOMER PAGE
+# PHASE 19D
 # ============================================================
 
 @app.route("/")
 def index():
 
+    connection = (
+        get_db()
+    )
+
+
+    try:
+
+        service_open = (
+            get_service_open(
+                connection
+            )
+        )
+
+
+        profile = (
+            get_driver_profile(
+                connection
+            )
+        )
+
+
+        driver_trust = (
+            get_public_driver_trust(
+                connection,
+                profile
+            )
+        )
+
+
+    finally:
+
+        connection.close()
+
+
     return render_template(
         "index.html",
 
         service_open=
-            get_service_open()
+            service_open,
+
+        driver_profile=
+            profile,
+
+        driver_trust=
+            driver_trust,
     )
 
 
@@ -3691,6 +3986,8 @@ def get_customer_order_status(
 
         profile = None
 
+        driver_trust = None
+
 
         if (
             order
@@ -3702,6 +3999,14 @@ def get_customer_order_status(
             profile = (
                 get_driver_profile(
                     connection
+                )
+            )
+
+
+            driver_trust = (
+                get_public_driver_trust(
+                    connection,
+                    profile
                 )
             )
 
@@ -3809,6 +4114,13 @@ def get_customer_order_status(
                     driver_profile_payload(
                         profile
                     ),
+                # ============================================
+                # PHASE 19D
+                # DRIVER TRUST
+                # ============================================
+
+                "driver_trust":
+                    driver_trust,    
 
 
                 # ============================================
@@ -4339,9 +4651,7 @@ def customer_order_review(
 
                     feedback,
 
-                    encode_review_tags(
-                        tags
-                    ),
+                    encoded_tags,
 
                     created_at,
                 )
@@ -5336,6 +5646,320 @@ def driver_dashboard():
             )
         )
 
+        # ====================================================
+        # PHASE 19C
+        # DRIVER REPUTATION
+        # ====================================================
+
+        reputation_row = (
+            connection.execute(
+                """
+                SELECT
+
+                    COUNT(*) AS review_count,
+
+                    COALESCE(
+                        AVG(r.rating),
+                        0
+                    ) AS average_rating,
+
+                    COUNT(
+                        CASE
+                            WHEN r.rating = 5
+                            THEN 1
+                        END
+                    ) AS rating_5,
+
+                    COUNT(
+                        CASE
+                            WHEN r.rating = 4
+                            THEN 1
+                        END
+                    ) AS rating_4,
+
+                    COUNT(
+                        CASE
+                            WHEN r.rating = 3
+                            THEN 1
+                        END
+                    ) AS rating_3,
+
+                    COUNT(
+                        CASE
+                            WHEN r.rating = 2
+                            THEN 1
+                        END
+                    ) AS rating_2,
+
+                    COUNT(
+                        CASE
+                            WHEN r.rating = 1
+                            THEN 1
+                        END
+                    ) AS rating_1
+
+                FROM order_reviews r
+
+                INNER JOIN orders o
+                    ON o.id = r.order_id
+
+                WHERE o.status = ?
+                """,
+                (
+                    STATUS_COMPLETED,
+                )
+            )
+            .fetchone()
+        )
+
+
+        review_count = int(
+            reputation_row[
+                "review_count"
+            ]
+            or 0
+        )
+
+
+        average_rating = round(
+            float(
+                reputation_row[
+                    "average_rating"
+                ]
+                or 0
+            ),
+            1
+        )
+
+
+        # ====================================================
+        # RATING DISTRIBUTION
+        # ====================================================
+
+        rating_distribution = {}
+
+
+        for star in range(
+            5,
+            0,
+            -1
+        ):
+
+            count = int(
+                reputation_row[
+                    f"rating_{star}"
+                ]
+                or 0
+            )
+
+
+            percentage = (
+                round(
+                    (
+                        count
+                        /
+                        review_count
+                    )
+                    * 100
+                )
+                if review_count > 0
+                else 0
+            )
+
+
+            rating_distribution[
+                star
+            ] = {
+
+                "count":
+                    count,
+
+                "percentage":
+                    percentage,
+            }
+
+
+        # ====================================================
+        # REPUTATION BADGE
+        # ====================================================
+
+        if review_count == 0:
+
+            reputation_label = (
+                "Reputasi Baru"
+            )
+
+            reputation_message = (
+                "Belum ada penilaian pelanggan."
+            )
+
+
+        elif review_count < 3:
+
+            reputation_label = (
+                "Mulai Terbentuk"
+            )
+
+            reputation_message = (
+                f"Berdasarkan {review_count} "
+                "ulasan pelanggan."
+            )
+
+
+        elif average_rating >= 4.8:
+
+            reputation_label = (
+                "Pelayanan Istimewa"
+            )
+
+            reputation_message = (
+                "Pelanggan memberikan "
+                "penilaian yang sangat tinggi."
+            )
+
+
+        elif average_rating >= 4.5:
+
+            reputation_label = (
+                "Sangat Baik"
+            )
+
+            reputation_message = (
+                "Kualitas pelayanan dinilai "
+                "sangat baik oleh pelanggan."
+            )
+
+
+        elif average_rating >= 4.0:
+
+            reputation_label = (
+                "Pelayanan Baik"
+            )
+
+            reputation_message = (
+                "Pelanggan memberikan "
+                "penilaian positif."
+            )
+
+
+        else:
+
+            reputation_label = (
+                "Terus Tingkatkan"
+            )
+
+            reputation_message = (
+                "Masukan pelanggan dapat digunakan "
+                "untuk meningkatkan pelayanan."
+            )
+
+
+        # ====================================================
+        # LATEST REVIEWS
+        # ====================================================
+
+        recent_review_rows = (
+            connection.execute(
+                """
+                SELECT
+
+                    r.rating,
+
+                    r.feedback,
+
+                    r.tags,
+
+                    r.created_at,
+
+                    o.order_code,
+
+                    o.customer_name
+
+                FROM order_reviews r
+
+                INNER JOIN orders o
+                    ON o.id = r.order_id
+
+                WHERE o.status = ?
+
+                ORDER BY r.id DESC
+
+                LIMIT 5
+                """,
+                (
+                    STATUS_COMPLETED,
+                )
+            )
+            .fetchall()
+        )
+
+
+        recent_reviews = []
+
+
+        for review in recent_review_rows:
+
+            decoded_tags = (
+                decode_review_tags(
+                    review[
+                        "tags"
+                    ]
+                )
+            )
+
+
+            tag_labels = [
+
+                REVIEW_TAG_LABELS.get(
+                    tag,
+                    tag.replace(
+                        "_",
+                        " "
+                    ).title()
+                )
+
+                for tag
+                in decoded_tags
+            ]
+
+
+            recent_reviews.append(
+                {
+                    "rating":
+                        int(
+                            review[
+                                "rating"
+                            ]
+                            or 0
+                        ),
+
+                    "feedback":
+                        (
+                            review[
+                                "feedback"
+                            ]
+                            or ""
+                        ).strip(),
+
+                    "tags":
+                        tag_labels,
+
+                    "created_at":
+                        review[
+                            "created_at"
+                        ],
+
+                    "order_code":
+                        review[
+                            "order_code"
+                        ],
+
+                    "customer_name":
+                        review[
+                            "customer_name"
+                        ],
+                }
+            )
 
     finally:
 
@@ -5365,11 +5989,34 @@ def driver_dashboard():
 
         driver_profile=
             profile,
-            
-        latest_order_id=
-            latest_order_id,    
-    )
 
+        latest_order_id=
+            latest_order_id,
+
+        # ====================================================
+        # PHASE 19C
+        # DRIVER REPUTATION
+        # ====================================================
+
+        review_count=
+            review_count,
+
+        average_rating=
+            average_rating,
+
+        rating_distribution=
+            rating_distribution,
+
+        reputation_label=
+            reputation_label,
+
+        reputation_message=
+            reputation_message,
+
+        recent_reviews=
+            recent_reviews,
+    )
+    
 # ============================================================
 # PHASE 18E
 # PREMIUM DRIVER HISTORY + INCOME
