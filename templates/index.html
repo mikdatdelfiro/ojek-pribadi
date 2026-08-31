@@ -1190,163 +1190,114 @@ Ojek Pribadi
 
             ================================== -->
 
-            <div
+            <!-- =================================
+     CUSTOMER PANEL
+     CLEAN FIX
+================================== -->
 
-                class="customer-panel"
+<div
+    class="booking-customer-panel"
+    id="customerPanel"
+    aria-hidden="true"
+>
 
-                id="customerPanel"
+    <div class="booking-customer-panel-head">
 
-            >
+        <div>
 
+            <span class="result-label">
+                LANGKAH TERAKHIR
+            </span>
 
+            <h3>
+                Lengkapi data pemesan
+            </h3>
 
+            <p>
+                Pastikan nama dan nomor WhatsApp
+                Anda sudah benar.
+            </p>
 
+        </div>
 
-                <div class="customer-panel-head">
 
-                    <div>
+        <button
+            type="button"
+            class="booking-panel-close"
+            id="closeCustomerPanel"
+            aria-label="Tutup form pelanggan"
+        >
+            ×
+        </button>
 
-                        <span class="result-label">
+    </div>
 
-                            LANGKAH TERAKHIR
 
-                        </span>
+    <!-- NAME -->
 
-                        <h3>
+    <div class="booking-customer-field">
 
-                            Lengkapi data pemesan
+        <label for="customerName">
+            Nama
+        </label>
 
-                        </h3>
+        <input
+            type="text"
+            id="customerName"
+            placeholder="Masukkan nama Anda"
+            autocomplete="name"
+        >
 
-                    </div>
+    </div>
 
 
+    <!-- WHATSAPP -->
 
+    <div class="booking-customer-field">
 
+        <label for="customerWhatsapp">
+            Nomor WhatsApp
+        </label>
 
-                    <button
+        <input
+            type="tel"
+            id="customerWhatsapp"
+            placeholder="Contoh: 081234567890"
+            autocomplete="tel"
+            inputmode="tel"
+        >
 
-                        type="button"
+    </div>
 
-                        class="panel-close"
 
-                        id="closeCustomerPanel"
+    <!-- ORDER MESSAGE -->
 
-                        aria-label="Tutup form pelanggan"
+    <div
+        class="order-message"
+        id="orderMessage"
+        role="alert"
+    ></div>
 
-                    >
 
-                        ×
+    <!-- CONFIRM -->
 
-                    </button>
+    <button
+        type="button"
+        class="confirm-order-button booking-confirm-order-button"
+        id="confirmOrderButton"
+    >
 
-                </div>
+        <span id="confirmOrderText">
+            Pesan Perjalanan
+        </span>
 
+        <span class="booking-confirm-arrow">
+            →
+        </span>
 
+    </button>
 
-
-
-                <!-- NAME -->
-
-                <div class="customer-field">
-
-                    <label for="customerName">
-
-                        Nama
-
-                    </label>
-
-                    <input
-
-                        type="text"
-
-                        id="customerName"
-
-                        placeholder="Masukkan nama"
-
-                        autocomplete="name"
-
-                    >
-
-                </div>
-
-
-
-
-
-                <!-- WHATSAPP -->
-
-                <div class="customer-field">
-
-                    <label for="customerWhatsapp">
-
-                        Nomor WhatsApp
-
-                    </label>
-
-                    <input
-
-                        type="tel"
-
-                        id="customerWhatsapp"
-
-                        placeholder="Contoh: 081234567890"
-
-                        autocomplete="tel"
-
-                        inputmode="tel"
-
-                    >
-
-                </div>
-
-
-
-
-
-                <!-- ORDER MESSAGE -->
-
-                <div
-
-                    class="order-message"
-
-                    id="orderMessage"
-
-                    role="alert"
-
-                ></div>
-
-
-
-
-
-                <!-- CONFIRM -->
-
-                <button
-
-                    type="button"
-
-                    class="confirm-order-button"
-
-                    id="confirmOrderButton"
-
-                >
-
-                    <span id="confirmOrderText">
-
-                        Pesan Perjalanan
-
-                    </span>
-
-                    <span>
-
-                        →
-
-                    </span>
-
-                </button>
-
-            </div>
+</div>
 
 
 
@@ -1641,9 +1592,11 @@ Ojek Pribadi
 {% block scripts %}
 
 <script
-
-    src="{{ url_for('static', filename='js/app.js', v='phase17-final-1') }}"
-
+    src="{{ url_for(
+        'static',
+        filename='js/app.js',
+        v='customer-panel-fix-1'
+    ) }}"
 ></script>
 
 {% endblock %}

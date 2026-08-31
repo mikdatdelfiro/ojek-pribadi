@@ -1021,7 +1021,293 @@ Status {{ order.order_code }}
     </section>
 
 
+<!-- =====================================
+     PHASE 19A
+     CUSTOMER RATING
+====================================== -->
 
+<section
+    class="customer-review-card"
+    id="customerReviewCard"
+    hidden
+>
+
+    <div class="customer-review-head">
+
+        <span class="customer-review-eyebrow">
+            PENILAIAN PERJALANAN
+        </span>
+
+        <h2>
+            Bagaimana perjalanan Anda?
+        </h2>
+
+        <p>
+            Berikan penilaian untuk membantu
+            meningkatkan kualitas pelayanan.
+        </p>
+
+    </div>
+
+
+    <!-- =================================
+         FORM STATE
+    ================================== -->
+
+    <div
+        class="customer-review-form"
+        id="customerReviewForm"
+    >
+
+        <div
+            class="customer-review-stars"
+            id="customerReviewStars"
+            role="radiogroup"
+            aria-label="Rating perjalanan"
+        >
+
+            <button
+                type="button"
+                class="customer-review-star"
+                data-rating="1"
+                aria-label="1 bintang"
+            >
+                ★
+            </button>
+
+
+            <button
+                type="button"
+                class="customer-review-star"
+                data-rating="2"
+                aria-label="2 bintang"
+            >
+                ★
+            </button>
+
+
+            <button
+                type="button"
+                class="customer-review-star"
+                data-rating="3"
+                aria-label="3 bintang"
+            >
+                ★
+            </button>
+
+
+            <button
+                type="button"
+                class="customer-review-star"
+                data-rating="4"
+                aria-label="4 bintang"
+            >
+                ★
+            </button>
+
+
+            <button
+                type="button"
+                class="customer-review-star"
+                data-rating="5"
+                aria-label="5 bintang"
+            >
+                ★
+            </button>
+
+        </div>
+
+
+        <strong
+            class="customer-review-label"
+            id="customerReviewLabel"
+        >
+            Pilih rating
+        </strong>
+
+        <div class="customer-review-feedback">
+
+    <span class="customer-review-feedback-title">
+        APA YANG ANDA SUKAI?
+    </span>
+
+
+    <div
+        class="customer-review-tags"
+        id="customerReviewTags"
+    >
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="ramah"
+            aria-pressed="false"
+        >
+            Ramah
+        </button>
+
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="tepat_waktu"
+            aria-pressed="false"
+        >
+            Tepat Waktu
+        </button>
+
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="aman"
+            aria-pressed="false"
+        >
+            Aman
+        </button>
+
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="nyaman"
+            aria-pressed="false"
+        >
+            Nyaman
+        </button>
+
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="komunikatif"
+            aria-pressed="false"
+        >
+            Komunikatif
+        </button>
+
+
+        <button
+            type="button"
+            class="customer-review-tag"
+            data-review-tag="berkendara_baik"
+            aria-pressed="false"
+        >
+            Berkendara Baik
+        </button>
+
+    </div>
+
+
+    <label
+        class="customer-review-comment"
+        for="customerReviewFeedback"
+    >
+
+        <span>
+            CERITAKAN PENGALAMAN ANDA
+            <small>Opsional</small>
+        </span>
+
+
+        <textarea
+            id="customerReviewFeedback"
+            maxlength="300"
+            rows="4"
+            placeholder="Bagikan pengalaman perjalanan Anda..."
+        ></textarea>
+
+
+        <div class="customer-review-counter">
+
+            <span id="customerReviewFeedbackCount">
+                0
+            </span>
+
+            <span>
+                / 300
+            </span>
+
+        </div>
+
+    </label>
+
+</div>
+
+
+        <div
+            class="customer-review-message"
+            id="customerReviewMessage"
+            aria-live="polite"
+        ></div>
+
+
+        <button
+            type="button"
+            class="customer-review-submit"
+            id="customerReviewSubmit"
+            disabled
+        >
+            <span id="customerReviewSubmitText">
+                Kirim Penilaian
+            </span>
+
+            <span>
+                →
+            </span>
+        </button>
+
+    </div>
+
+
+    <!-- =================================
+         SUCCESS STATE
+    ================================== -->
+
+    <div
+        class="customer-review-success"
+        id="customerReviewSuccess"
+        hidden
+    >
+
+        <div class="customer-review-success-icon">
+            ✓
+        </div>
+
+        <span>
+            TERIMA KASIH
+        </span>
+
+        <strong>
+            Penilaian Anda sudah tersimpan.
+        </strong>
+
+        <div
+            class="customer-review-result-stars"
+            id="customerReviewResultStars"
+        ></div>
+
+        <div
+            class="customer-review-result-tags"
+            id="customerReviewResultTags"
+            hidden
+        ></div>
+
+
+        <p
+            class="customer-review-result-feedback"
+            id="customerReviewResultFeedback"
+            hidden
+        ></p>
+
+        <p>
+            Masukan Anda membantu kami memberikan
+            pengalaman perjalanan yang lebih baik.
+        </p>
+
+    </div>
+
+</section>
 
 
     <!-- =====================================
@@ -1048,6 +1334,9 @@ Status {{ order.order_code }}
 
 </div>
 
+</div>
+<!-- /.tracking-page -->
+
 {% endblock %}
 
 
@@ -1058,7 +1347,7 @@ Status {{ order.order_code }}
 
 <script
 
-    src="{{ url_for('static', filename='js/order_status.js', v='phase16-final-2') }}"
+    src="{{ url_for('static', filename='js/order_status.js', v='phase19b-1') }}"
 
 ></script>
 

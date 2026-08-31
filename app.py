@@ -595,6 +595,24 @@ STATUS_TIMESTAMP_COLUMNS = {
     STATUS_REJECTED:
         "rejected_at",
 }
+
+# ============================================================
+# PHASE 19B
+# CUSTOMER REVIEW CONFIG
+# ============================================================
+
+REVIEW_FEEDBACK_MAX_LENGTH = 300
+
+
+REVIEW_ALLOWED_TAGS = {
+    "ramah",
+    "tepat_waktu",
+    "aman",
+    "nyaman",
+    "komunikatif",
+    "berkendara_baik",
+}
+
 # ============================================================
 # SERVICE STATUS
 # ============================================================
@@ -1175,7 +1193,85 @@ def init_database():
             )
         )
 
+        # ----------------------------------------------------
+        # PHASE 19A + 19B
+        # CUSTOMER REVIEWS
+        # ----------------------------------------------------
 
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS order_reviews (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                order_id BIGINT NOT NULL UNIQUE,
+
+                rating INTEGER NOT NULL
+                    CHECK (
+                        rating >= 1
+                        AND rating <= 5
+                    ),
+
+                feedback TEXT,
+
+                tags TEXT,
+
+                created_at TEXT NOT NULL,
+
+                CONSTRAINT fk_order_review_order
+                    FOREIGN KEY (order_id)
+                    REFERENCES orders(id)
+                    ON DELETE CASCADE
+            )
+            """
+        )
+
+
+        # ----------------------------------------------------
+        # SAFE REVIEW MIGRATIONS
+        # ----------------------------------------------------
+
+        connection.execute(
+            """
+            ALTER TABLE order_reviews
+            ADD COLUMN IF NOT EXISTS
+            feedback TEXT
+            """
+        )
+
+
+        connection.execute(
+            """
+            ALTER TABLE order_reviews
+            ADD COLUMN IF NOT EXISTS
+            tags TEXT
+            """
+        )
+
+
+        # ----------------------------------------------------
+        # REVIEW INDEXES
+        # ----------------------------------------------------
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_order_reviews_rating
+
+            ON order_reviews(rating)
+            """
+        )
+
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_order_reviews_created_at
+
+            ON order_reviews(created_at)
+            """
+        )
+        
         # ----------------------------------------------------
         # INDEXES
         # ----------------------------------------------------
@@ -3762,6 +3858,625 @@ def get_customer_order_status(
     )
 
 # ============================================================
+# PHASE 19B
+# CUSTOMER REVIEW HELPERS
+# ============================================================
+
+def normalize_review_tags(
+    value
+):
+
+    if not isinstance(
+        value,
+        list
+    ):
+
+        return []
+
+
+    normalized = []
+
+
+    for item in value:
+
+        tag = (
+            str(
+                item or ""
+            )
+            .strip()
+            .lower()
+        )
+
+
+        if (
+            tag
+            in REVIEW_ALLOWED_TAGS
+            and
+            tag not in normalized
+        ):
+
+            normalized.append(
+                tag
+            )
+
+
+    return normalized
+
+
+def encode_review_tags(
+    tags
+):
+
+    return ",".join(
+        tags
+    )
+
+
+def decode_review_tags(
+    value
+):
+
+    if not value:
+
+        return []
+
+
+    tags = []
+
+
+    for item in str(
+        value
+    ).split(","):
+
+        tag = (
+            item
+            .strip()
+            .lower()
+        )
+
+
+        if (
+            tag
+            and
+            tag in REVIEW_ALLOWED_TAGS
+            and
+            tag not in tags
+        ):
+
+            tags.append(
+                tag
+            )
+
+
+    return tags
+
+
+def customer_review_payload(
+    review
+):
+
+    if not review:
+
+        return None
+
+
+    return {
+
+        "rating":
+            int(
+                review[
+                    "rating"
+                ]
+            ),
+
+        "feedback":
+            (
+                review[
+                    "feedback"
+                ]
+                or ""
+            ),
+
+        "tags":
+            decode_review_tags(
+                review[
+                    "tags"
+                ]
+            ),
+
+        "created_at":
+            review[
+                "created_at"
+            ],
+    }
+
+
+# ============================================================
+# PHASE 19A + 19B
+# CUSTOMER ORDER REVIEW API
+# ============================================================
+
+@app.route(
+    "/api/orders/<string:order_code>/review",
+    methods=[
+        "GET",
+        "POST",
+    ]
+)
+def customer_order_review(
+    order_code
+):
+
+    connection = (
+        get_db()
+    )
+
+
+    try:
+
+        # ====================================================
+        # ORDER
+        # ====================================================
+
+        order = (
+            connection.execute(
+                """
+                SELECT
+                    id,
+                    order_code,
+                    status
+
+                FROM orders
+
+                WHERE order_code = ?
+                """,
+                (
+                    order_code,
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not order:
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        "Pesanan tidak ditemukan.",
+                }
+            ), 404
+
+
+        # ====================================================
+        # EXISTING REVIEW
+        # ====================================================
+
+        existing_review = (
+            connection.execute(
+                """
+                SELECT
+                    id,
+                    rating,
+                    feedback,
+                    tags,
+                    created_at
+
+                FROM order_reviews
+
+                WHERE order_id = ?
+                """,
+                (
+                    order[
+                        "id"
+                    ],
+                )
+            )
+            .fetchone()
+        )
+
+
+        # ====================================================
+        # GET REVIEW
+        # ====================================================
+
+        if (
+            request.method
+            == "GET"
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        True,
+
+                    "eligible":
+                        (
+                            order[
+                                "status"
+                            ]
+                            == STATUS_COMPLETED
+                        ),
+
+                    "review":
+                        customer_review_payload(
+                            existing_review
+                        ),
+                }
+            )
+
+
+        # ====================================================
+        # REVIEW ONLY AFTER COMPLETION
+        # ====================================================
+
+        if (
+            order[
+                "status"
+            ]
+            != STATUS_COMPLETED
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Penilaian hanya dapat "
+                            "diberikan setelah "
+                            "perjalanan selesai."
+                        ),
+                }
+            ), 403
+
+
+        # ====================================================
+        # ALREADY REVIEWED
+        # ====================================================
+
+        if existing_review:
+
+            return jsonify(
+                {
+                    "success":
+                        True,
+
+                    "already_reviewed":
+                        True,
+
+                    "message":
+                        (
+                            "Perjalanan ini "
+                            "sudah dinilai."
+                        ),
+
+                    "review":
+                        customer_review_payload(
+                            existing_review
+                        ),
+                }
+            )
+
+
+        # ====================================================
+        # REQUEST DATA
+        # ====================================================
+
+        data = (
+            request.get_json(
+                silent=True
+            )
+            or {}
+        )
+
+
+        raw_rating = (
+            data.get(
+                "rating"
+            )
+        )
+
+
+        feedback = (
+            str(
+                data.get(
+                    "feedback",
+                    ""
+                )
+                or ""
+            )
+            .strip()
+        )
+
+
+        tags = (
+            normalize_review_tags(
+                data.get(
+                    "tags",
+                    []
+                )
+            )
+        )
+
+
+        # ====================================================
+        # RATING VALIDATION
+        # ====================================================
+
+        if isinstance(
+            raw_rating,
+            bool
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        "Pilih rating 1 sampai 5.",
+                }
+            ), 400
+
+
+        try:
+
+            rating = int(
+                raw_rating
+            )
+
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        "Pilih rating 1 sampai 5.",
+                }
+            ), 400
+
+
+        if (
+            rating < 1
+            or rating > 5
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Rating harus "
+                            "antara 1 sampai 5."
+                        ),
+                }
+            ), 400
+
+
+        # ====================================================
+        # FEEDBACK VALIDATION
+        # ====================================================
+
+        if (
+            len(
+                feedback
+            )
+            >
+            REVIEW_FEEDBACK_MAX_LENGTH
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Feedback maksimal "
+                            f"{REVIEW_FEEDBACK_MAX_LENGTH} "
+                            "karakter."
+                        ),
+                }
+            ), 400
+
+
+        # ====================================================
+        # SAVE REVIEW
+        # ====================================================
+
+        created_at = (
+            current_timestamp()
+        )
+
+
+        encoded_tags = (
+            encode_review_tags(
+                tags
+            )
+        )
+
+
+        try:
+
+            connection.execute(
+                """
+                INSERT INTO order_reviews (
+
+                    order_id,
+
+                    rating,
+
+                    feedback,
+
+                    tags,
+
+                    created_at
+                )
+
+                VALUES (
+                    ?, ?, ?, ?, ?
+                )
+                """,
+                (
+                    order[
+                        "id"
+                    ],
+
+                    rating,
+
+                    feedback,
+
+                    encode_review_tags(
+                        tags
+                    ),
+
+                    created_at,
+                )
+            )
+
+
+            connection.commit()
+
+
+        # ====================================================
+        # DATABASE DUPLICATE PROTECTION
+        # ====================================================
+
+        except psycopg.errors.UniqueViolation:
+
+            connection.rollback()
+
+
+            existing_review = (
+                connection.execute(
+                    """
+                    SELECT
+                        id,
+                        rating,
+                        feedback,
+                        tags,
+                        created_at
+
+                    FROM order_reviews
+
+                    WHERE order_id = ?
+                    """,
+                    (
+                        order[
+                            "id"
+                        ],
+                    )
+                )
+                .fetchone()
+            )
+
+
+            return jsonify(
+                {
+                    "success":
+                        True,
+
+                    "already_reviewed":
+                        True,
+
+                    "message":
+                        (
+                            "Perjalanan ini "
+                            "sudah dinilai."
+                        ),
+
+                    "review":
+                        customer_review_payload(
+                            existing_review
+                        ),
+                }
+            )
+
+
+        # ====================================================
+        # SUCCESS
+        # ====================================================
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "already_reviewed":
+                    False,
+
+                "message":
+                    (
+                        "Terima kasih atas "
+                        "penilaian Anda."
+                    ),
+
+                "review": {
+
+                    "rating":
+                        rating,
+
+                    "feedback":
+                        feedback,
+
+                    "tags":
+                        tags,
+
+                    "created_at":
+                        created_at,
+                },
+            }
+        )
+
+
+    except Exception as error:
+
+        connection.rollback()
+
+
+        print(
+            "[CUSTOMER REVIEW ERROR]",
+            type(
+                error
+            ).__name__,
+            repr(
+                error
+            )
+        )
+
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    (
+                        "Penilaian belum berhasil "
+                        "disimpan."
+                    ),
+            }
+        ), 500
+
+
+    finally:
+
+        connection.close()
+
+# ============================================================
 # CUSTOMER CONTACT DRIVER
 # ============================================================
 
@@ -5430,11 +6145,11 @@ def driver_history():
 
         connection.close()
 
-
     return render_template(
         "admin/history.html",
 
-        orders=orders,
+        orders=
+            orders,
 
         total_orders=
             total_orders,
@@ -5468,8 +6183,8 @@ def driver_history():
 
         search_query=
             search_query,
-            
-                completion_rate=
+
+        completion_rate=
             completion_rate,
 
         average_fare_analytics=
@@ -5500,7 +6215,7 @@ def driver_history():
             performance_message,
 
         income_chart=
-            income_chart,    
+            income_chart,
     )
     
 # ============================================================

@@ -227,7 +227,240 @@ const driverVehiclePlate =
         false
     );
 
+// ============================================================
+// PHASE 19A
+// CUSTOMER REVIEW ELEMENTS
+// ============================================================
 
+const customerReviewCard =
+    getElement(
+        "customerReviewCard",
+        false
+    );
+
+
+const customerReviewForm =
+    getElement(
+        "customerReviewForm",
+        false
+    );
+
+
+const customerReviewStars =
+    document.querySelectorAll(
+        ".customer-review-star"
+    );
+
+
+const customerReviewLabel =
+    getElement(
+        "customerReviewLabel",
+        false
+    );
+
+
+const customerReviewMessage =
+    getElement(
+        "customerReviewMessage",
+        false
+    );
+
+
+const customerReviewSubmit =
+    getElement(
+        "customerReviewSubmit",
+        false
+    );
+
+
+const customerReviewSubmitText =
+    getElement(
+        "customerReviewSubmitText",
+        false
+    );
+
+
+const customerReviewSuccess =
+    getElement(
+        "customerReviewSuccess",
+        false
+    );
+
+
+const customerReviewResultStars =
+    getElement(
+        "customerReviewResultStars",
+        false
+    );
+
+const customerReviewTagButtons =
+    document.querySelectorAll(
+        ".customer-review-tag"
+    );
+
+
+const customerReviewFeedback =
+    getElement(
+        "customerReviewFeedback",
+        false
+    );
+
+
+const customerReviewFeedbackCount =
+    getElement(
+        "customerReviewFeedbackCount",
+        false
+    );
+
+
+const customerReviewResultTags =
+    getElement(
+        "customerReviewResultTags",
+        false
+    );
+
+
+const customerReviewResultFeedback =
+    getElement(
+        "customerReviewResultFeedback",
+        false
+    );
+
+
+let selectedReviewTags =
+    [];
+
+let selectedReviewRating =
+    0;
+
+
+let reviewLoaded =
+    false;
+
+
+let reviewSubmitting =
+    false;
+
+
+    // ============================================================
+// PHASE 19B
+// QUICK TAGS
+// ============================================================
+
+function toggleCustomerReviewTag(
+    button
+) {
+
+    const tag =
+        button.dataset.reviewTag;
+
+
+    if (!tag) {
+
+        return;
+
+    }
+
+
+    const selected =
+        selectedReviewTags.includes(
+            tag
+        );
+
+
+    if (selected) {
+
+        selectedReviewTags =
+            selectedReviewTags.filter(
+                function (
+                    item
+                ) {
+
+                    return (
+                        item !== tag
+                    );
+
+                }
+            );
+
+    }
+
+    else {
+
+        selectedReviewTags.push(
+            tag
+        );
+
+    }
+
+
+    const nowSelected =
+        !selected;
+
+
+    button.classList.toggle(
+        "is-active",
+        nowSelected
+    );
+
+
+    button.setAttribute(
+        "aria-pressed",
+        nowSelected
+            ? "true"
+            : "false"
+    );
+
+}
+
+
+customerReviewTagButtons.forEach(
+    function (
+        button
+    ) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                toggleCustomerReviewTag(
+                    button
+                );
+
+            }
+        );
+
+    }
+);
+
+if (customerReviewFeedback) {
+
+    customerReviewFeedback.addEventListener(
+        "input",
+        function () {
+
+            const length =
+                customerReviewFeedback
+                    .value
+                    .length;
+
+
+            if (
+                customerReviewFeedbackCount
+            ) {
+
+                customerReviewFeedbackCount
+                    .textContent =
+                        String(
+                            length
+                        );
+
+            }
+
+        }
+    );
+
+}
 // ============================================================
 // STATUS CONFIGURATION
 // ============================================================
@@ -1451,6 +1684,627 @@ window.addEventListener(
 );
 
 // ============================================================
+// PHASE 19A
+// CUSTOMER RATING
+// ============================================================
+
+const reviewLabels = {
+
+    1:
+        "Kurang",
+
+    2:
+        "Cukup",
+
+    3:
+        "Baik",
+
+    4:
+        "Sangat Baik",
+
+    5:
+        "Luar Biasa"
+
+};
+
+
+// ============================================================
+// UPDATE STAR UI
+// ============================================================
+
+function updateCustomerReviewStars(
+    rating
+) {
+
+    selectedReviewRating =
+        Number(
+            rating
+        )
+        || 0;
+
+
+    customerReviewStars.forEach(
+        function (
+            star
+        ) {
+
+            const starRating =
+                Number(
+                    star.dataset.rating
+                );
+
+
+            const active =
+                (
+                    starRating
+                    <= selectedReviewRating
+                );
+
+
+            star.classList.toggle(
+                "is-active",
+                active
+            );
+
+
+            star.setAttribute(
+                "aria-checked",
+                (
+                    starRating
+                    === selectedReviewRating
+                )
+                    ? "true"
+                    : "false"
+            );
+
+        }
+    );
+
+
+    if (customerReviewLabel) {
+
+        customerReviewLabel.textContent =
+            selectedReviewRating
+                ? reviewLabels[
+                    selectedReviewRating
+                ]
+                : "Pilih rating";
+
+    }
+
+
+    if (customerReviewSubmit) {
+
+        customerReviewSubmit.disabled =
+            (
+                selectedReviewRating < 1
+                ||
+                reviewSubmitting
+            );
+
+    }
+
+}
+
+
+// ============================================================
+// RENDER EXISTING REVIEW
+// ============================================================
+
+function showCustomerReviewSuccess(
+    review
+) {
+
+    if (!review) {
+
+        return;
+
+    }
+
+
+    if (customerReviewForm) {
+
+        customerReviewForm.hidden =
+            true;
+
+    }
+
+
+    if (customerReviewSuccess) {
+
+        customerReviewSuccess.hidden =
+            false;
+
+    }
+
+
+    if (customerReviewResultStars) {
+
+        const rating =
+            Number(
+                review.rating
+            )
+            || 0;
+
+
+        customerReviewResultStars.textContent =
+            "★".repeat(
+                rating
+            )
+            +
+            "☆".repeat(
+                Math.max(
+                    0,
+                    5 - rating
+                )
+            );
+
+    }
+
+}
+
+    // --------------------------------------------------------
+    // TAGS
+    // --------------------------------------------------------
+
+    if (customerReviewResultTags) {
+
+        customerReviewResultTags
+            .innerHTML =
+                "";
+
+
+        const tags =
+            Array.isArray(
+                review.tags
+            )
+                ? review.tags
+                : [];
+
+
+        const tagLabels = {
+
+            ramah:
+                "Ramah",
+
+            tepat_waktu:
+                "Tepat Waktu",
+
+            aman:
+                "Aman",
+
+            nyaman:
+                "Nyaman",
+
+            komunikatif:
+                "Komunikatif",
+
+            berkendara_baik:
+                "Berkendara Baik"
+
+        };
+
+
+        tags.forEach(
+            function (
+                tag
+            ) {
+
+                const element =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                element.textContent =
+                    tagLabels[
+                        tag
+                    ]
+                    || tag;
+
+
+                customerReviewResultTags
+                    .appendChild(
+                        element
+                    );
+
+            }
+        );
+
+
+        customerReviewResultTags.hidden =
+            tags.length === 0;
+
+    }
+
+
+    // --------------------------------------------------------
+    // FEEDBACK
+    // --------------------------------------------------------
+
+    if (
+        customerReviewResultFeedback
+    ) {
+
+        const feedback =
+            String(
+                review.feedback
+                || ""
+            ).trim();
+
+
+        customerReviewResultFeedback
+            .textContent =
+                feedback;
+
+
+        customerReviewResultFeedback
+            .hidden =
+                !feedback;
+
+    }
+
+// ============================================================
+// LOAD REVIEW
+// ============================================================
+
+async function loadCustomerReview() {
+
+    if (
+        !orderCode
+        ||
+        reviewLoaded
+    ) {
+
+        return;
+
+    }
+
+
+    reviewLoaded =
+        true;
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        orderCode
+                    )
+                    +
+                    "/review"
+                    +
+                    "?t="
+                    +
+                    Date.now()
+                ),
+                {
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Penilaian belum dapat dimuat."
+            );
+
+        }
+
+
+        if (!data.eligible) {
+
+            return;
+
+        }
+
+
+        if (customerReviewCard) {
+
+            customerReviewCard.hidden =
+                false;
+
+        }
+
+
+        if (data.review) {
+
+            showCustomerReviewSuccess(
+                data.review
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        reviewLoaded =
+            false;
+
+
+        console.warn(
+            "[CUSTOMER REVIEW LOAD]",
+            error
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// REVIEW VISIBILITY
+// ============================================================
+
+function updateCustomerReviewVisibility(
+    status
+) {
+
+    if (!customerReviewCard) {
+
+        return;
+
+    }
+
+
+    const completed =
+        (
+            status
+            === "SELESAI"
+        );
+
+
+    customerReviewCard.hidden =
+        !completed;
+
+
+    if (completed) {
+
+        loadCustomerReview();
+
+    }
+
+}
+
+
+// ============================================================
+// SUBMIT REVIEW
+// ============================================================
+
+async function submitCustomerReview() {
+
+    if (
+        reviewSubmitting
+        ||
+        selectedReviewRating < 1
+        ||
+        !orderCode
+    ) {
+
+        return;
+
+    }
+
+
+    reviewSubmitting =
+        true;
+
+
+    if (customerReviewSubmit) {
+
+        customerReviewSubmit.disabled =
+            true;
+
+    }
+
+
+    if (customerReviewSubmitText) {
+
+        customerReviewSubmitText.textContent =
+            "Menyimpan...";
+
+    }
+
+
+    if (customerReviewMessage) {
+
+        customerReviewMessage.textContent =
+            "";
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        orderCode
+                    )
+                    +
+                    "/review"
+                ),
+                {
+                    method:
+                        "POST",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+
+                                rating:
+                                    selectedReviewRating,
+
+                                feedback:
+                                    customerReviewFeedback
+                                        ? customerReviewFeedback
+                                            .value
+                                            .trim()
+                                        : "",
+
+                                tags:
+                                    selectedReviewTags
+
+                            }
+                        )
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Penilaian belum berhasil disimpan."
+            );
+
+        }
+
+
+        showCustomerReviewSuccess(
+            data.review
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "[CUSTOMER REVIEW SUBMIT]",
+            error
+        );
+
+
+        if (customerReviewMessage) {
+
+            customerReviewMessage.textContent =
+                error.message
+                ||
+                "Penilaian belum berhasil disimpan.";
+
+        }
+
+    }
+
+    finally {
+
+        reviewSubmitting =
+            false;
+
+
+        if (customerReviewSubmitText) {
+
+            customerReviewSubmitText.textContent =
+                "Kirim Penilaian";
+
+        }
+
+
+        if (
+            customerReviewSubmit
+            &&
+            customerReviewForm
+            &&
+            !customerReviewForm.hidden
+        ) {
+
+            customerReviewSubmit.disabled =
+                (
+                    selectedReviewRating
+                    < 1
+                );
+
+        }
+
+    }
+
+}
+
+
+// ============================================================
+// REVIEW EVENTS
+// ============================================================
+
+customerReviewStars.forEach(
+    function (
+        star
+    ) {
+
+        star.addEventListener(
+            "click",
+            function () {
+
+                updateCustomerReviewStars(
+                    star.dataset.rating
+                );
+
+            }
+        );
+
+    }
+);
+
+
+if (customerReviewSubmit) {
+
+    customerReviewSubmit.addEventListener(
+        "click",
+        submitCustomerReview
+    );
+
+}
+
+// ============================================================
 // UPDATE STATUS UI
 // ============================================================
 
@@ -1481,6 +2335,10 @@ function updateStatusUI(
 
 
     updateLastUpdate();
+
+    updateCustomerReviewVisibility(
+    status
+);
 
 
     // Tidak perlu menjalankan animasi ulang

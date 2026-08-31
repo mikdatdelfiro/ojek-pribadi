@@ -585,8 +585,8 @@ function updateCustomerServiceUI(
         customerPanel
         &&
         customerPanel.classList.contains(
-            "show"
-        )
+            "is-open"
+        )        
     ) {
 
         showOrderMessage(
@@ -669,6 +669,42 @@ async function refreshServiceStatus() {
 
 }
 
+// ============================================================
+// CUSTOMER PANEL STATE
+// CLEAN FIX
+// ============================================================
+
+function setCustomerPanelOpen(
+    open
+) {
+
+    if (!customerPanel) {
+
+        return;
+
+    }
+
+
+    const shouldOpen =
+        Boolean(
+            open
+        );
+
+
+    customerPanel.classList.toggle(
+        "is-open",
+        shouldOpen
+    );
+
+
+    customerPanel.setAttribute(
+        "aria-hidden",
+        shouldOpen
+            ? "false"
+            : "true"
+    );
+
+}
 
 // ============================================================
 // RESET CURRENT FARE
@@ -689,14 +725,9 @@ function invalidateFare() {
     }
 
 
-    if (customerPanel) {
-
-        customerPanel.classList.remove(
-            "show"
-        );
-
-    }
-
+    setCustomerPanelOpen(
+            false
+    );
 }
 
 
@@ -1449,6 +1480,7 @@ if (orderButton) {
         function () {
 
             hideMessage();
+            hideOrderMessage();
 
 
             // ------------------------------------------------
@@ -1460,7 +1492,6 @@ if (orderButton) {
                 showMessage(
                     "Layanan sedang tutup. Pesanan belum dapat dibuat saat ini."
                 );
-
 
                 return;
 
@@ -1477,21 +1508,13 @@ if (orderButton) {
                     "Lihat tarif terlebih dahulu."
                 );
 
-
                 return;
 
             }
 
 
-            if (!customerPanel) {
-
-                return;
-
-            }
-
-
-            customerPanel.classList.add(
-                "show"
+            setCustomerPanelOpen(
+                true
             );
 
 
@@ -1505,7 +1528,7 @@ if (orderButton) {
                     }
 
                 },
-                250
+                180
             );
 
         }
@@ -1524,13 +1547,12 @@ if (closeCustomerPanel) {
         "click",
         function () {
 
-            if (customerPanel) {
+            hideOrderMessage();
 
-                customerPanel.classList.remove(
-                    "show"
-                );
 
-            }
+            setCustomerPanelOpen(
+                false
+            );
 
         }
     );
@@ -1880,14 +1902,9 @@ function showOrderSuccess(
     orderCode
     );
 
-    if (customerPanel) {
-
-        customerPanel.classList.remove(
-            "show"
-        );
-
-    }
-
+    setCustomerPanelOpen(
+            false
+    );
 
     successOverlay.classList.add(
         "show"
