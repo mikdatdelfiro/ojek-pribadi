@@ -9,6 +9,7 @@ from functools import wraps
 from urllib.parse import quote, urlparse, unquote
 from zoneinfo import ZoneInfo
 
+import hashlib
 import math
 import os
 import re
@@ -483,6 +484,16 @@ login_attempts_lock = (
     threading.Lock()
 )
 
+# ============================================================
+# PHASE 19E
+# REVIEW RATE LIMIT STATE
+# ============================================================
+
+review_attempts = {}
+
+review_attempts_lock = (
+    threading.Lock()
+)
 
 # ============================================================
 # ORDER STATUS
@@ -613,7 +624,7 @@ REVIEW_ALLOWED_TAGS = {
     "berkendara_baik",
 }
 
-REVIEW_TAG_LABELS = {
+REVIEW_ALLOWED_TAGS_LABELS = {
 
     "ramah":
         "Ramah",
@@ -633,6 +644,19 @@ REVIEW_TAG_LABELS = {
     "berkendara_baik":
         "Berkendara Baik",
 }
+
+# ============================================================
+# PHASE 19E
+# REVIEW SAFETY CONFIG
+# ============================================================
+
+REVIEW_TOKEN_BYTES = 32
+
+REVIEW_WINDOW_DAYS = 7
+
+REVIEW_POST_LIMIT = 8
+
+REVIEW_RATE_WINDOW_SECONDS = 10 * 60
 
 # ============================================================
 # SERVICE STATUS
@@ -1057,6 +1081,19 @@ def init_database():
             rejected_at TEXT
             """
         )
+        
+        # ----------------------------------------------------
+        # PHASE 19E
+        # REVIEW SECURITY TOKEN
+        # ----------------------------------------------------
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            review_token_hash TEXT
+            """
+        )
 
 
         # ----------------------------------------------------
@@ -1321,6 +1358,17 @@ def init_database():
             idx_orders_completed_at
 
             ON orders(completed_at)
+            """
+        )
+        
+        connection.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            idx_orders_review_token_hash
+
+            ON orders(review_token_hash)
+
+            WHERE review_token_hash IS NOT NULL
             """
         )
 
@@ -3677,103 +3725,123 @@ def create_order():
                     connection
                 )
             )
+            
+            # ================================================
+            # PHASE 19E
+            # PRIVATE REVIEW TOKEN
+            # ================================================
+
+            review_token = (
+                generate_review_token()
+            )
+
+
+            review_token_hash = (
+                hash_review_token(
+                    review_token
+                )
+            )
 
 
             connection.execute(
-                """
-                INSERT INTO orders (
+    """
+    INSERT INTO orders (
 
-                    order_code,
+        order_code,
 
-                    customer_name,
+        customer_name,
 
-                    whatsapp,
+        whatsapp,
 
-                    pickup,
+        pickup,
 
-                    destination,
+        destination,
 
-                    note,
+        note,
 
-                    distance_km,
+        distance_km,
 
-                    duration_minutes,
+        duration_minutes,
 
-                    fare,
+        fare,
 
-                    status,
+        status,
 
-                    created_at,
+        created_at,
 
-                    pickup_lat,
+        pickup_lat,
 
-                    pickup_lon,
+        pickup_lon,
 
-                    destination_lat,
+        destination_lat,
 
-                    destination_lon
-                )
+        destination_lon,
 
-                VALUES (
-                    ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?
-                )
-                """,
-                (
-                    order_code,
+        review_token_hash
+    )
 
-                    customer_name,
+    VALUES (
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?
+    )
+    """,
+    (
+        order_code,
 
-                    whatsapp,
+        customer_name,
 
-                    pickup_text,
+        whatsapp,
 
-                    destination_text,
+        pickup_text,
 
-                    note,
+        destination_text,
 
-                    trip[
-                        "distance_km"
-                    ],
+        note,
 
-                    trip[
-                        "duration_minutes"
-                    ],
+        trip[
+            "distance_km"
+        ],
 
-                    trip[
-                        "fare"
-                    ],
+        trip[
+            "duration_minutes"
+        ],
 
-                    STATUS_WAITING,
+        trip[
+            "fare"
+        ],
 
-                    current_timestamp(),
+        STATUS_WAITING,
 
-                    trip[
-                        "pickup"
-                    ][
-                        "lat"
-                    ],
+        current_timestamp(),
 
-                    trip[
-                        "pickup"
-                    ][
-                        "lon"
-                    ],
+        trip[
+            "pickup"
+        ][
+            "lat"
+        ],
 
-                    trip[
-                        "destination"
-                    ][
-                        "lat"
-                    ],
+        trip[
+            "pickup"
+        ][
+            "lon"
+        ],
 
-                    trip[
-                        "destination"
-                    ][
-                        "lon"
-                    ],
-                )
-            )
+        trip[
+            "destination"
+        ][
+            "lat"
+        ],
+
+        trip[
+            "destination"
+        ][
+            "lon"
+        ],
+
+        review_token_hash,
+    )
+)
 
 
             connection.commit()
@@ -3791,6 +3859,9 @@ def create_order():
 
                 "order_code":
                     order_code,
+                    
+                "review_token":
+                    review_token,
 
                 "fare":
                     trip[
@@ -3843,22 +3914,33 @@ def create_order():
 
     except Exception as error:
 
-        print(
-            "[CREATE ORDER ERROR]",
-            repr(error)
+        app.logger.exception(
+            "[CREATE ORDER ERROR]"
         )
 
 
-        return jsonify(
-            {
-                "success":
-                    False,
+        response_data = {
+            "success":
+                False,
 
-                "message":
-                    "Pesanan gagal dibuat.",
-            }
-        ), 500
+            "message":
+                "Pesanan gagal dibuat.",
+        }
 
+
+        if APP_ENV == "development":
+
+            response_data[
+                "debug"
+            ] = (
+                f"{type(error).__name__}: "
+                f"{str(error)}"
+            )
+
+
+    return jsonify(
+        response_data
+    ), 500
 
 # ============================================================
 # CUSTOMER ORDER STATUS PAGE
@@ -4302,10 +4384,248 @@ def customer_review_payload(
             ],
     }
 
+# ============================================================
+# PHASE 19E
+# REVIEW SECURITY HELPERS
+# ============================================================
+
+def generate_review_token():
+
+    return secrets.token_urlsafe(
+        REVIEW_TOKEN_BYTES
+    )
+
+
+def hash_review_token(
+    token
+):
+
+    token = str(
+        token or ""
+    ).strip()
+
+
+    if not token:
+
+        return ""
+
+
+    return hashlib.sha256(
+        token.encode(
+            "utf-8"
+        )
+    ).hexdigest()
+
+
+def review_token_is_valid(
+    stored_hash,
+    supplied_token
+):
+
+    stored_hash = str(
+        stored_hash or ""
+    ).strip()
+
+
+    supplied_hash = (
+        hash_review_token(
+            supplied_token
+        )
+    )
+
+
+    if (
+        not stored_hash
+        or not supplied_hash
+    ):
+
+        return False
+
+
+    return secrets.compare_digest(
+        stored_hash,
+        supplied_hash
+    )
+
+
+def get_supplied_review_token():
+
+    return (
+        request.headers.get(
+            "X-Review-Token",
+            ""
+        )
+        .strip()
+    )
+
+
+def sanitize_review_feedback(
+    value
+):
+
+    feedback = str(
+        value or ""
+    )
+
+
+    # Hilangkan karakter kontrol yang
+    # tidak diperlukan.
+    feedback = re.sub(
+        r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
+        "",
+        feedback
+    )
+
+
+    # Rapikan spasi horizontal.
+    feedback = re.sub(
+        r"[ \t]+",
+        " ",
+        feedback
+    )
+
+
+    # Maksimal dua newline berturut-turut.
+    feedback = re.sub(
+        r"\n{3,}",
+        "\n\n",
+        feedback
+    )
+
+
+    return feedback.strip()
+
+
+def parse_app_timestamp(
+    value
+):
+
+    if not value:
+
+        return None
+
+
+    try:
+
+        parsed = datetime.strptime(
+            str(
+                value
+            ).strip(),
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+
+        return parsed.replace(
+            tzinfo=APP_TZ
+        )
+
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
+
+
+def review_window_is_open(
+    completed_at,
+    created_at=None
+):
+
+    completed_time = (
+        parse_app_timestamp(
+            completed_at
+        )
+        or
+        parse_app_timestamp(
+            created_at
+        )
+    )
+
+
+    if not completed_time:
+
+        return False
+
+
+    deadline = (
+        completed_time
+        +
+        timedelta(
+            days=REVIEW_WINDOW_DAYS
+        )
+    )
+
+
+    return (
+        datetime.now(
+            APP_TZ
+        )
+        <= deadline
+    )
+
+
+def review_rate_limit_allowed(
+    client_ip
+):
+
+    now = time.time()
+
+
+    cutoff = (
+        now
+        -
+        REVIEW_RATE_WINDOW_SECONDS
+    )
+
+
+    with review_attempts_lock:
+
+        attempts = [
+
+            attempt_time
+
+            for attempt_time
+            in review_attempts.get(
+                client_ip,
+                []
+            )
+
+            if attempt_time >= cutoff
+        ]
+
+
+        if (
+            len(
+                attempts
+            )
+            >= REVIEW_POST_LIMIT
+        ):
+
+            review_attempts[
+                client_ip
+            ] = attempts
+
+
+            return False
+
+
+        attempts.append(
+            now
+        )
+
+
+        review_attempts[
+            client_ip
+        ] = attempts
+
+
+    return True
 
 # ============================================================
-# PHASE 19A + 19B
-# CUSTOMER ORDER REVIEW API
+# PHASE 19A + 19B + 19E
+# SECURE CUSTOMER ORDER REVIEW
 # ============================================================
 
 @app.route(
@@ -4318,6 +4638,51 @@ def customer_review_payload(
 def customer_order_review(
     order_code
 ):
+
+    # ========================================================
+    # POST RATE LIMIT
+    # ========================================================
+
+    if (
+        request.method
+        == "POST"
+    ):
+
+        client_ip = (
+            get_client_ip()
+        )
+
+
+        if not review_rate_limit_allowed(
+            client_ip
+        ):
+
+            response = jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Terlalu banyak percobaan. "
+                            "Silakan tunggu beberapa menit."
+                        ),
+                }
+            )
+
+
+            response.status_code = 429
+
+
+            response.headers[
+                "Retry-After"
+            ] = str(
+                REVIEW_RATE_WINDOW_SECONDS
+            )
+
+
+            return response
+
 
     connection = (
         get_db()
@@ -4334,9 +4699,18 @@ def customer_order_review(
             connection.execute(
                 """
                 SELECT
+
                     id,
+
                     order_code,
-                    status
+
+                    status,
+
+                    created_at,
+
+                    completed_at,
+
+                    review_token_hash
 
                 FROM orders
 
@@ -4364,6 +4738,42 @@ def customer_order_review(
 
 
         # ====================================================
+        # PRIVATE REVIEW TOKEN
+        # ====================================================
+
+        supplied_token = (
+            get_supplied_review_token()
+        )
+
+
+        if not review_token_is_valid(
+            order[
+                "review_token_hash"
+            ],
+            supplied_token
+        ):
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "eligible":
+                        False,
+
+                    "access_denied":
+                        True,
+
+                    "message":
+                        (
+                            "Akses penilaian untuk "
+                            "perjalanan ini tidak valid."
+                        ),
+                }
+            ), 403
+
+
+        # ====================================================
         # EXISTING REVIEW
         # ====================================================
 
@@ -4371,10 +4781,15 @@ def customer_order_review(
             connection.execute(
                 """
                 SELECT
+
                     id,
+
                     rating,
+
                     feedback,
+
                     tags,
+
                     created_at
 
                 FROM order_reviews
@@ -4392,7 +4807,24 @@ def customer_order_review(
 
 
         # ====================================================
-        # GET REVIEW
+        # REVIEW WINDOW
+        # ====================================================
+
+        window_open = (
+            review_window_is_open(
+                order[
+                    "completed_at"
+                ],
+
+                order[
+                    "created_at"
+                ]
+            )
+        )
+
+
+        # ====================================================
+        # GET
         # ====================================================
 
         if (
@@ -4400,18 +4832,36 @@ def customer_order_review(
             == "GET"
         ):
 
+            eligible = (
+                order[
+                    "status"
+                ]
+                == STATUS_COMPLETED
+
+                and
+
+                window_open
+
+                and
+
+                existing_review
+                is None
+            )
+
+
             return jsonify(
                 {
                     "success":
                         True,
 
                     "eligible":
-                        (
-                            order[
-                                "status"
-                            ]
-                            == STATUS_COMPLETED
-                        ),
+                        eligible,
+
+                    "window_open":
+                        window_open,
+
+                    "review_window_days":
+                        REVIEW_WINDOW_DAYS,
 
                     "review":
                         customer_review_payload(
@@ -4422,7 +4872,7 @@ def customer_order_review(
 
 
         # ====================================================
-        # REVIEW ONLY AFTER COMPLETION
+        # COMPLETED ONLY
         # ====================================================
 
         if (
@@ -4448,7 +4898,7 @@ def customer_order_review(
 
 
         # ====================================================
-        # ALREADY REVIEWED
+        # IDEMPOTENT DUPLICATE PROTECTION
         # ====================================================
 
         if existing_review:
@@ -4476,6 +4926,30 @@ def customer_order_review(
 
 
         # ====================================================
+        # REVIEW WINDOW CLOSED
+        # ====================================================
+
+        if not window_open:
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "window_closed":
+                        True,
+
+                    "message":
+                        (
+                            "Waktu untuk memberikan "
+                            "penilaian perjalanan ini "
+                            "sudah berakhir."
+                        ),
+                }
+            ), 403
+
+
+        # ====================================================
         # REQUEST DATA
         # ====================================================
 
@@ -4495,14 +4969,12 @@ def customer_order_review(
 
 
         feedback = (
-            str(
+            sanitize_review_feedback(
                 data.get(
                     "feedback",
                     ""
                 )
-                or ""
             )
-            .strip()
         )
 
 
@@ -4517,7 +4989,7 @@ def customer_order_review(
 
 
         # ====================================================
-        # RATING VALIDATION
+        # RATING
         # ====================================================
 
         if isinstance(
@@ -4579,7 +5051,7 @@ def customer_order_review(
 
 
         # ====================================================
-        # FEEDBACK VALIDATION
+        # FEEDBACK
         # ====================================================
 
         if (
@@ -4605,10 +5077,6 @@ def customer_order_review(
             ), 400
 
 
-        # ====================================================
-        # SAVE REVIEW
-        # ====================================================
-
         created_at = (
             current_timestamp()
         )
@@ -4620,6 +5088,10 @@ def customer_order_review(
             )
         )
 
+
+        # ====================================================
+        # SAVE
+        # ====================================================
 
         try:
 
@@ -4674,10 +5146,15 @@ def customer_order_review(
                 connection.execute(
                     """
                     SELECT
+
                         id,
+
                         rating,
+
                         feedback,
+
                         tags,
+
                         created_at
 
                     FROM order_reviews
@@ -4715,10 +5192,6 @@ def customer_order_review(
                 }
             )
 
-
-        # ====================================================
-        # SUCCESS
-        # ====================================================
 
         return jsonify(
             {
@@ -4758,7 +5231,7 @@ def customer_order_review(
 
 
         print(
-            "[CUSTOMER REVIEW ERROR]",
+            "[SECURE REVIEW ERROR]",
             type(
                 error
             ).__name__,
@@ -4776,7 +5249,7 @@ def customer_order_review(
                 "message":
                     (
                         "Penilaian belum berhasil "
-                        "disimpan."
+                        "diproses."
                     ),
             }
         ), 500
@@ -5910,7 +6383,7 @@ def driver_dashboard():
 
             tag_labels = [
 
-                REVIEW_TAG_LABELS.get(
+                REVIEW_ALLOWED_TAGS_LABELS.get(
                     tag,
                     tag.replace(
                         "_",
