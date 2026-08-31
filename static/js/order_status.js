@@ -54,6 +54,120 @@ const orderCode =
         ? trackingPage.dataset.orderCode
         : "";
 
+        // ============================================================
+// PHASE 19E
+// PRIVATE REVIEW ACCESS TOKEN
+// ============================================================
+
+const reviewTokenStorageKey =
+    (
+        "ojek_pribadi_review_token_"
+        +
+        orderCode
+    );
+
+
+function getReviewTokenFromHash() {
+
+    const rawHash =
+        window.location.hash
+            .replace(
+                /^#/,
+                ""
+            );
+
+
+    if (!rawHash) {
+
+        return "";
+
+    }
+
+
+    const params =
+        new URLSearchParams(
+            rawHash
+        );
+
+
+    return String(
+        params.get(
+            "review_token"
+        )
+        || ""
+    ).trim();
+
+}
+
+
+function resolveCustomerReviewToken() {
+
+    const hashToken =
+        getReviewTokenFromHash();
+
+
+    if (hashToken) {
+
+        try {
+
+            sessionStorage.setItem(
+                reviewTokenStorageKey,
+                hashToken
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "[REVIEW TOKEN]",
+                error
+            );
+
+        }
+
+
+        // Hilangkan token dari address bar
+        // setelah berhasil dibaca.
+        window.history.replaceState(
+            null,
+            "",
+            (
+                window.location.pathname
+                +
+                window.location.search
+            )
+        );
+
+
+        return hashToken;
+
+    }
+
+
+    try {
+
+        return String(
+            sessionStorage.getItem(
+                reviewTokenStorageKey
+            )
+            || ""
+        ).trim();
+
+    }
+
+    catch (error) {
+
+        return "";
+
+    }
+
+}
+
+
+const customerReviewToken =
+    resolveCustomerReviewToken();
+
 
 const initialStatus =
     trackingPage
@@ -2027,6 +2141,10 @@ function showCustomerReviewSuccess(
     }
 
 
+    // ========================================================
+    // FORM / SUCCESS STATE
+    // ========================================================
+
     if (customerReviewForm) {
 
         customerReviewForm.hidden =
@@ -2043,6 +2161,10 @@ function showCustomerReviewSuccess(
     }
 
 
+    // ========================================================
+    // STARS
+    // ========================================================
+
     if (customerReviewResultStars) {
 
         const rating =
@@ -2053,30 +2175,30 @@ function showCustomerReviewSuccess(
 
 
         customerReviewResultStars.textContent =
-            "★".repeat(
-                rating
-            )
-            +
-            "☆".repeat(
-                Math.max(
-                    0,
-                    5 - rating
+            (
+                "★".repeat(
+                    rating
+                )
+                +
+                "☆".repeat(
+                    Math.max(
+                        0,
+                        5 - rating
+                    )
                 )
             );
 
     }
 
-}
 
-    // --------------------------------------------------------
+    // ========================================================
     // TAGS
-    // --------------------------------------------------------
+    // ========================================================
 
     if (customerReviewResultTags) {
 
-        customerReviewResultTags
-            .innerHTML =
-                "";
+        customerReviewResultTags.innerHTML =
+            "";
 
 
         const tags =
@@ -2122,10 +2244,13 @@ function showCustomerReviewSuccess(
 
 
                 element.textContent =
-                    tagLabels[
+                    (
+                        tagLabels[
+                            tag
+                        ]
+                        ||
                         tag
-                    ]
-                    || tag;
+                    );
 
 
                 customerReviewResultTags
@@ -2138,18 +2263,19 @@ function showCustomerReviewSuccess(
 
 
         customerReviewResultTags.hidden =
-            tags.length === 0;
+            (
+                tags.length
+                === 0
+            );
 
     }
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // FEEDBACK
-    // --------------------------------------------------------
+    // ========================================================
 
-    if (
-        customerReviewResultFeedback
-    ) {
+    if (customerReviewResultFeedback) {
 
         const feedback =
             String(
@@ -2158,16 +2284,16 @@ function showCustomerReviewSuccess(
             ).trim();
 
 
-        customerReviewResultFeedback
-            .textContent =
-                feedback;
+        customerReviewResultFeedback.textContent =
+            feedback;
 
 
-        customerReviewResultFeedback
-            .hidden =
-                !feedback;
+        customerReviewResultFeedback.hidden =
+            !feedback;
 
     }
+
+}
 
 // ============================================================
 // LOAD REVIEW
@@ -2180,6 +2306,18 @@ async function loadCustomerReview() {
         ||
         reviewLoaded
     ) {
+
+        return;
+
+    }
+
+
+    if (!customerReviewToken) {
+
+        console.warn(
+            "[REVIEW] Token akses tidak tersedia."
+        );
+
 
         return;
 
@@ -2208,6 +2346,7 @@ async function loadCustomerReview() {
                     Date.now()
                 ),
                 {
+
                     method:
                         "GET",
 
@@ -2215,9 +2354,15 @@ async function loadCustomerReview() {
                         "no-store",
 
                     headers: {
+
                         "Accept":
-                            "application/json"
+                            "application/json",
+
+                        "X-Review-Token":
+                            customerReviewToken
+
                     }
+
                 }
             );
 
@@ -2241,26 +2386,57 @@ async function loadCustomerReview() {
         }
 
 
-        if (!data.eligible) {
+        // ====================================================
+        // EXISTING REVIEW
+        // ====================================================
+
+        if (data.review) {
+
+            if (customerReviewCard) {
+
+                customerReviewCard.hidden =
+                    false;
+
+            }
+
+
+            showCustomerReviewSuccess(
+                data.review
+            );
+
 
             return;
 
         }
 
 
-        if (customerReviewCard) {
+        // ====================================================
+        // NOT ELIGIBLE
+        // ====================================================
 
-            customerReviewCard.hidden =
-                false;
+        if (!data.eligible) {
+
+            if (customerReviewCard) {
+
+                customerReviewCard.hidden =
+                    true;
+
+            }
+
+
+            return;
 
         }
 
 
-        if (data.review) {
+        // ====================================================
+        // ELIGIBLE
+        // ====================================================
 
-            showCustomerReviewSuccess(
-                data.review
-            );
+        if (customerReviewCard) {
+
+            customerReviewCard.hidden =
+                false;
 
         }
 
@@ -2390,7 +2566,10 @@ async function submitCustomerReview() {
                             "application/json",
 
                         "Accept":
-                            "application/json"
+                            "application/json",
+
+                        "X-Review-Token":
+                            customerReviewToken
 
                     },
 

@@ -265,6 +265,8 @@ let currentRoute =
 let orderSubmitting =
     false;
 
+let latestReviewToken =
+    "";
 
 let serviceOpen =
     customerServiceStatus
@@ -1841,7 +1843,9 @@ if (confirmOrderButton) {
                 // ------------------------------------------------
 
                 showOrderSuccess(
-                    data.order_code
+                    data.order_code,
+                    data.review_token
+                    || ""
                 );
 
             }
@@ -1881,7 +1885,8 @@ if (confirmOrderButton) {
 // ============================================================
 
 function showOrderSuccess(
-    orderCode
+    orderCode,
+    reviewToken = ""
 ) {
 
     if (
@@ -1895,16 +1900,27 @@ function showOrderSuccess(
     }
 
 
+    latestReviewToken =
+        String(
+            reviewToken
+            || ""
+        ).trim();
+
+
     successOrderCode.textContent =
         orderCode;
 
+
     saveCustomerOrderToHistory(
-    orderCode
+        orderCode,
+        latestReviewToken
     );
 
+
     setCustomerPanelOpen(
-            false
+        false
     );
+
 
     successOverlay.classList.add(
         "show"
@@ -1952,17 +1968,30 @@ if (successButton) {
             }
 
 
-            window.location.href =
-                (
-                    "/order/"
-                    +
-                    encodeURIComponent(
-                        orderCode
-                    )
-                );
+    const reviewFragment =
+        latestReviewToken
+            ? (
+                "#review_token="
+                +
+                encodeURIComponent(
+                    latestReviewToken
+                )
+            )
+            : "";
 
-        }
-    );
+
+    window.location.href =
+        (
+            "/order/"
+            +
+            encodeURIComponent(
+                orderCode
+            )
+            +
+            reviewFragment
+        );
+            }
+        );
 
 }
 
@@ -2146,7 +2175,8 @@ function readCustomerOrderHistory() {
 // ============================================================
 
 function saveCustomerOrderToHistory(
-    orderCode
+    orderCode,
+    reviewToken = ""
 ) {
 
     const normalizedOrderCode =
@@ -2182,16 +2212,20 @@ function saveCustomerOrderToHistory(
                 );
 
 
-        history.unshift(
-            {
+            history.unshift({
+
                 order_code:
                     normalizedOrderCode,
 
+                review_token:
+                    String(
+                        reviewToken
+                        || ""
+                    ).trim(),
+
                 saved_at:
                     Date.now()
-            }
-        );
-
+            });
 
         localStorage.setItem(
             CUSTOMER_HISTORY_STORAGE_KEY,
@@ -2686,6 +2720,18 @@ function createCustomerHistoryItem(
         "customer-history-view";
 
 
+    const reviewFragment =
+        order.review_token
+            ? (
+                "#review_token="
+                +
+                encodeURIComponent(
+                    order.review_token
+                )
+            )
+            : "";
+
+
     link.href =
         (
             "/order/"
@@ -2693,8 +2739,9 @@ function createCustomerHistoryItem(
             encodeURIComponent(
                 order.order_code
             )
+            +
+            reviewFragment
         );
-
 
     link.textContent =
         "Lihat Status Perjalanan";
@@ -2734,8 +2781,9 @@ function createCustomerHistoryItem(
 // ============================================================
 
 async function fetchCustomerHistoryOrder(
-    orderCode
-) {
+    orderCode,
+    reviewToken = ""
+){
 
     try {
 
@@ -2791,18 +2839,20 @@ async function fetchCustomerHistoryOrder(
 
         }
 
+        data.order.review_token =
+            String(
+                reviewToken
+                || ""
+            ).trim();
 
         return data.order;
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.warn(
             "[CUSTOMER HISTORY]",
             error
         );
-
 
         return null;
 
@@ -2880,10 +2930,11 @@ async function refreshCustomerOrderHistory() {
                     item
                 ) {
 
-                    return fetchCustomerHistoryOrder(
-                        item.order_code
-                    );
-
+                return fetchCustomerHistoryOrder(
+                    item.order_code,
+                    item.review_token
+                    || ""
+                );
                 }
             )
         );
