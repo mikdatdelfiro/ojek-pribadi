@@ -62,29 +62,27 @@ Ojek Control
 
         <div class="driver-header-links">
 
-    <a
-        href="{{ url_for('driver_profile') }}"
-        class="driver-profile-link"
-    >
-        <span>Profil</span>
-        <span>→</span>
+    <div class="driver-top-menu">
+    <a href="{{ url_for('driver_profile') }}" class="driver-top-link">
+        Profil
+        <span aria-hidden="true">→</span>
     </a>
 
-    <a
-        href="{{ url_for('driver_history') }}"
-        class="driver-history-link"
-    >
-        <span>Riwayat</span>
-        <span>→</span>
+    <a href="{{ url_for('driver_order_history') }}" class="driver-top-link">
+        Riwayat
+        <span aria-hidden="true">→</span>
     </a>
 
-    <a
-        href="{{ url_for('driver_reviews') }}"
-        class="driver-history-link"
-    >
-        <span>★ Ulasan</span>
-        <span>→</span>
+    <a href="{{ url_for('driver_payment_history_page') }}" class="driver-top-link driver-top-link--active">
+        Riwayat Pembayaran
+        <span aria-hidden="true">→</span>
     </a>
+
+    <a href="{{ url_for('driver_reviews_page') }}" class="driver-top-link">
+        ★Ulasan
+        <span aria-hidden="true">→</span>
+    </a>
+</div>
 
     <a
         href="{{ url_for('driver_payment_history_page') }}"

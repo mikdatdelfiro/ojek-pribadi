@@ -37223,3 +37223,78 @@ PAYMENT REFUNDED BADGE
     }
 
 }
+
+.driver-top-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.driver-top-link,
+.driver-top-link:visited,
+.driver-top-link:hover,
+.driver-top-link:focus,
+.driver-top-link:active {
+    text-decoration: none;
+    color: #dffef4;
+}
+
+.driver-top-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(74, 255, 190, 0.18);
+    background: linear-gradient(
+        180deg,
+        rgba(10, 36, 30, 0.95) 0%,
+        rgba(7, 24, 21, 0.96) 100%
+    );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 10px 24px rgba(0, 0, 0, 0.22);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease;
+}
+
+.driver-top-link:hover {
+    transform: translateY(-1px);
+    border-color: rgba(74, 255, 190, 0.35);
+    color: #ffffff;
+    box-shadow:
+        0 0 0 1px rgba(74, 255, 190, 0.10),
+        0 14px 28px rgba(0, 0, 0, 0.26),
+        0 0 24px rgba(36, 255, 170, 0.10);
+}
+
+.driver-top-link--active {
+    color: #041511;
+    border-color: rgba(74, 255, 190, 0.65);
+    background: linear-gradient(
+        135deg,
+        #52f2b3 0%,
+        #2dd6a3 50%,
+        #1dc98f 100%
+    );
+    box-shadow:
+        0 10px 26px rgba(27, 216, 150, 0.28),
+        0 0 0 1px rgba(95, 255, 200, 0.16);
+}
+
+.driver-top-link--active:hover {
+    color: #041511;
+}
+
+.driver-top-link span {
+    font-size: 13px;
+    opacity: 0.9;
+}
