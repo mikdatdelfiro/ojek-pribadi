@@ -3287,7 +3287,7 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # IDEMPOTENT REFUND
+    # IDEMPOTENT
     # ========================================================
 
     if (
@@ -3305,16 +3305,18 @@ def refund_paid_payment(
                     PAYMENT_STATUS_REFUNDED,
 
                 "amount":
-                    int(
+                    payment_audit_safe_integer(
                         order.get(
                             "payment_refund_amount"
                         )
-                        or
+                    )
+                    or
+                    payment_audit_safe_integer(
                         order.get(
                             "payment_amount"
                         )
-                        or 0
-                    ),
+                    )
+                    or 0,
 
                 "reason":
                     order.get(
@@ -3374,7 +3376,7 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # PAYMENT MUST HAVE PAID TIMESTAMP
+    # PAID TIMESTAMP
     # ========================================================
 
     if not order.get(
@@ -3390,9 +3392,7 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # AMOUNT INTEGRITY
-    #
-    # PHASE 20I.3 hanya mendukung FULL REFUND.
+    # FULL REFUND AMOUNT
     # ========================================================
 
     payment_amount = (
@@ -3403,7 +3403,7 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # REASON
+    # NORMALIZE INPUT
     # ========================================================
 
     reason = (
@@ -3421,7 +3421,36 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # TRANSITION SECURITY
+    # OPTIONAL REFUND REQUEST AUDIT TARGET
+    # ========================================================
+
+    if (
+        audit_new_refund_request_status
+        is not None
+    ):
+
+        audit_new_refund_request_status = str(
+            audit_new_refund_request_status
+        ).strip().upper()
+
+
+        if (
+            audit_new_refund_request_status
+            not in
+            PAYMENT_REFUND_REQUEST_ALLOWED_STATUSES
+        ):
+
+            raise ValueError(
+                (
+                    "Status refund request tujuan "
+                    "untuk audit tidak valid."
+                )
+            )
+
+
+    # ========================================================
+    # PAYMENT TRANSITION
+    # DIBAYAR -> DIKEMBALIKAN
     # ========================================================
 
     transition = (
@@ -3434,7 +3463,7 @@ def refund_paid_payment(
 
 
     # ========================================================
-    # OLD SNAPSHOT
+    # OLD AUDIT SNAPSHOT
     # ========================================================
 
     old_snapshot = (
@@ -3444,19 +3473,13 @@ def refund_paid_payment(
     )
 
 
-    # ========================================================
-    # REFUND TIME
-    # ========================================================
-
     refunded_at = (
         current_timestamp()
     )
 
 
     # ========================================================
-    # ATOMIC STATUS UPDATE
-    #
-    # paid_at dan payment_amount TIDAK dihapus.
+    # ATOMIC UPDATE
     # ========================================================
 
     update_cursor = (
@@ -3479,6 +3502,7 @@ def refund_paid_payment(
 
             WHERE
                 id = ?
+
                 AND payment_status = ?
             """,
             (
@@ -3518,6 +3542,7 @@ def refund_paid_payment(
 
 
     # ========================================================
+    # PHASE 20I.3G
     # NEW AUDIT SNAPSHOT
     # ========================================================
 
@@ -3525,17 +3550,20 @@ def refund_paid_payment(
         old_snapshot
     )
 
+
     new_snapshot[
         "payment_status"
     ] = (
         PAYMENT_STATUS_REFUNDED
     )
 
+
     new_snapshot[
         "refund_amount"
     ] = (
         payment_amount
     )
+
 
     new_snapshot[
         "refund_reference"
@@ -3550,29 +3578,69 @@ def refund_paid_payment(
         is not None
     ):
 
-        audit_refund_status = str(
-        audit_new_refund_request_status
-        ).strip().upper()
-
-
-    if (
-        audit_refund_status
-        not in PAYMENT_REFUND_REQUEST_ALLOWED_STATUSES
-    ):
-
-        raise ValueError(
-            (
-                "Status refund request tujuan "
-                "untuk audit tidak valid."
-            )
+        new_snapshot[
+            "refund_request_status"
+        ] = (
+            audit_new_refund_request_status
         )
 
 
-    new_snapshot[
-        "refund_request_status"
-    ] = (
-        audit_refund_status
+    # ========================================================
+    # AUDIT
+    # ========================================================
+
+    record_payment_audit_event(
+        connection,
+        order,
+
+        action=
+            PAYMENT_AUDIT_ACTION_REFUND,
+
+        actor_type=
+            PAYMENT_AUDIT_ACTOR_DRIVER,
+
+        old_snapshot=
+            old_snapshot,
+
+        new_snapshot=
+            new_snapshot,
+
+        reason=
+            reason
     )
+
+
+    # ========================================================
+    # RESULT
+    #
+    # WAJIB RETURN DICTIONARY.
+    # Jangan hapus bagian ini.
+    # ========================================================
+
+    return {
+        "already_refunded":
+            False,
+
+        "refund": {
+            "status":
+                PAYMENT_STATUS_REFUNDED,
+
+            "amount":
+                payment_amount,
+
+            "reason":
+                reason,
+
+            "reference":
+                (
+                    refund_reference
+                    or None
+                ),
+
+            "refunded_at":
+                refunded_at,
+        },
+    }
     
 # ============================================================
 # PHASE 20I.3A
@@ -4760,18 +4828,21 @@ def submit_customer_refund_request(
 
 
     # ========================================================
-    # AUDIT
+    # PHASE 20I.3G
+    # REFUND REQUEST AUDIT SNAPSHOT
     #
-    # Payment tetap DIBAYAR.
-    # Event menunjukkan bahwa refund DIMINTA,
-    # bukan bahwa uang sudah dikembalikan.
+    # Customer refund request:
+    # NONE -> PENDING
+    #
+    # Payment tetap:
+    # DIBAYAR -> DIBAYAR
     # ========================================================
 
     new_snapshot = (
-    build_payment_audit_snapshot(
-        updated_order
+        build_payment_audit_snapshot(
+            updated_order
+        )
     )
-)
 
 
     record_payment_audit_event(
@@ -4956,20 +5027,33 @@ def confirm_customer_refund_request(
     # ========================================================
 
     refund_result = (
-    refund_paid_payment(
-        connection,
-        order,
+        refund_paid_payment(
+            connection,
+            order,
 
-        reason=
-            refund_reason,
+            reason=
+                refund_reason,
 
-        refund_reference=
-            refund_reference,
+            refund_reference=
+                refund_reference,
 
-        audit_new_refund_request_status=
-            PAYMENT_REFUND_REQUEST_APPROVED
+            audit_new_refund_request_status=
+                PAYMENT_REFUND_REQUEST_APPROVED
+        )
     )
-)
+
+
+    if not isinstance(
+        refund_result,
+        dict
+    ):
+
+        raise RuntimeError(
+            (
+                "Hasil proses pengembalian dana "
+                "tidak valid. Transaksi dibatalkan."
+            )
+        )
 
 
     if refund_result.get(
@@ -8778,8 +8862,7 @@ def initialize_order_payment(
 
                 payment_refund_amount,
 
-                payment_refund_reference,
-            
+                payment_refund_reference
 
             FROM orders
 
@@ -8806,27 +8889,27 @@ def initialize_order_payment(
 
 
     empty_snapshot = {
-    "payment_method":
-        None,
+        "payment_method":
+            None,
 
-    "payment_status":
-        None,
+        "payment_status":
+            None,
 
-    "payment_amount":
-        None,
+        "payment_amount":
+            None,
 
-    "payment_reference":
-        None,
+        "payment_reference":
+            None,
 
-    "refund_request_status":
-        None,
+        "refund_request_status":
+            None,
 
-    "refund_amount":
-        None,
+        "refund_amount":
+            None,
 
-    "refund_reference":
-        None,
-}
+        "refund_reference":
+            None,
+    }
 
 
     new_snapshot = (
@@ -10003,14 +10086,11 @@ def mark_customer_payment_submitted(
 
     # ========================================================
     # PHASE 20I.3G
-    # REFUND REQUEST AUDIT SNAPSHOT
+    # PAYMENT SUBMISSION AUDIT SNAPSHOT
     #
-    # Gunakan updated_order agar audit membaca state:
-    #
-    # NONE -> PENDING
-    #
-    # Payment tetap:
-    # DIBAYAR -> DIBAYAR
+    # Snapshot baru dibangun dari updated_order agar
+    # perubahan status pembayaran tercatat dengan benar.
+    # Refund request status tidak berubah pada proses ini.
     # ========================================================
 
     new_snapshot = (
@@ -12436,14 +12516,30 @@ def create_order():
         .strip()
     )
     
-    payment_method = (
-    parse_payment_method(
-        data.get(
-            "payment_method",
-            PAYMENT_METHOD_CASH
+    try:
+
+        payment_method = (
+            parse_payment_method(
+                data.get(
+                    "payment_method",
+                    PAYMENT_METHOD_CASH
+                )
+            )
         )
-    )
-)
+
+    except ValueError as error:
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    str(
+                        error
+                    ),
+            }
+        ), 400
 
 
     if (
@@ -12684,6 +12780,12 @@ def create_order():
             )
 
             connection.commit()
+
+        except Exception:
+
+            connection.rollback()
+
+            raise
 
         finally:
 
