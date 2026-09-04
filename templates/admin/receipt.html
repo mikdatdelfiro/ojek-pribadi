@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Struk {{ order.order_code }} — Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+
+<main class="premium-receipt-page">
+
+
+    <!-- =====================================================
+         BACKGROUND
+    ====================================================== -->
+
+    <div
+        class="premium-receipt-background"
+        aria-hidden="true"
+    >
+
+        <div
+            class="
+                premium-receipt-glow
+                premium-receipt-glow-one
+            "
+        ></div>
+
+
+        <div
+            class="
+                premium-receipt-glow
+                premium-receipt-glow-two
+            "
+        ></div>
+
+    </div>
+
+
+    <div class="premium-receipt-container">
+
+
+        <!-- =================================================
+             TOP NAVIGATION
+        ================================================== -->
+
+            <header class="premium-receipt-navigation">
+
+
+                <a
+                    href="{{ url_for(
+                        'driver_order_detail',
+                        order_id=order.id
+                    ) }}"
+                    class="premium-receipt-back"
+                >
+
+                    <span aria-hidden="true">
+                        ←
+                    </span>
+
+                    <span>
+                        Detail Pesanan
+                    </span>
+
+                </a>
+
+
+                <div class="premium-receipt-navigation-actions">
+
+
+                    <span class="premium-receipt-secure">
+
+                        <span
+                            class="premium-receipt-secure-dot"
+                        ></span>
+
+                        RECEIPT AMAN
+
+                    </span>
+
+
+                    {% if receipt_available and receipt %}
+
+                    <button
+                        type="button"
+                        class="premium-receipt-print-button"
+                        id="driverReceiptPrintButton"
+                    >
+
+                        <span aria-hidden="true">
+                            ↓
+                        </span>
+
+                        <span>
+                            Cetak / Simpan PDF
+                        </span>
+
+                    </button>
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </header>
+
+        {% if receipt_available and receipt %}
+
+
+        <!-- =================================================
+             RECEIPT
+        ================================================== -->
+
+        <article
+            class="premium-receipt"
+            id="premiumReceipt"
+        >
+
+
+            <!-- =============================================
+                 BRAND
+            ============================================== -->
+
+            <header class="premium-receipt-brand">
+
+
+                <div class="premium-receipt-brand-mark">
+
+                    <span>
+                        OP
+                    </span>
+
+                </div>
+
+
+                <div class="premium-receipt-brand-copy">
+
+                    <span>
+                        OJEK PRIBADI
+                    </span>
+
+                    <strong>
+                        Struk Pembayaran
+                    </strong>
+
+                </div>
+
+
+                <div class="premium-receipt-paid-badge">
+
+                    <span>
+                        ✓
+                    </span>
+
+                    DIBAYAR
+
+                </div>
+
+
+            </header>
+
+
+            <!-- =============================================
+                 HERO
+            ============================================== -->
+
+            <section class="premium-receipt-hero">
+
+
+                <span class="premium-receipt-eyebrow">
+                    KODE PESANAN
+                </span>
+
+
+                <h1>
+                    {{ receipt.order_code }}
+                </h1>
+
+
+                <p>
+                    Pembayaran perjalanan telah
+                    berhasil dikonfirmasi.
+                </p>
+
+
+            </section>
+
+
+            <!-- =============================================
+                 ROUTE
+            ============================================== -->
+
+            <section class="premium-receipt-route">
+
+
+                <div class="premium-receipt-route-item">
+
+
+                    <div
+                        class="
+                            premium-receipt-route-marker
+                            is-pickup
+                        "
+                    ></div>
+
+
+                    <div>
+
+                        <span>
+                            LOKASI JEMPUT
+                        </span>
+
+                        <strong>
+                            {{ receipt.pickup }}
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="premium-receipt-route-line"></div>
+
+
+                <div class="premium-receipt-route-item">
+
+
+                    <div
+                        class="
+                            premium-receipt-route-marker
+                            is-destination
+                        "
+                    ></div>
+
+
+                    <div>
+
+                        <span>
+                            TUJUAN
+                        </span>
+
+                        <strong>
+                            {{ receipt.destination }}
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+            <div class="premium-receipt-divider"></div>
+
+
+            <!-- =============================================
+                 TRIP INFORMATION
+            ============================================== -->
+
+            <section class="premium-receipt-information">
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Pelanggan
+                    </span>
+
+                    <strong>
+                        {{ receipt.customer_name }}
+                    </strong>
+
+                </div>
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Jarak perjalanan
+                    </span>
+
+                    <strong>
+                        {{
+                            "%.1f"|format(
+                                receipt.distance_km
+                            )
+                        }} km
+                    </strong>
+
+                </div>
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Estimasi perjalanan
+                    </span>
+
+                    <strong>
+                        {{
+                            receipt.duration_minutes
+                        }} menit
+                    </strong>
+
+                </div>
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Metode pembayaran
+                    </span>
+
+                    <strong>
+                        {{
+                            receipt.payment_method_label
+                        }}
+                    </strong>
+
+                </div>
+
+
+                {% if receipt.payment_reference %}
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Referensi
+                    </span>
+
+                    <strong>
+                        {{
+                            receipt.payment_reference
+                        }}
+                    </strong>
+
+                </div>
+
+                {% endif %}
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Status pembayaran
+                    </span>
+
+                    <strong class="premium-receipt-status-paid">
+
+                        <span>
+                            ✓
+                        </span>
+
+                        Dibayar
+
+                    </strong>
+
+                </div>
+
+
+                <div class="premium-receipt-info-row">
+
+                    <span>
+                        Waktu pembayaran
+                    </span>
+
+                    <strong>
+                        {{
+                            receipt.paid_at
+                            or "-"
+                        }}
+                    </strong>
+
+                </div>
+
+
+            </section>
+
+
+            <div class="premium-receipt-divider"></div>
+
+
+            <!-- =============================================
+                 TOTAL
+            ============================================== -->
+
+            <section class="premium-receipt-total">
+
+
+                <div>
+
+                    <span>
+                        TOTAL PEMBAYARAN
+                    </span>
+
+                    <p>
+                        Sudah diterima dan
+                        dikonfirmasi.
+                    </p>
+
+                </div>
+
+
+                <strong>
+
+                    Rp{{
+                        "{:,.0f}".format(
+                            receipt.fare
+                        ).replace(
+                            ",",
+                            "."
+                        )
+                    }}
+
+                </strong>
+
+
+            </section>
+
+
+            <!-- =============================================
+                 SUCCESS
+            ============================================== -->
+
+            <section class="premium-receipt-confirmation">
+
+
+                <span class="premium-receipt-confirmation-icon">
+                    ✓
+                </span>
+
+
+                <div>
+
+                    <strong>
+                        Pembayaran berhasil
+                    </strong>
+
+                    <p>
+                        Transaksi perjalanan ini
+                        sudah selesai.
+                    </p>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =============================================
+                 FOOTER
+            ============================================== -->
+
+            <footer class="premium-receipt-footer">
+
+
+                <div>
+
+                    <span>
+                        OJEK PRIBADI
+                    </span>
+
+                    <strong>
+                        Perjalanan personal,
+                        lebih sederhana.
+                    </strong>
+
+                </div>
+
+
+                <small>
+                    DIGITAL RECEIPT
+                </small>
+
+
+            </footer>
+
+
+        </article>
+
+
+        {% else %}
+
+
+        <!-- =================================================
+             NOT AVAILABLE
+        ================================================== -->
+
+        <section class="premium-receipt-unavailable">
+
+
+            <div class="premium-receipt-unavailable-icon">
+                !
+            </div>
+
+
+            <span>
+                STRUK DIGITAL
+            </span>
+
+
+            <h1>
+                Struk belum tersedia
+            </h1>
+
+
+            <p>
+                Perjalanan atau pembayaran belum
+                memenuhi syarat untuk menghasilkan
+                struk pembayaran.
+            </p>
+
+
+            <a
+                href="{{ url_for(
+                    'driver_order_detail',
+                    order_id=order.id
+                ) }}"
+            >
+                Kembali ke Detail Pesanan
+
+                <span>
+                    →
+                </span>
+
+            </a>
+
+
+        </section>
+
+
+        {% endif %}
+
+
+    </div>
+
+
+</main>
+
+<script>
+"use strict";
+
+
+// ============================================================
+// PHASE 20G.6
+// DRIVER RECEIPT PRINT / SAVE PDF
+// ============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const printButton =
+            document.getElementById(
+                "driverReceiptPrintButton"
+            );
+
+
+        if (!printButton) {
+
+            return;
+
+        }
+
+
+        printButton.addEventListener(
+            "click",
+            function () {
+
+                document.body.classList.add(
+                    "receipt-print-mode"
+                );
+
+
+                window.print();
+
+            }
+        );
+
+
+        window.addEventListener(
+            "afterprint",
+            function () {
+
+                document.body.classList.remove(
+                    "receipt-print-mode"
+                );
+
+            }
+        );
+
+    }
+);
+</script>
+
+{% endblock %}

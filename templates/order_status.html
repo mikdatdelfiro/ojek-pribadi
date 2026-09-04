@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 
@@ -27,6 +28,12 @@ Status {{ order.order_code }}
     data-initial-status="{{ order.status }}"
 
 >
+
+<div
+    id="customerReceiptConfig"
+    data-order-code="{{ order.order_code }}"
+    hidden
+></div>
 
 
 
@@ -1033,9 +1040,1269 @@ Status {{ order.order_code }}
 
     </section>
 
+<!-- =========================================================
+     PHASE 20F
+     CUSTOMER PAYMENT EXPERIENCE
+========================================================== -->
+
+<section
+    class="tracking-payment-card customer-payment-experience"
+    id="customerPaymentCard"
+>
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <div class="tracking-payment-head">
+
+        <div>
+
+            <span class="tracking-payment-eyebrow">
+                PEMBAYARAN
+            </span>
+
+            <h2>
+                Detail Pembayaran
+            </h2>
+
+        </div>
 
 
+        <span
+            id="customerPaymentStatusBadge"
+            class="
+                customer-payment-status-badge
 
+                {% if payment.status == 'DIBAYAR' %}
+
+                    is-paid
+
+                {% elif payment.status == 'MENUNGGU_KONFIRMASI' %}
+
+                    is-review
+
+                {% else %}
+
+                    is-pending
+
+                {% endif %}
+            "
+        >
+
+            {% if payment.status == "DIBAYAR" %}
+
+                DIBAYAR
+
+            {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
+
+                MENUNGGU KONFIRMASI
+
+            {% elif payment.status == "MENUNGGU_PEMBAYARAN" %}
+
+                MENUNGGU PEMBAYARAN
+
+            {% else %}
+
+                BELUM DIBAYAR
+
+            {% endif %}
+
+        </span>
+
+    </div>
+
+
+    <!-- =====================================
+         SUMMARY
+    ====================================== -->
+
+    <div class="customer-payment-main-summary">
+
+        <div>
+
+            <span>
+                METODE
+            </span>
+
+            <strong id="customerPaymentMethodText">
+
+                {% if payment.method == "TRANSFER_BANK" %}
+
+                    Transfer Bank
+
+                {% elif payment.method == "QRIS" %}
+
+                    QRIS
+
+                {% else %}
+
+                    Tunai
+
+                {% endif %}
+
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                TOTAL PEMBAYARAN
+            </span>
+
+            <strong
+                id="customerPaymentAmountText"
+                class="customer-payment-total"
+            >
+                {{ payment.amount | rupiah }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         LIVE STATUS MESSAGE
+    ====================================== -->
+
+    <div
+        id="customerPaymentLiveStatus"
+        class="customer-payment-live-status"
+    >
+
+        {% if payment.status == "DIBAYAR" %}
+
+            <span class="customer-payment-live-icon">
+                ✓
+            </span>
+
+            <div>
+
+                <strong>
+                    Pembayaran berhasil
+                </strong>
+
+                <p>
+                    Pembayaran Anda sudah
+                    dikonfirmasi oleh driver.
+                </p>
+
+            </div>
+
+
+        {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
+
+            <span class="customer-payment-live-icon">
+                ⏳
+            </span>
+
+            <div>
+
+                <strong>
+                    Sedang diverifikasi
+                </strong>
+
+                <p>
+                    Konfirmasi sudah dikirim.
+                    Tunggu driver memeriksa pembayaran.
+                </p>
+
+            </div>
+
+
+        {% elif payment.method == "TUNAI" %}
+
+            <span class="customer-payment-live-icon">
+                Rp
+            </span>
+
+            <div>
+
+                <strong>
+                    Pembayaran tunai
+                </strong>
+
+                <p>
+                    Bayarkan sesuai tarif
+                    langsung kepada driver.
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+            <span class="customer-payment-live-icon">
+                !
+            </span>
+
+            <div>
+
+                <strong>
+                    Pembayaran belum selesai
+                </strong>
+
+                <p>
+                    Selesaikan pembayaran kemudian
+                    tekan "Saya Sudah Membayar".
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================
+         PAYMENT PROGRESS
+    ====================================== -->
+
+    <div
+        id="customerPaymentProgress"
+        class="customer-payment-progress"
+    >
+
+        {% if payment.method == "TUNAI" %}
+
+            <div
+                class="
+                    customer-payment-step
+                    is-active
+                "
+            >
+
+                <span>
+                    1
+                </span>
+
+                <small>
+                    Siapkan Tunai
+                </small>
+
+            </div>
+
+
+            <div
+                class="
+                    customer-payment-step
+
+                    {% if payment.status == 'DIBAYAR' %}
+                        is-active
+                    {% endif %}
+                "
+            >
+
+                <span>
+                    2
+                </span>
+
+                <small>
+                    Bayar Driver
+                </small>
+
+            </div>
+
+
+            <div
+                class="
+                    customer-payment-step
+
+                    {% if payment.status == 'DIBAYAR' %}
+                        is-active
+                    {% endif %}
+                "
+            >
+
+                <span>
+                    ✓
+                </span>
+
+                <small>
+                    Selesai
+                </small>
+
+            </div>
+
+
+        {% else %}
+
+            <div
+                class="
+                    customer-payment-step
+                    is-active
+                "
+            >
+
+                <span>
+                    1
+                </span>
+
+                <small>
+                    Bayar
+                </small>
+
+            </div>
+
+
+            <div
+                class="
+                    customer-payment-step
+
+                    {% if payment.status in [
+                        'MENUNGGU_KONFIRMASI',
+                        'DIBAYAR'
+                    ] %}
+                        is-active
+                    {% endif %}
+                "
+            >
+
+                <span>
+                    2
+                </span>
+
+                <small>
+                    Konfirmasi
+                </small>
+
+            </div>
+
+
+            <div
+                class="
+                    customer-payment-step
+
+                    {% if payment.status == 'DIBAYAR' %}
+                        is-active
+                    {% endif %}
+                "
+            >
+
+                <span>
+                    ✓
+                </span>
+
+                <small>
+                    Diverifikasi
+                </small>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         QRIS
+    ====================================================== -->
+
+    {% if
+        payment.method == "QRIS"
+        and
+        payment.status != "DIBAYAR"
+    %}
+
+        <div
+            id="customerQrisPayment"
+            class="customer-qris-payment"
+        >
+
+            <div class="customer-payment-method-title">
+
+                <span>
+                    QRIS
+                </span>
+
+                <strong>
+                    Scan untuk membayar
+                </strong>
+
+            </div>
+
+
+            <div class="customer-qris-frame">
+
+                <img
+                    src="{{ payment.instructions.image_url }}"
+                    alt="QRIS Ojek Pribadi"
+                    loading="eager"
+                >
+
+            </div>
+
+
+            <p>
+                Scan QRIS menggunakan aplikasi
+                bank atau e-wallet Anda.
+            </p>
+
+
+            <div class="customer-payment-copy-row">
+
+                <div>
+
+                    <span>
+                        NOMINAL
+                    </span>
+
+                    <strong>
+                        {{ payment.amount | rupiah }}
+                    </strong>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="customer-payment-copy-button"
+                    data-copy-value="{{ payment.amount }}"
+                    data-copy-label="Nominal"
+                >
+                    Salin
+                </button>
+
+            </div>
+
+
+            {% if payment.reference %}
+
+                <div class="customer-payment-copy-row">
+
+                    <div>
+
+                        <span>
+                            REFERENSI
+                        </span>
+
+                        <strong>
+                            {{ payment.reference }}
+                        </strong>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="customer-payment-copy-button"
+                        data-copy-value="{{ payment.reference }}"
+                        data-copy-label="Referensi"
+                    >
+                        Salin
+                    </button>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         BANK TRANSFER
+    ====================================================== -->
+
+    {% if
+        payment.method == "TRANSFER_BANK"
+        and
+        payment.status != "DIBAYAR"
+    %}
+
+        <div
+            id="customerBankPayment"
+            class="customer-bank-payment"
+        >
+
+            <div class="customer-payment-method-title">
+
+                <span>
+                    TRANSFER BANK
+                </span>
+
+                <strong>
+                    Detail rekening
+                </strong>
+
+            </div>
+
+
+            <div class="customer-payment-copy-row">
+
+                <div>
+
+                    <span>
+                        BANK
+                    </span>
+
+                    <strong>
+                        {{ payment.instructions.bank_name }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="customer-payment-copy-row">
+
+                <div>
+
+                    <span>
+                        NOMOR REKENING
+                    </span>
+
+                    <strong>
+                        {{ payment.instructions.account_number }}
+                    </strong>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="customer-payment-copy-button"
+                    data-copy-value="{{ payment.instructions.account_number }}"
+                    data-copy-label="Nomor rekening"
+                >
+                    Salin
+                </button>
+
+            </div>
+
+
+            <div class="customer-payment-copy-row">
+
+                <div>
+
+                    <span>
+                        ATAS NAMA
+                    </span>
+
+                    <strong>
+                        {{ payment.instructions.account_name }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="customer-payment-copy-row">
+
+                <div>
+
+                    <span>
+                        NOMINAL
+                    </span>
+
+                    <strong>
+                        {{ payment.amount | rupiah }}
+                    </strong>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="customer-payment-copy-button"
+                    data-copy-value="{{ payment.amount }}"
+                    data-copy-label="Nominal"
+                >
+                    Salin
+                </button>
+
+            </div>
+
+
+            {% if payment.reference %}
+
+                <div class="customer-payment-copy-row">
+
+                    <div>
+
+                        <span>
+                            REFERENSI
+                        </span>
+
+                        <strong>
+                            {{ payment.reference }}
+                        </strong>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="customer-payment-copy-button"
+                        data-copy-value="{{ payment.reference }}"
+                        data-copy-label="Referensi"
+                    >
+                        Salin
+                    </button>
+
+                </div>
+
+            {% endif %}
+
+
+            <p class="customer-payment-bank-note">
+                Transfer tepat sesuai nominal
+                untuk mempermudah pemeriksaan pembayaran.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         CUSTOMER CONFIRMATION
+    ====================================================== -->
+
+    {% if payment.can_customer_confirm %}
+
+        <div
+            id="customerPaymentConfirmArea"
+            class="customer-payment-confirm-area"
+        >
+
+            <span class="customer-payment-confirm-label">
+                SUDAH MELAKUKAN PEMBAYARAN?
+            </span>
+
+            <p>
+                Pastikan pembayaran benar-benar
+                selesai sebelum mengirim konfirmasi.
+            </p>
+
+
+            <button
+                type="button"
+                id="customerPaymentConfirmButton"
+                class="customer-payment-confirm-button"
+            >
+                ✓ Saya Sudah Membayar
+            </button>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         PAYMENT CONFIRMATION MESSAGE
+    ====================================================== -->
+
+    <div
+        id="customerPaymentConfirmMessage"
+        class="customer-payment-confirm-message"
+
+        {% if
+            payment.status
+            not in (
+                "MENUNGGU_KONFIRMASI",
+                "DIBAYAR"
+            )
+        %}
+            hidden
+        {% endif %}
+    >
+
+        {% if payment.status == "DIBAYAR" %}
+
+            ✓ Pembayaran sudah dikonfirmasi.
+
+        {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
+
+            Konfirmasi sudah dikirim.
+            Menunggu verifikasi driver.
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         PAID INFORMATION
+    ====================================================== -->
+
+    {% if payment.status == "DIBAYAR" %}
+
+        <div
+            id="customerPaymentPaidInformation"
+            class="customer-payment-paid-information"
+        >
+
+            <span>
+                ✓
+            </span>
+
+
+            <div>
+
+                <strong>
+                    Pembayaran selesai
+                </strong>
+
+                {% if payment.paid_at %}
+
+                    <p>
+                        Dikonfirmasi pada
+                        {{ payment.paid_at }}
+                    </p>
+
+                {% else %}
+
+                    <p>
+                        Pembayaran telah
+                        diterima driver.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+    <!-- =========================================================
+     PHASE 20I.3B
+     CUSTOMER REFUND REQUEST
+========================================================= -->
+
+<div
+    id="customerRefundRequestArea"
+    class="customer-refund-request-area"
+
+    {% if
+        not payment.refund_request.can_customer_request
+    %}
+        hidden
+    {% endif %}
+>
+
+    <div class="customer-refund-request-head">
+
+        <span>
+            PENGEMBALIAN DANA
+        </span>
+
+        <strong>
+            Perlu meminta pengembalian dana?
+        </strong>
+
+        <p>
+            Ajukan permintaan kepada driver.
+            Dana tidak otomatis dikembalikan
+            sebelum permintaan diproses.
+        </p>
+
+    </div>
+
+
+    <label
+        for="customerRefundRequestReason"
+        class="customer-refund-request-label"
+    >
+        Alasan pengembalian dana
+    </label>
+
+
+    <textarea
+        id="customerRefundRequestReason"
+        class="customer-refund-request-reason"
+        minlength="3"
+        maxlength="300"
+        rows="3"
+        placeholder="Contoh: Pembayaran dilakukan dua kali."
+    ></textarea>
+
+
+    <button
+        type="button"
+        id="customerRefundRequestButton"
+        class="customer-refund-request-button"
+    >
+        Ajukan Pengembalian Dana
+    </button>
+
+
+    <p
+        id="customerRefundRequestMessage"
+        class="customer-refund-request-message"
+        hidden
+    ></p>
+
+</div>
+
+
+<!-- =========================================================
+     PHASE 20I.3F
+     CUSTOMER REFUND STATUS
+========================================================= -->
+
+<section
+    id="customerRefundStatusCard"
+    class="
+        customer-refund-status-card
+
+        {% if payment.refund_request.status == 'PENDING' %}
+            is-pending
+
+        {% elif payment.refund_request.status == 'REJECTED' %}
+            is-rejected
+
+        {% elif payment.refund_request.status == 'APPROVED' %}
+            is-approved
+        {% endif %}
+    "
+
+    {% if payment.refund_request.status == "NONE" %}
+        hidden
+    {% endif %}
+>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="customer-refund-status-head">
+
+        <span
+            id="customerRefundStatusIcon"
+            class="customer-refund-status-icon"
+        >
+
+            {% if
+                payment.refund_request.status
+                == "PENDING"
+            %}
+
+                ⏳
+
+            {% elif
+                payment.refund_request.status
+                == "REJECTED"
+            %}
+
+                !
+
+            {% elif
+                payment.refund_request.status
+                == "APPROVED"
+            %}
+
+                ✓
+
+            {% endif %}
+
+        </span>
+
+
+        <div class="customer-refund-status-heading">
+
+            <span>
+                STATUS PENGEMBALIAN DANA
+            </span>
+
+
+            <strong
+                id="customerRefundStatusTitle"
+            >
+
+                {% if
+                    payment.refund_request.status
+                    == "PENDING"
+                %}
+
+                    Menunggu review driver
+
+                {% elif
+                    payment.refund_request.status
+                    == "REJECTED"
+                %}
+
+                    Permintaan refund ditolak
+
+                {% elif
+                    payment.refund_request.status
+                    == "APPROVED"
+                %}
+
+                    Dana sudah dikembalikan
+
+                {% endif %}
+
+            </strong>
+
+
+            <p
+                id="customerRefundStatusDescription"
+            >
+
+                {% if
+                    payment.refund_request.status
+                    == "PENDING"
+                %}
+
+                    Permintaan Anda sedang diperiksa
+                    oleh driver.
+
+                {% elif
+                    payment.refund_request.status
+                    == "REJECTED"
+                %}
+
+                    Driver sudah meninjau permintaan
+                    pengembalian dana Anda.
+
+                {% elif
+                    payment.refund_request.status
+                    == "APPROVED"
+                %}
+
+                    Pengembalian dana telah
+                    dikonfirmasi oleh driver.
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        <span
+            id="customerRefundStatusBadge"
+            class="customer-refund-status-badge"
+        >
+            {{ payment.refund_request.status }}
+        </span>
+
+    </div>
+
+
+    <!-- =====================================================
+         CUSTOMER REQUEST REASON
+    ====================================================== -->
+
+    <div
+        id="customerRefundRequestReasonBlock"
+        class="customer-refund-status-detail"
+
+        {% if
+            not payment.refund_request.request_reason
+        %}
+            hidden
+        {% endif %}
+    >
+
+        <span>
+            ALASAN PENGAJUAN
+        </span>
+
+        <p id="customerRefundRequestReasonText">
+            {{
+                payment.refund_request.request_reason
+                or ""
+            }}
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         DRIVER REJECTION REASON
+    ====================================================== -->
+
+    <div
+        id="customerRefundRejectionBlock"
+        class="
+            customer-refund-status-detail
+            is-rejection
+        "
+
+        {% if
+            payment.refund_request.status != "REJECTED"
+            or
+            not payment.refund_request.rejection_reason
+        %}
+            hidden
+        {% endif %}
+    >
+
+        <span>
+            ALASAN DRIVER
+        </span>
+
+        <p id="customerRefundRejectionReasonText">
+            {{
+                payment.refund_request.rejection_reason
+                or ""
+            }}
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         REFUND AMOUNT
+    ====================================================== -->
+
+    <div
+        id="customerRefundAmountBlock"
+        class="
+            customer-refund-status-amount
+        "
+
+        {% if
+            payment.refund_request.status != "APPROVED"
+        %}
+            hidden
+        {% endif %}
+    >
+
+        <span>
+            DANA DIKEMBALIKAN
+        </span>
+
+        <strong id="customerRefundAmountText">
+            {{ payment.refund_amount | rupiah }}
+        </strong>
+
+    </div>
+
+
+    <!-- =====================================================
+         TIMELINE
+    ====================================================== -->
+
+    <div class="customer-refund-status-meta">
+
+
+        <div
+            id="customerRefundRequestedAtBlock"
+
+            {% if
+                not payment.refund_request.requested_at
+            %}
+                hidden
+            {% endif %}
+        >
+
+            <span>
+                DIAJUKAN
+            </span>
+
+            <strong id="customerRefundRequestedAtText">
+                {{
+                    payment.refund_request.requested_at
+                    or "-"
+                }}
+            </strong>
+
+        </div>
+
+
+        <div
+            id="customerRefundReviewedAtBlock"
+
+            {% if
+                not payment.refund_request.reviewed_at
+            %}
+                hidden
+            {% endif %}
+        >
+
+            <span>
+                DITINJAU
+            </span>
+
+            <strong id="customerRefundReviewedAtText">
+                {{
+                    payment.refund_request.reviewed_at
+                    or "-"
+                }}
+            </strong>
+
+        </div>
+
+
+        <div
+            id="customerRefundedAtBlock"
+
+            {% if
+                payment.refund_request.status != "APPROVED"
+                or
+                not payment.refunded_at
+            %}
+                hidden
+            {% endif %}
+        >
+
+            <span>
+                DIKEMBALIKAN
+            </span>
+
+            <strong id="customerRefundedAtText">
+                {{
+                    payment.refunded_at
+                    or "-"
+                }}
+            </strong>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION
+    ====================================================== -->
+
+    <div
+        id="customerRefundStatusNotice"
+        class="customer-refund-status-notice"
+    >
+
+        {% if
+            payment.refund_request.status
+            == "PENDING"
+        %}
+
+            Status pembayaran tetap
+            <strong>DIBAYAR</strong>
+            sampai driver benar-benar memproses refund.
+
+        {% elif
+            payment.refund_request.status
+            == "REJECTED"
+        %}
+
+            Tidak ada dana yang dikembalikan.
+            Pembayaran tetap tercatat
+            <strong>DIBAYAR</strong>.
+
+        {% elif
+            payment.refund_request.status
+            == "APPROVED"
+        %}
+
+            Pembayaran sudah berubah menjadi
+            <strong>DIKEMBALIKAN</strong>.
+
+        {% endif %}
+
+    </div>
+
+
+</section>
+
+<!-- =====================================================
+     PHASE 20G
+     DIGITAL RECEIPT
+====================================================== -->
+
+<div
+    id="customerDigitalReceiptArea"
+    class="customer-digital-receipt-area"
+    hidden
+>
+
+    <button
+        type="button"
+        id="customerDigitalReceiptButton"
+        class="customer-digital-receipt-button"
+    >
+        <span>
+            ▤
+        </span>
+
+        <div>
+
+            <strong>
+                Lihat Struk Digital
+            </strong>
+
+            <small>
+                Bukti pembayaran terverifikasi
+            </small>
+
+        </div>
+
+        <span>
+            →
+        </span>
+
+    </button>
+
+</div>
+
+<!-- =========================================================
+     PHASE 20G.3
+     CUSTOMER DIGITAL RECEIPT
+========================================================= -->
+
+<section
+    class="customer-receipt-card"
+    id="customerReceiptCard"
+    hidden
+>
+    <div class="customer-receipt-card__icon">
+        <span aria-hidden="true">
+            ✓
+        </span>
+    </div>
+
+    <div class="customer-receipt-card__content">
+
+        <span class="customer-receipt-card__eyebrow">
+            BUKTI PEMBAYARAN
+        </span>
+
+        <h3 class="customer-receipt-card__title">
+            Struk digital tersedia
+        </h3>
+
+        <p class="customer-receipt-card__description">
+            Pembayaran perjalanan telah selesai dan
+            struk digital Anda sudah dapat dilihat.
+        </p>
+
+        <button
+            class="customer-receipt-button"
+            id="openCustomerReceiptButton"
+            type="button"
+        >
+            <span>
+                Lihat Struk Pembayaran
+            </span>
+
+            <span
+                class="customer-receipt-button__arrow"
+                aria-hidden="true"
+            >
+                →
+            </span>
+        </button>
+
+    </div>
+</section>
+
+
+<div
+    class="customer-receipt-message"
+    id="customerReceiptMessage"
+    hidden
+></div>
 
     <!-- =====================================
 
@@ -1397,6 +2664,265 @@ Status {{ order.order_code }}
 
 </div>
 
+<!-- =========================================================
+     PHASE 20G.3 + 20G.6
+     CUSTOMER DIGITAL RECEIPT MODAL
+========================================================= -->
+
+<div
+    class="receipt-modal"
+    id="customerReceiptModal"
+    hidden
+>
+
+    <div
+        class="receipt-modal__backdrop"
+        id="customerReceiptBackdrop"
+    ></div>
+
+
+    <div
+        class="receipt-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="customerReceiptTitle"
+        aria-describedby="customerReceiptError"
+    >
+
+        <div class="receipt-modal__header">
+
+            <div class="premium-customer-receipt-heading">
+
+                <span>
+                    OJEK PRIBADI
+                </span>
+
+                <h2 id="customerReceiptTitle">
+                    Struk Pembayaran
+                </h2>
+
+            </div>
+
+
+            <button
+                class="receipt-modal__close"
+                id="closeCustomerReceiptButton"
+                type="button"
+                aria-label="Tutup struk"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            class="receipt-modal__loading"
+            id="customerReceiptLoading"
+            role="status"
+            aria-live="polite"
+            hidden
+        >
+            Memuat struk pembayaran...
+        </div>
+
+
+        <div
+            class="receipt-modal__error"
+            id="customerReceiptError"
+            role="alert"
+            aria-live="assertive"
+            hidden
+        ></div>
+
+
+        <div
+            class="
+                receipt-sheet
+                premium-customer-receipt
+            "
+            id="customerReceiptContent"
+            aria-busy="false"
+            hidden
+        >
+
+            <div class="receipt-sheet__success">
+
+                <span class="receipt-sheet__success-icon">
+                    ✓
+                </span>
+
+                <div>
+
+                    <strong>
+                        Pembayaran Berhasil
+                    </strong>
+
+                    <span>
+                        Transaksi telah dikonfirmasi
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="receipt-sheet__divider"></div>
+
+
+            <div class="receipt-sheet__order">
+
+                <span>
+                    Kode Pesanan
+                </span>
+
+                <strong id="receiptOrderCode">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="receipt-sheet__route">
+
+                <div class="receipt-route-item">
+
+                    <span class="receipt-route-dot"></span>
+
+                    <div>
+
+                        <small>
+                            Lokasi Jemput
+                        </small>
+
+                        <strong id="receiptPickup">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="receipt-route-line"></div>
+
+
+                <div class="receipt-route-item">
+
+                    <span
+                        class="
+                            receipt-route-dot
+                            receipt-route-dot--destination
+                        "
+                    ></span>
+
+                    <div>
+
+                        <small>
+                            Tujuan
+                        </small>
+
+                        <strong id="receiptDestination">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="receipt-sheet__divider"></div>
+
+
+            <dl class="receipt-sheet__details">
+
+                <div>
+                    <dt>Pelanggan</dt>
+                    <dd id="receiptCustomerName">-</dd>
+                </div>
+
+                <div>
+                    <dt>Jarak</dt>
+                    <dd id="receiptDistance">-</dd>
+                </div>
+
+                <div>
+                    <dt>Estimasi perjalanan</dt>
+                    <dd id="receiptDuration">-</dd>
+                </div>
+
+                <div>
+                    <dt>Metode pembayaran</dt>
+                    <dd id="receiptPaymentMethod">-</dd>
+                </div>
+
+                <div>
+                    <dt>Status pembayaran</dt>
+                    <dd
+                        class="receipt-status-paid"
+                        id="receiptPaymentStatus"
+                    >
+                        -
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Waktu pembayaran</dt>
+                    <dd id="receiptPaidAt">-</dd>
+                </div>
+
+            </dl>
+
+
+            <div class="receipt-sheet__divider"></div>
+
+
+            <div class="receipt-sheet__total">
+
+                <span>
+                    Total Pembayaran
+                </span>
+
+                <strong id="receiptTotal">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+            <div class="customer-receipt-print-actions">
+
+                <button
+                    type="button"
+                    class="customer-receipt-print-button"
+                    id="customerReceiptPrintButton"
+                    disabled
+                >
+                    <span aria-hidden="true">
+                        ↓
+                    </span>
+
+                    <span>
+                        Cetak / Simpan PDF
+                    </span>
+                </button>
+
+            </div>
+
+
+            <p class="receipt-sheet__footer">
+                Terima kasih telah menggunakan
+                Ojek Pribadi.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
 </div>
 <!-- /.tracking-page -->
 
@@ -1409,9 +2935,11 @@ Status {{ order.order_code }}
 {% block scripts %}
 
 <script
-
-    src="{{ url_for('static', filename='js/order_status.js', v='phase19e-progress-fix-3')}}"
-
+    src="{{ url_for(
+        'static',
+        filename='js/order_status.js',
+        v='phase20i3f-refund-status-1'
+    ) }}"
 ></script>
 
 {% endblock %}

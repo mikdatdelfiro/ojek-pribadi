@@ -173,6 +173,11 @@ const customerWhatsapp =
         "customerWhatsapp"
     );
 
+const paymentMethodInputs =
+    document.querySelectorAll(
+        'input[name="paymentMethod"]'
+    );
+
 const confirmOrderButton =
     getElement(
         "confirmOrderButton"
@@ -1331,6 +1336,11 @@ if (bookingForm) {
                 const data =
                     await response.json();
 
+                    console.log(
+                    "[CREATE ORDER RESPONSE]",
+                    data
+                );
+
 
                 if (
                     !response.ok
@@ -1342,6 +1352,24 @@ if (bookingForm) {
                         data.message
                         ||
                         "Tarif belum dapat dihitung. Silakan coba lagi."
+                    );
+
+                }
+
+                // ============================================================
+                // PHASE 20G.2
+                // SAVE RECEIPT TOKEN
+                // ============================================================
+
+                if (
+                    data.receipt_token
+                    &&
+                    data.order_code
+                ) {
+
+                    sessionStorage.setItem(
+                        `receipt_token:${data.order_code}`,
+                        data.receipt_token
                     );
 
                 }
@@ -1591,6 +1619,25 @@ function setOrderLoading(
 }
 
 // ============================================================
+// PHASE 20C
+// SELECTED PAYMENT METHOD
+// ============================================================
+
+function getSelectedPaymentMethod() {
+
+    const selected =
+        document.querySelector(
+            'input[name="paymentMethod"]:checked'
+        );
+
+
+    return selected
+        ? selected.value
+        : "TUNAI";
+
+}
+
+// ============================================================
 // CREATE ORDER
 // ============================================================
 
@@ -1765,7 +1812,10 @@ if (confirmOrderButton) {
                     destination_lon:
                         currentRoute
                             .destination
-                            .lon
+                            .lon,
+
+                    payment_method:
+                        getSelectedPaymentMethod(),
 
                 };
 
@@ -1836,6 +1886,53 @@ if (confirmOrderButton) {
                     );
 
                 }
+
+                // ============================================================
+// PHASE 20G.3
+// SAVE SECURE RECEIPT TOKEN
+// ============================================================
+
+if (
+    data.order_code
+    &&
+    data.receipt_token
+) {
+
+    try {
+
+        const receiptOrderCode =
+            String(
+                data.order_code
+            )
+            .trim()
+            .toUpperCase();
+
+
+        sessionStorage.setItem(
+            `receipt_token:${receiptOrderCode}`,
+            String(
+                data.receipt_token
+            )
+        );
+
+
+        console.log(
+            "[RECEIPT TOKEN] Token tersimpan untuk:",
+            receiptOrderCode
+        );
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[RECEIPT TOKEN STORAGE]",
+            error
+        );
+
+    }
+
+}
 
 
                 // ------------------------------------------------

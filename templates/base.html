@@ -5,9 +5,13 @@
     <meta charset="UTF-8">
 
     <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    name="viewport"
+    content="
+        width=device-width,
+        initial-scale=1,
+        viewport-fit=cover
+    "
+>
 
     <meta
     name="theme-color"
@@ -84,12 +88,16 @@
 
     <link
     rel="stylesheet"
-    href="{{ url_for('static',filename='css/style.css',v='phase19d-1') }}"
-    >
+    href="{{ url_for(
+        'static',
+        filename='css/style.css',
+        v='phase20i3f-refund-status-1'
+    ) }}"
+>
 
     <link
     rel="stylesheet"
-    href="{{ url_for('static',filename='css/dark-premium.css',v='phase19b-1') }}"
+    href="{{ url_for('static',filename='css/dark-premium.css',v='phase20f-1') }}"
     >
 
     {% block head %}{% endblock %}
@@ -102,14 +110,13 @@
     {% block scripts %}{% endblock %}
 
     <script
-    src="{{
-        url_for(
-            'static',
-            filename='js/pwa.js'
-        )
-    }}"
+    src="{{ url_for(
+        'static',
+        filename='js/pwa.js',
+        v='phase20h-1'
+    ) }}"
     defer
-    ></script>
+></script>
 
 </body>
 

@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Struk Digital | Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+<section
+    class="digital-receipt-page"
+    data-order-code="{{ order_code }}"
+>
+
+    <div class="digital-receipt-shell">
+
+        <!-- =====================================
+             LOADING
+        ====================================== -->
+
+        <div
+            id="digitalReceiptLoading"
+            class="digital-receipt-state"
+        >
+
+            <span class="digital-receipt-loader"></span>
+
+            <strong>
+                Menyiapkan struk...
+            </strong>
+
+            <p>
+                Memverifikasi pembayaran Anda.
+            </p>
+
+        </div>
+
+
+        <!-- =====================================
+             ERROR
+        ====================================== -->
+
+        <div
+            id="digitalReceiptError"
+            class="digital-receipt-state is-error"
+            hidden
+        >
+
+            <span>
+                !
+            </span>
+
+            <strong>
+                Struk tidak tersedia
+            </strong>
+
+            <p id="digitalReceiptErrorMessage">
+                Struk belum dapat dimuat.
+            </p>
+
+
+            <button
+                type="button"
+                id="digitalReceiptBackError"
+                class="digital-receipt-secondary-button"
+            >
+                ← Kembali
+            </button>
+
+        </div>
+
+
+        <!-- =====================================
+             RECEIPT
+        ====================================== -->
+
+        <article
+            id="digitalReceipt"
+            class="digital-receipt"
+            hidden
+        >
+
+            <!-- HEADER -->
+
+            <header class="digital-receipt-header">
+
+                <div class="digital-receipt-brand">
+
+                    <span class="digital-receipt-brand-mark">
+                        OP
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Ojek Pribadi
+                        </strong>
+
+                        <small>
+                            DIGITAL RECEIPT
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <span class="digital-receipt-paid-badge">
+                    ✓ DIBAYAR
+                </span>
+
+            </header>
+
+
+            <!-- TITLE -->
+
+            <div class="digital-receipt-title">
+
+                <span>
+                    BUKTI PEMBAYARAN
+                </span>
+
+                <h1>
+                    Transaksi Berhasil
+                </h1>
+
+                <p>
+                    Pembayaran telah diverifikasi
+                    dan tercatat pada sistem.
+                </p>
+
+            </div>
+
+
+            <!-- AMOUNT -->
+
+            <div class="digital-receipt-amount">
+
+                <span>
+                    TOTAL PEMBAYARAN
+                </span>
+
+                <strong id="receiptAmount">
+                    Rp0
+                </strong>
+
+                <small id="receiptPaymentMethod">
+                    -
+                </small>
+
+            </div>
+
+
+            <!-- RECEIPT INFORMATION -->
+
+            <div class="digital-receipt-section">
+
+                <span class="digital-receipt-section-label">
+                    INFORMASI TRANSAKSI
+                </span>
+
+
+                <div class="digital-receipt-info-grid">
+
+                    <div>
+
+                        <span>
+                            NOMOR STRUK
+                        </span>
+
+                        <strong id="receiptNumber">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            KODE ORDER
+                        </span>
+
+                        <strong id="receiptOrderCode">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            PELANGGAN
+                        </span>
+
+                        <strong id="receiptCustomerName">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            WAKTU PEMBAYARAN
+                        </span>
+
+                        <strong id="receiptPaidAt">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TRIP -->
+
+            <div class="digital-receipt-section">
+
+                <span class="digital-receipt-section-label">
+                    PERJALANAN
+                </span>
+
+
+                <div class="digital-receipt-route">
+
+                    <div>
+
+                        <span class="digital-receipt-route-dot"></span>
+
+                        <div>
+
+                            <small>
+                                LOKASI JEMPUT
+                            </small>
+
+                            <strong id="receiptPickup">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <span
+                            class="
+                                digital-receipt-route-dot
+                                destination
+                            "
+                        ></span>
+
+                        <div>
+
+                            <small>
+                                TUJUAN
+                            </small>
+
+                            <strong id="receiptDestination">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="digital-receipt-trip-meta">
+
+                    <div>
+
+                        <span>
+                            JARAK
+                        </span>
+
+                        <strong id="receiptDistance">
+                            0 km
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            TARIF
+                        </span>
+
+                        <strong id="receiptFare">
+                            Rp0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PAYMENT -->
+
+            <div class="digital-receipt-section">
+
+                <span class="digital-receipt-section-label">
+                    PEMBAYARAN
+                </span>
+
+
+                <div class="digital-receipt-payment-list">
+
+                    <div>
+
+                        <span>
+                            Metode
+                        </span>
+
+                        <strong id="receiptMethod">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Status
+                        </span>
+
+                        <strong class="is-paid">
+                            DIBAYAR
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        id="receiptReferenceRow"
+                        hidden
+                    >
+
+                        <span>
+                            Referensi
+                        </span>
+
+                        <strong id="receiptReference">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <footer class="digital-receipt-footer">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+
+                    <strong>
+                        Pembayaran terverifikasi
+                    </strong>
+
+                    <p>
+                        Struk ini dibuat otomatis
+                        oleh sistem Ojek Pribadi.
+                    </p>
+
+                </div>
+
+            </footer>
+
+
+            <!-- ACTION -->
+
+            <div class="digital-receipt-actions no-print">
+
+                <button
+                    type="button"
+                    id="digitalReceiptPrintButton"
+                    class="digital-receipt-primary-button"
+                >
+                    Cetak / Simpan PDF
+                </button>
+
+
+                <button
+                    type="button"
+                    id="digitalReceiptBackButton"
+                    class="digital-receipt-secondary-button"
+                >
+                    ← Kembali ke Status Order
+                </button>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/receipt.js',
+            v='phase20g-1'
+        )
+    }}"
+></script>
+
+{% endblock %}

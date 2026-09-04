@@ -2,340 +2,214 @@
 
 
 // ============================================================
-// OJEK PRIBADI
-// PWA INSTALL MANAGER
-// PHASE 13
+// PHASE 20H.7
+// MOBILE & PWA POLISH
 // ============================================================
 
+(function () {
 
-// ============================================================
-// STATE
-// ============================================================
+    // ========================================================
+    // DOM
+    // ========================================================
 
-let deferredInstallPrompt =
-    null;
-
-
-// ============================================================
-// ELEMENTS
-// ============================================================
-
-const pwaInstallButton =
-    document.getElementById(
-        "pwaInstallButton"
-    );
-
-
-const pwaInstallStatus =
-    document.getElementById(
-        "pwaInstallStatus"
-    );
-
-
-// ============================================================
-// SERVICE WORKER
-// ============================================================
-
-async function registerServiceWorker() {
-
-    if (
-        !(
-            "serviceWorker"
-            in navigator
-        )
-    ) {
-
-        console.warn(
-            "[PWA] Service Worker tidak didukung."
+    const networkStatus =
+        document.getElementById(
+            "pwaNetworkStatus"
         );
 
-        return;
-
-    }
-
-
-    try {
-
-        const registration =
-            await navigator
-                .serviceWorker
-                .register(
-                    "/service-worker.js",
-                    {
-                        scope:
-                            "/"
-                    }
-                );
-
-
-        console.log(
-            "[PWA] Service Worker aktif:",
-            registration.scope
+    const networkStatusTitle =
+        document.getElementById(
+            "pwaNetworkStatusTitle"
         );
 
-    }
-
-    catch (error) {
-
-        console.error(
-            "[PWA] Service Worker gagal:",
-            error
+    const networkStatusText =
+        document.getElementById(
+            "pwaNetworkStatusText"
         );
 
-    }
 
-}
+    // ========================================================
+    // NETWORK STATE
+    // ========================================================
 
+    function updateNetworkState() {
 
-// ============================================================
-// CHECK STANDALONE
-// ============================================================
-
-function isRunningStandalone() {
-
-    return (
-
-        window.matchMedia(
-            "(display-mode: standalone)"
-        ).matches
-
-        ||
-
-        window.navigator
-            .standalone
-        === true
-
-    );
-
-}
+        const isOnline =
+            navigator.onLine;
 
 
-// ============================================================
-// UPDATE INSTALL UI
-// ============================================================
-
-function updateInstallUI() {
-
-    if (
-        !pwaInstallButton
-    ) {
-
-        return;
-
-    }
+        document.documentElement.dataset.network =
+            isOnline
+                ? "online"
+                : "offline";
 
 
-    if (
-        isRunningStandalone()
-    ) {
+        if (!networkStatus) {
 
-        pwaInstallButton.hidden =
-            true;
-
-
-        if (
-            pwaInstallStatus
-        ) {
-
-            pwaInstallStatus.textContent =
-                "Aplikasi sudah terpasang.";
+            return;
 
         }
 
 
-        return;
+        if (isOnline) {
 
-    }
+            networkStatus.hidden =
+                true;
+
+            return;
+
+        }
 
 
-    if (
-        deferredInstallPrompt
-    ) {
-
-        pwaInstallButton.hidden =
+        networkStatus.hidden =
             false;
 
 
-        if (
-            pwaInstallStatus
-        ) {
+        if (networkStatusTitle) {
 
-            pwaInstallStatus.textContent =
+            networkStatusTitle.textContent =
+                "Anda sedang offline";
+
+        }
+
+
+        if (networkStatusText) {
+
+            networkStatusText.textContent =
                 (
-                    "Pasang Ojek Pribadi "
+                    "Data pembayaran tidak disimpan "
                     +
-                    "ke perangkat Anda."
+                    "untuk penggunaan offline."
                 );
 
         }
 
     }
 
-}
+
+    // ========================================================
+    // DISPLAY MODE
+    // ========================================================
+
+    function updateDisplayMode() {
+
+        const standalone =
+            (
+                window.matchMedia(
+                    "(display-mode: standalone)"
+                ).matches
+                ||
+                window.navigator.standalone
+                === true
+            );
 
 
-// ============================================================
-// BEFORE INSTALL PROMPT
-// ============================================================
-
-window.addEventListener(
-    "beforeinstallprompt",
-    function (
-        event
-    ) {
-
-        event.preventDefault();
-
-
-        deferredInstallPrompt =
-            event;
-
-
-        updateInstallUI();
+        document.documentElement.dataset.pwa =
+            standalone
+                ? "standalone"
+                : "browser";
 
     }
-);
 
 
-// ============================================================
-// INSTALL BUTTON
-// ============================================================
+    // ========================================================
+    // SERVICE WORKER
+    // ========================================================
 
-if (
-    pwaInstallButton
-) {
+    async function registerServiceWorker() {
 
-    pwaInstallButton.addEventListener(
-        "click",
-        async function () {
+        if (
+            !(
+                "serviceWorker"
+                in navigator
+            )
+        ) {
 
-            if (
-                !deferredInstallPrompt
-            ) {
+            return;
 
-                return;
-
-            }
+        }
 
 
-            pwaInstallButton.disabled =
-                true;
+        if (!window.isSecureContext) {
+
+            return;
+
+        }
 
 
-            try {
+        try {
 
-                deferredInstallPrompt
-                    .prompt();
+            const registration =
+                await navigator
+                    .serviceWorker
+                    .register(
+                        "/service-worker.js",
+                        {
+                            scope:
+                                "/",
 
-
-                const result =
-                    await deferredInstallPrompt
-                        .userChoice;
-
-
-                console.log(
-                    "[PWA] Install:",
-                    result.outcome
-                );
-
-
-                deferredInstallPrompt =
-                    null;
+                            updateViaCache:
+                                "none"
+                        }
+                    );
 
 
-                if (
-                    result.outcome
-                    === "accepted"
-                ) {
-
-                    pwaInstallButton.hidden =
-                        true;
+            // Minta browser memeriksa
+            // versi service worker baru.
+            registration.update();
 
 
-                    if (
-                        pwaInstallStatus
-                    ) {
+        }
+        catch (error) {
 
-                        pwaInstallStatus.textContent =
-                            (
-                                "Ojek Pribadi "
-                                +
-                                "berhasil dipasang."
-                            );
+            console.error(
+                "[PWA] Service worker gagal:",
+                error
+            );
 
-                    }
+        }
 
-                }
+    }
 
-            }
 
-            catch (error) {
+    // ========================================================
+    // EVENTS
+    // ========================================================
 
-                console.error(
-                    "[PWA INSTALL]",
-                    error
-                );
+    window.addEventListener(
+        "online",
+        updateNetworkState
+    );
 
-            }
 
-            finally {
+    window.addEventListener(
+        "offline",
+        updateNetworkState
+    );
 
-                pwaInstallButton.disabled =
-                    false;
 
-            }
+    window.addEventListener(
+        "pageshow",
+        updateNetworkState
+    );
 
+
+    // ========================================================
+    // INITIALIZE
+    // ========================================================
+
+    updateNetworkState();
+
+    updateDisplayMode();
+
+
+    window.addEventListener(
+        "load",
+        registerServiceWorker,
+        {
+            once:
+                true
         }
     );
 
-}
-
-
-// ============================================================
-// APP INSTALLED
-// ============================================================
-
-window.addEventListener(
-    "appinstalled",
-    function () {
-
-        deferredInstallPrompt =
-            null;
-
-
-        if (
-            pwaInstallButton
-        ) {
-
-            pwaInstallButton.hidden =
-                true;
-
-        }
-
-
-        if (
-            pwaInstallStatus
-        ) {
-
-            pwaInstallStatus.textContent =
-                "Aplikasi sudah terpasang.";
-
-        }
-
-
-        console.log(
-            "[PWA] Aplikasi berhasil diinstall."
-        );
-
-    }
-);
-
-
-// ============================================================
-// START
-// ============================================================
-
-registerServiceWorker();
-
-
-updateInstallUI();
+})();

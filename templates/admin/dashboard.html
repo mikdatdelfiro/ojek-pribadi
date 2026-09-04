@@ -76,13 +76,27 @@ Ojek Control
     >
         <span>Riwayat</span>
         <span>→</span>
+    </a>
 
-     <a
+    <a
         href="{{ url_for('driver_reviews') }}"
         class="driver-history-link"
     >
-        ★ Ulasan
-        </a>
+        <span>★ Ulasan</span>
+        <span>→</span>
+    </a>
+
+    <a
+        href="{{ url_for('driver_payment_history_page') }}"
+        class="driver-menu-link"
+    >
+        <span>
+            Riwayat Pembayaran
+        </span>
+
+        <span>
+            →
+        </span>
     </a>
 
 </div>
@@ -733,6 +747,306 @@ Ojek Control
         {% endif %}
 
     </div>
+
+</section>
+
+<!-- =========================================
+     PHASE 20E
+     DRIVER PAYMENT CONTROL
+========================================== -->
+
+<section class="driver-dashboard-payment-control">
+
+    <div class="driver-dashboard-payment-head">
+
+        <div>
+
+            <span>
+                PAYMENT CONTROL
+            </span>
+
+            <strong>
+                Pembayaran
+            </strong>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('driver_payments') }}"
+        >
+            Lihat Semua →
+        </a>
+
+    </div>
+
+
+    {% if
+        payment_control
+        and
+        payment_control.needs_confirmation > 0
+    %}
+
+        <a
+            href="{{
+                url_for(
+                    'driver_payments',
+                    status='needs_confirmation'
+                )
+            }}"
+            class="driver-dashboard-payment-alert"
+        >
+
+            <span class="driver-dashboard-payment-alert-icon">
+                !
+            </span>
+
+
+            <div>
+
+                <strong>
+                    {{
+                        payment_control
+                        .needs_confirmation
+                    }}
+                    pembayaran perlu diperiksa
+                </strong>
+
+                <p>
+                    Pelanggan sudah mengirim
+                    konfirmasi pembayaran.
+                </p>
+
+            </div>
+
+
+            <span>
+                →
+            </span>
+
+        </a>
+
+
+    {% else %}
+
+        <div class="driver-dashboard-payment-safe">
+
+            <span>
+                ✓
+            </span>
+
+            <p>
+                Tidak ada pembayaran yang
+                menunggu konfirmasi.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="driver-dashboard-payment-stats">
+
+        <div>
+
+            <span>
+                MENUNGGU
+            </span>
+
+            <strong>
+                {{
+                    payment_control
+                    .waiting_payment
+                }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                DIBAYAR
+            </span>
+
+            <strong>
+                {{
+                    payment_control
+                    .paid
+                }}
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =========================================================
+     PHASE 20G.4
+     DRIVER DIGITAL RECEIPTS
+========================================================== -->
+
+{% set dashboard_receipts = recent_receipts|default([], true) %}
+
+<section class="driver-dashboard-payment-control driver-dashboard-receipts">
+
+    <div class="driver-dashboard-payment-head">
+
+        <div>
+
+            <span>
+                STRUK DIGITAL
+            </span>
+
+            <strong>
+                Struk Pembayaran Terbaru
+            </strong>
+
+        </div>
+
+        <a
+            href="{{ url_for('driver_payments') }}"
+        >
+            Lihat Pembayaran →
+        </a>
+
+    </div>
+
+
+    {% if dashboard_receipts %}
+
+        <div class="driver-dashboard-receipt-list">
+
+            {% for receipt_order in dashboard_receipts %}
+
+                <article class="driver-dashboard-receipt-card">
+
+                    <div class="driver-dashboard-receipt-top">
+
+                        <div>
+
+                            <span>
+                                KODE PESANAN
+                            </span>
+
+                            <strong>
+                                {{ receipt_order.order_code }}
+                            </strong>
+
+                        </div>
+
+                        <span class="driver-status status-selesai">
+                            Dibayar
+                        </span>
+
+                    </div>
+
+
+                    <div class="driver-dashboard-receipt-customer">
+
+                        <span>
+                            Pelanggan
+                        </span>
+
+                        <strong>
+                            {{ receipt_order.customer_name }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="driver-dashboard-receipt-meta">
+
+                        <div>
+
+                            <span>
+                                Metode
+                            </span>
+
+                            <strong>
+                                {% if receipt_order.payment_method == "QRIS" %}
+                                    QRIS
+                                {% elif receipt_order.payment_method == "TRANSFER_BANK" %}
+                                    Transfer Bank
+                                {% else %}
+                                    Tunai
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong class="fare">
+                                Rp{{
+                                    "{:,.0f}".format(
+                                        receipt_order.payment_amount
+                                        or
+                                        receipt_order.fare
+                                        or
+                                        0
+                                    ).replace(",", ".")
+                                }}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Dibayar
+                            </span>
+
+                            <strong>
+                                {{ receipt_order.paid_at or "-" }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="/driver/orders/{{ receipt_order.id }}/receipt"
+                        class="driver-button primary full"
+                    >
+                        Lihat Struk Pembayaran
+
+                        <span>
+                            →
+                        </span>
+                    </a>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <div class="driver-dashboard-payment-safe">
+
+            <span>
+                ✓
+            </span>
+
+            <p>
+                Belum ada struk pembayaran
+                yang tersedia.
+            </p>
+
+        </div>
+
+    {% endif %}
 
 </section>
 

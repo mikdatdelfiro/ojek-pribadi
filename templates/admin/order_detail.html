@@ -165,8 +165,7 @@ Detail {{ order.order_code }}
 
         </section>
 
-
-        <!-- =====================================
+                <!-- =====================================
              CUSTOMER
         ====================================== -->
 
@@ -390,6 +389,894 @@ Detail {{ order.order_code }}
 
         </section>
 
+        <!-- =========================================================
+     PHASE 20G.8
+     DRIVER PAYMENT CONFIRMATION
+     MANUAL CASH / QRIS / TRANSFER
+========================================================= -->
+
+{% set payment_method = order.payment_method or "TUNAI" %}
+{% set payment_status = order.payment_status or "BELUM_DIBAYAR" %}
+
+<section class="driver-payment-card">
+
+    <!-- =====================================
+         HEADING
+    ====================================== -->
+
+    <div class="driver-payment-heading">
+
+        <div>
+
+            <span class="driver-payment-eyebrow">
+                PEMBAYARAN
+            </span>
+
+            <h2>
+                Status Pembayaran
+            </h2>
+
+        </div>
+
+
+        <span
+            class="
+                driver-payment-status
+
+                {% if payment_status == 'DIBAYAR' %}
+                    is-paid
+
+                {% elif payment_status == 'MENUNGGU_KONFIRMASI' %}
+                    is-review
+
+                {% elif payment_status == 'DIKEMBALIKAN' %}
+                    is-unpaid is-refunded
+
+                {% else %}
+                    is-unpaid
+                {% endif %}
+            "
+        >
+
+            {% if payment_status == "DIBAYAR" %}
+
+                DIBAYAR
+
+            {% elif payment_status == "MENUNGGU_KONFIRMASI" %}
+
+                MENUNGGU KONFIRMASI
+
+            {% elif payment_status == "MENUNGGU_PEMBAYARAN" %}
+
+                MENUNGGU PEMBAYARAN
+
+            {% elif payment_status == "GAGAL" %}
+
+                GAGAL
+
+            {% elif payment_status == "KEDALUWARSA" %}
+
+                KEDALUWARSA
+
+            {% elif payment_status == "DIKEMBALIKAN" %}
+
+                DIKEMBALIKAN
+
+            {% else %}
+
+                BELUM DIBAYAR
+
+            {% endif %}
+
+        </span>
+
+    </div>
+
+
+    <!-- =====================================
+         PAYMENT SUMMARY
+    ====================================== -->
+
+    <div class="driver-payment-grid">
+
+        <article>
+
+            <span>
+                METODE
+            </span>
+
+            <strong>
+
+                {% if payment_method == "QRIS" %}
+
+                    QRIS
+
+                {% elif payment_method == "TRANSFER_BANK" %}
+
+                    Transfer Bank
+
+                {% else %}
+
+                    Tunai
+
+                {% endif %}
+
+            </strong>
+
+        </article>
+
+
+        <article>
+
+            <span>
+                NOMINAL
+            </span>
+
+            <strong>
+                Rp{{
+                    "{:,.0f}".format(
+                        order.payment_amount
+                        or
+                        order.fare
+                        or
+                        0
+                    )
+                    .replace(
+                        ",",
+                        "."
+                    )
+                }}
+            </strong>
+
+        </article>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT ALREADY PAID
+    ====================================================== -->
+
+    {% if payment_status == "DIKEMBALIKAN" %}
+
+        <div class="driver-payment-refunded">
+
+            <div class="driver-payment-refunded-icon">
+                ↩
+            </div>
+
+            <div class="driver-payment-refunded-content">
+
+                <span class="driver-payment-refunded-label">
+                    PEMBAYARAN DIKEMBALIKAN
+                </span>
+
+                <strong>
+                    {{
+                        (
+                            order.payment_refund_amount
+                            or order.payment_amount
+                            or 0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+                {% if order.payment_refunded_at %}
+
+                    <small>
+                        Dikembalikan pada
+                        {{ order.payment_refunded_at }}
+                    </small>
+
+                {% endif %}
+
+                {% if order.payment_refund_reason %}
+
+                    <p>
+                        <b>Alasan:</b>
+                        {{ order.payment_refund_reason }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+    {% elif payment_status == "DIBAYAR" %}
+
+        <div class="driver-payment-success">
+
+            <span class="driver-payment-success-icon">
+                ✓
+            </span>
+
+
+            <div>
+
+                <strong>
+                    Pembayaran telah diterima
+                </strong>
+
+                <p>
+
+                    {% if order.paid_at %}
+
+                        Dikonfirmasi pada
+                        {{ order.paid_at }}
+
+                    {% else %}
+
+                        Pembayaran sudah dikonfirmasi.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+    <!-- =====================================================
+         CASH PAYMENT
+    ====================================================== -->
+
+    {% elif payment_method == "TUNAI" %}
+
+        {% if
+            order.status == "SELESAI"
+            and
+            payment_status == "BELUM_DIBAYAR"
+        %}
+
+            <div class="driver-payment-action">
+
+                <div>
+
+                    <span class="driver-payment-review-badge">
+                        KONFIRMASI MANUAL
+                    </span>
+
+                    <strong>
+                        Sudah menerima uang tunai?
+                    </strong>
+
+                    <p>
+                        Pastikan uang tunai benar-benar sudah
+                        diterima sebelum mengonfirmasi pembayaran.
+                    </p>
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    action="{{
+                        url_for(
+                            'driver_confirm_cash_payment',
+                            order_code=order.order_code
+                        )
+                    }}"
+                >
+
+                    <input
+                        type="hidden"
+                        name="_csrf_token"
+                        value="{{ driver_csrf_token() }}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="driver-payment-confirm-button"
+                    >
+                        ✓ Konfirmasi Pembayaran Tunai
+                    </button>
+
+                </form>
+
+            </div>
+
+
+        {% elif order.status != "SELESAI" %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    ⏳
+                </span>
+
+                <p>
+                    Konfirmasi pembayaran tunai akan tersedia
+                    setelah perjalanan selesai.
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    !
+                </span>
+
+                <p>
+                    Status pembayaran tunai saat ini
+                    {{ payment_status }} dan belum dapat
+                    dikonfirmasi melalui aksi tunai.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+    <!-- =====================================================
+         QRIS / TRANSFER BANK
+    ====================================================== -->
+
+    {% elif payment_method in ["QRIS", "TRANSFER_BANK"] %}
+
+        {% if payment_status == "MENUNGGU_KONFIRMASI" %}
+
+            <div class="driver-payment-review">
+
+                <div>
+
+                    <span class="driver-payment-review-badge">
+                        PERLU DIPERIKSA
+                    </span>
+
+                    <strong>
+                        Pelanggan menyatakan sudah membayar
+                    </strong>
+
+                    <p>
+
+                        {% if payment_method == "QRIS" %}
+
+                            Periksa transaksi QRIS Anda.
+                            Konfirmasi hanya jika pembayaran
+                            benar-benar sudah masuk.
+
+                        {% else %}
+
+                            Periksa rekening bank Anda.
+                            Konfirmasi hanya jika transfer
+                            benar-benar sudah masuk.
+
+                        {% endif %}
+
+                    </p>
+
+
+                    {% if order.payment_customer_confirmed_at %}
+
+                        <small>
+                            Konfirmasi pelanggan:
+                            {{ order.payment_customer_confirmed_at }}
+                        </small>
+
+                    {% endif %}
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    action="{{
+                        url_for(
+                            'driver_confirm_manual_payment',
+                            order_code=order.order_code
+                        )
+                    }}"
+                >
+
+                    <input
+                        type="hidden"
+                        name="_csrf_token"
+                        value="{{ driver_csrf_token() }}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="driver-payment-confirm-button"
+                    >
+                        ✓ Konfirmasi Pembayaran Masuk
+                    </button>
+
+                </form>
+
+            </div>
+
+
+        {% elif payment_status in [
+            "MENUNGGU_PEMBAYARAN",
+            "BELUM_DIBAYAR"
+        ] %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    ⏳
+                </span>
+
+                <p>
+                    Menunggu pelanggan melakukan pembayaran
+                    dan menekan "Saya Sudah Membayar".
+                </p>
+
+            </div>
+
+
+        {% elif payment_status == "GAGAL" %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    !
+                </span>
+
+                <p>
+                    Pembayaran digital berstatus gagal.
+                    Jangan konfirmasi sebelum pembayaran
+                    dilakukan kembali.
+                </p>
+
+            </div>
+
+
+        {% elif payment_status == "KEDALUWARSA" %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    !
+                </span>
+
+                <p>
+                    Pembayaran digital sudah kedaluwarsa.
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="driver-payment-waiting">
+
+                <span>
+                    ⏳
+                </span>
+
+                <p>
+                    Menunggu pembaruan status pembayaran.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+    {% else %}
+
+        <div class="driver-payment-waiting">
+
+            <span>
+                !
+            </span>
+
+            <p>
+                Metode pembayaran tidak dikenali:
+                {{ payment_method }}
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+<!-- =========================================================
+     PHASE 20I.3
+     DRIVER PAYMENT REFUND
+========================================================= -->
+
+{% if
+    order.status == "SELESAI"
+    and
+    order.payment_status == "DIBAYAR"
+    and
+    (
+        order.payment_refund_request_status
+        or "NONE"
+    )
+    == "NONE"
+%}
+
+<div class="driver-payment-action">
+
+    <div>
+
+        <strong>
+            Pengembalian Pembayaran
+        </strong>
+
+        <p>
+            Gunakan hanya jika uang benar-benar
+            sudah dikembalikan kepada pelanggan.
+        </p>
+
+    </div>
+
+
+    <form
+        method="POST"
+        action="{{
+            url_for(
+                'driver_refund_payment',
+                order_code=order.order_code
+            )
+        }}"
+    >
+
+        <input
+            type="hidden"
+            name="_csrf_token"
+            value="{{ driver_csrf_token() }}"
+        >
+
+
+        <div style="margin-bottom: 10px;">
+
+            <input
+                type="text"
+                name="refund_reason"
+                placeholder="Alasan pengembalian"
+                minlength="3"
+                maxlength="300"
+                required
+                style="
+                    width: 100%;
+                    padding: 12px;
+                    border-radius: 10px;
+                    box-sizing: border-box;
+                "
+            >
+
+        </div>
+
+
+        <div style="margin-bottom: 10px;">
+
+            <input
+                type="text"
+                name="refund_reference"
+                placeholder="Referensi refund (opsional)"
+                maxlength="100"
+                style="
+                    width: 100%;
+                    padding: 12px;
+                    border-radius: 10px;
+                    box-sizing: border-box;
+                "
+            >
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="driver-payment-confirm-button"
+            onclick="
+                return confirm(
+                    'Yakin uang sudah benar-benar dikembalikan?'
+                );
+            "
+        >
+            ↩ Tandai Pembayaran Dikembalikan
+        </button>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+<!-- =========================================================
+     PHASE 20I.3C
+     CUSTOMER REFUND REQUEST REVIEW
+========================================================= -->
+
+{% if
+    refund_request
+    and
+    refund_request.status == "PENDING"
+%}
+
+<section class="driver-refund-review-card">
+
+
+    <div class="driver-refund-review-head">
+
+        <div>
+
+            <span class="driver-refund-review-eyebrow">
+                PERMINTAAN PENGEMBALIAN DANA
+            </span>
+
+            <h3>
+                Pelanggan meminta refund
+            </h3>
+
+            <p>
+                Periksa pembayaran dan alasan pelanggan
+                sebelum mengambil tindakan.
+            </p>
+
+        </div>
+
+
+        <span class="driver-refund-review-status">
+            PENDING
+        </span>
+
+    </div>
+
+
+    <div class="driver-refund-review-amount">
+
+        <span>
+            NOMINAL PEMBAYARAN
+        </span>
+
+        <strong>
+            {{
+                (
+                    order.payment_amount
+                    or
+                    order.fare
+                    or
+                    0
+                )
+                | rupiah
+            }}
+        </strong>
+
+    </div>
+
+
+    <div class="driver-refund-review-reason">
+
+        <span>
+            ALASAN PELANGGAN
+        </span>
+
+        <p>
+            {{
+                refund_request.request_reason
+                or "-"
+            }}
+        </p>
+
+    </div>
+
+
+    {% if refund_request.requested_at %}
+
+        <div class="driver-refund-review-time">
+
+            <span>
+                DIAJUKAN
+            </span>
+
+            <strong>
+                {{
+                    refund_request.requested_at
+                }}
+            </strong>
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="driver-refund-review-warning">
+
+        <span>
+            !
+        </span>
+
+        <p>
+            Payment masih berstatus
+            <strong>DIBAYAR</strong>.
+            Jangan menganggap dana sudah dikembalikan
+            sebelum proses refund benar-benar dilakukan.
+        </p>
+
+    </div>
+
+
+    <div class="driver-refund-review-next">
+
+    <small>
+        TINDAKAN DRIVER
+    </small>
+
+    <p>
+        Konfirmasi hanya setelah uang benar-benar
+        sudah dikembalikan kepada pelanggan.
+    </p>
+
+
+    <!-- =====================================================
+         PHASE 20I.3D
+         DRIVER CONFIRM REFUND
+    ====================================================== -->
+
+    <form
+        method="POST"
+        action="{{
+            url_for(
+                'driver_confirm_customer_refund',
+                order_code=order.order_code
+            )
+        }}"
+        class="driver-refund-confirm-form"
+        onsubmit="
+            return confirm(
+                'Pastikan dana benar-benar sudah dikembalikan. Lanjutkan konfirmasi refund?'
+            );
+        "
+    >
+
+        <input
+            type="hidden"
+            name="_csrf_token"
+            value="{{ driver_csrf_token() }}"
+        >
+
+
+        <label
+            for="customerRefundReference"
+            class="driver-refund-confirm-label"
+        >
+            Referensi pengembalian
+            <span>
+                Opsional
+            </span>
+        </label>
+
+
+        <input
+            id="customerRefundReference"
+            type="text"
+            name="refund_reference"
+            maxlength="100"
+            class="driver-refund-confirm-input"
+            placeholder="Contoh: TRX-REFUND-12345"
+        >
+
+
+        <button
+            type="submit"
+            class="driver-refund-confirm-button"
+        >
+            ✓ Konfirmasi Dana Dikembalikan
+        </button>
+
+    </form>
+
+    <!-- =====================================================
+     PHASE 20I.3E
+     DRIVER REJECT REFUND REQUEST
+====================================================== -->
+
+<div class="driver-refund-reject-divider">
+
+    <span>
+        ATAU
+    </span>
+
+</div>
+
+
+<form
+    method="POST"
+    action="{{
+        url_for(
+            'driver_reject_customer_refund',
+            order_code=order.order_code
+        )
+    }}"
+    class="driver-refund-reject-form"
+    onsubmit="
+        return confirm(
+            'Yakin ingin menolak permintaan pengembalian dana ini?'
+        );
+    "
+>
+
+    <input
+        type="hidden"
+        name="_csrf_token"
+        value="{{ driver_csrf_token() }}"
+    >
+
+
+    <label
+        for="customerRefundRejectionReason"
+        class="driver-refund-reject-label"
+    >
+        Alasan penolakan
+    </label>
+
+
+    <textarea
+        id="customerRefundRejectionReason"
+        name="rejection_reason"
+        class="driver-refund-reject-reason"
+        rows="3"
+        minlength="3"
+        maxlength="300"
+        required
+        placeholder="Contoh: Pembayaran sudah sesuai dan tidak ditemukan transaksi ganda."
+    ></textarea>
+
+
+    <button
+        type="submit"
+        class="driver-refund-reject-button"
+    >
+        Tolak Permintaan Refund
+    </button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endif %}
+
+<!-- =========================================================
+     PHASE 20G.4
+     DRIVER DIGITAL RECEIPT
+========================================================= -->
+
+{% if
+    order.status == "SELESAI"
+    and
+    order.payment_status == "DIBAYAR"
+%}
+
+<div class="driver-receipt-action">
+
+    <a
+        href="{{ url_for(
+            'driver_order_receipt',
+            order_id=order.id
+        ) }}"
+        class="driver-receipt-button"
+        target="_blank"
+        rel="noopener"
+    >
+        <span>
+            Lihat Struk Pembayaran
+        </span>
+
+        <span aria-hidden="true">
+            →
+        </span>
+    </a>
+
+</div>
+
+{% endif %}
 
         <!-- =====================================
              NOTE

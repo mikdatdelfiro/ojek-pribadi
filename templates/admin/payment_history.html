@@ -1,0 +1,1919 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Riwayat Pembayaran
+{% endblock %}
+
+
+{% block content %}
+
+{% set history_payments = payments | default([], true) %}
+{% set history_summary = summary | default({}, true) %}
+{% set history_pagination = pagination | default({}, true) %}
+{% set history_filters = filters | default({}, true) %}
+{% set reconciliation_data = reconciliation | default({}, true) %}
+{% set reconciliation_items = unresolved_payments | default([], true) %}
+{% set history_statistics = statistics | default({}, true) %}
+
+{% set active_period = history_filters.get("period", "all") %}
+{% set active_method = history_filters.get("method", "ALL") %}
+{% set active_search = history_filters.get("q", "") %}
+{% set current_page = history_pagination.get("page", 1) %}
+{% set total_pages = history_pagination.get("total_pages", 0) %}
+{% set page_numbers = history_pagination.get("page_numbers", []) %}
+{% set has_active_filters = (
+    active_period != "all"
+    or active_method != "ALL"
+    or active_search
+) %}
+
+<div class="driver-payment-history-page">
+
+    <!-- =====================================================
+         BACKGROUND
+    ====================================================== -->
+
+    <div class="driver-payment-history-background">
+
+        <div
+            class="
+                driver-payment-history-glow
+                driver-payment-history-glow-one
+            "
+        ></div>
+
+        <div
+            class="
+                driver-payment-history-glow
+                driver-payment-history-glow-two
+            "
+        ></div>
+
+    </div>
+
+
+    <main class="driver-payment-history-container">
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="driver-payment-history-header">
+
+            <div class="driver-payment-history-heading">
+
+                <a
+                    href="{{ url_for('driver_dashboard') }}"
+                    class="driver-payment-history-back"
+                    aria-label="Kembali ke dashboard"
+                >
+                    <span aria-hidden="true">
+                        ←
+                    </span>
+                </a>
+
+
+                <div>
+
+                    <span class="driver-payment-history-eyebrow">
+                        PAYMENT HISTORY
+                    </span>
+
+                    <h1>
+                        Riwayat Pembayaran
+                    </h1>
+
+                    <p>
+                        Cari dan filter pembayaran yang sudah
+                        dikonfirmasi dan benar-benar diterima.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <a
+                href="{{ url_for('driver_refund_requests') }}"
+                class="driver-payment-history-link"
+            >
+                <span>
+                    Permintaan Refund
+                </span>
+
+                <span aria-hidden="true">
+                    →
+                </span>
+            </a>
+
+
+            <a
+                href="{{ url_for('driver_payments') }}"
+                class="driver-payment-history-control-link"
+            >
+                <span>
+                    Payment Control
+                </span>
+
+                <span aria-hidden="true">
+                    →
+                </span>
+            </a>
+
+        </header>
+
+
+        <!-- =================================================
+             CANONICAL NOTICE
+        ================================================== -->
+
+        <section class="driver-payment-history-safe">
+
+            <span class="driver-payment-history-safe-icon">
+                ✓
+            </span>
+
+
+            <div>
+
+                <strong>
+                    Transaksi terverifikasi
+                </strong>
+
+                <p>
+                    Hanya perjalanan selesai dengan pembayaran
+                    berstatus DIBAYAR yang masuk ke riwayat ini.
+                </p>
+
+            </div>
+
+        </section>
+
+
+<!-- =================================================
+     PHASE 20H.6
+     PAYMENT STATISTICS
+================================================== -->
+
+<section class="driver-payment-statistics">
+
+    <div class="driver-payment-statistics-heading">
+
+        <div>
+
+            <span>
+                PAYMENT STATISTICS
+            </span>
+
+            <strong>
+                Statistik Pendapatan
+            </strong>
+
+        </div>
+
+
+        <div class="driver-payment-statistics-period">
+
+            <span>
+                PERIODE
+            </span>
+
+            <strong>
+
+                {% if active_period == "today" %}
+
+                    Hari Ini
+
+                {% elif active_period == "7days" %}
+
+                    7 Hari Terakhir
+
+                {% elif active_period == "30days" %}
+
+                    30 Hari Terakhir
+
+                {% else %}
+
+                    Semua Waktu
+
+                {% endif %}
+
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="driver-payment-statistics-grid">
+
+
+        <!-- =============================================
+             TOTAL RECEIVED
+        ============================================== -->
+
+        <article
+            class="
+                driver-payment-statistics-card
+                is-total
+            "
+        >
+
+            <div class="driver-payment-statistics-icon">
+
+                Rp
+
+            </div>
+
+
+            <div class="driver-payment-statistics-content">
+
+                <span>
+                    TOTAL DITERIMA
+                </span>
+
+                <strong>
+                    {{
+                        history_statistics.get(
+                            "total_received",
+                            0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+                <small>
+                    Pembayaran terverifikasi
+                </small>
+
+            </div>
+
+        </article>
+
+
+        <!-- =============================================
+             TOTAL TRANSACTIONS
+        ============================================== -->
+
+        <article class="driver-payment-statistics-card">
+
+            <div class="driver-payment-statistics-icon">
+
+                #
+
+            </div>
+
+
+            <div class="driver-payment-statistics-content">
+
+                <span>
+                    TOTAL TRANSAKSI
+                </span>
+
+                <strong>
+                    {{
+                        history_statistics.get(
+                            "total_transactions",
+                            0
+                        )
+                    }}
+                </strong>
+
+                <small>
+                    Transaksi selesai & dibayar
+                </small>
+
+            </div>
+
+        </article>
+
+
+        <!-- =============================================
+             CASH
+        ============================================== -->
+
+        <article
+            class="
+                driver-payment-statistics-card
+                is-cash
+            "
+        >
+
+            <div class="driver-payment-statistics-icon">
+
+                Rp
+
+            </div>
+
+
+            <div class="driver-payment-statistics-content">
+
+                <span>
+                    TUNAI
+                </span>
+
+                <strong>
+                    {{
+                        history_statistics
+                        .get(
+                            "cash",
+                            {}
+                        )
+                        .get(
+                            "amount",
+                            0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+                <small>
+
+                    {{
+                        history_statistics
+                        .get(
+                            "cash",
+                            {}
+                        )
+                        .get(
+                            "transactions",
+                            0
+                        )
+                    }}
+                    transaksi
+
+                </small>
+
+            </div>
+
+        </article>
+
+
+        <!-- =============================================
+             QRIS
+        ============================================== -->
+
+        <article
+            class="
+                driver-payment-statistics-card
+                is-qris
+            "
+        >
+
+            <div class="driver-payment-statistics-icon">
+
+                Q
+
+            </div>
+
+
+            <div class="driver-payment-statistics-content">
+
+                <span>
+                    QRIS
+                </span>
+
+                <strong>
+                    {{
+                        history_statistics
+                        .get(
+                            "qris",
+                            {}
+                        )
+                        .get(
+                            "amount",
+                            0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+                <small>
+
+                    {{
+                        history_statistics
+                        .get(
+                            "qris",
+                            {}
+                        )
+                        .get(
+                            "transactions",
+                            0
+                        )
+                    }}
+                    transaksi
+
+                </small>
+
+            </div>
+
+        </article>
+
+
+        <!-- =============================================
+             TRANSFER
+        ============================================== -->
+
+        <article
+            class="
+                driver-payment-statistics-card
+                is-transfer
+            "
+        >
+
+            <div class="driver-payment-statistics-icon">
+
+                ↗
+
+            </div>
+
+
+            <div class="driver-payment-statistics-content">
+
+                <span>
+                    TRANSFER
+                </span>
+
+                <strong>
+                    {{
+                        history_statistics
+                        .get(
+                            "transfer",
+                            {}
+                        )
+                        .get(
+                            "amount",
+                            0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+                <small>
+
+                    {{
+                        history_statistics
+                        .get(
+                            "transfer",
+                            {}
+                        )
+                        .get(
+                            "transactions",
+                            0
+                        )
+                    }}
+                    transaksi
+
+                </small>
+
+            </div>
+
+        </article>
+
+    </div>
+
+
+    <!-- =================================================
+         STATISTICS FOOTER
+    ================================================== -->
+
+    <div class="driver-payment-statistics-footer">
+
+        <div>
+
+            <span class="driver-payment-statistics-status-dot"></span>
+
+            <span>
+                Hanya menghitung transaksi
+                SELESAI + DIBAYAR
+            </span>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Rata-rata transaksi
+            </span>
+
+            <strong>
+                {{
+                    history_statistics.get(
+                        "average_transaction",
+                        0
+                    )
+                    | rupiah
+                }}
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+        <!-- =================================================
+     PHASE 20H.5
+     INCOME / PAYMENT RECONCILIATION
+================================================== -->
+
+<section class="driver-payment-reconciliation">
+
+    <div class="driver-payment-history-section-head">
+
+        <div>
+
+            <span>
+                RECONCILIATION
+            </span>
+
+            <strong>
+                Pendapatan vs Pembayaran
+            </strong>
+
+        </div>
+
+
+        <span
+            class="
+                driver-payment-reconciliation-status
+
+                {% if reconciliation_data.get('status') == 'BALANCED' %}
+                    is-balanced
+
+                {% elif reconciliation_data.get('status') == 'MISMATCH' %}
+                    is-warning
+
+                {% elif reconciliation_data.get('status') == 'PENDING' %}
+                    is-pending
+
+                {% else %}
+                    is-empty
+                {% endif %}
+            "
+        >
+            {{
+                reconciliation_data.get(
+                    "status_label",
+                    "Belum Ada Data"
+                )
+            }}
+        </span>
+
+    </div>
+
+
+    <p class="driver-payment-reconciliation-message">
+        {{
+            reconciliation_data.get(
+                "status_message",
+                ""
+            )
+        }}
+    </p>
+
+
+    <div class="driver-payment-reconciliation-grid">
+
+        <article>
+
+            <span>
+                PERJALANAN SELESAI
+            </span>
+
+            <strong>
+                {{
+                    reconciliation_data.get(
+                        "completed_trips",
+                        0
+                    )
+                }}
+            </strong>
+
+            <small>
+                {{
+                    reconciliation_data.get(
+                        "trip_income",
+                        0
+                    )
+                    | rupiah
+                }}
+            </small>
+
+        </article>
+
+
+        <article class="is-paid">
+
+            <span>
+                SUDAH DITERIMA
+            </span>
+
+            <strong>
+                {{
+                    reconciliation_data.get(
+                        "paid_trips",
+                        0
+                    )
+                }}
+            </strong>
+
+            <small>
+                {{
+                    reconciliation_data.get(
+                        "paid_income",
+                        0
+                    )
+                    | rupiah
+                }}
+            </small>
+
+        </article>
+
+
+        <article class="is-pending">
+
+            <span>
+                BELUM TERKONFIRMASI
+            </span>
+
+            <strong>
+                {{
+                    reconciliation_data.get(
+                        "unresolved_trips",
+                        0
+                    )
+                }}
+            </strong>
+
+            <small>
+                {{
+                    reconciliation_data.get(
+                        "unresolved_amount",
+                        0
+                    )
+                    | rupiah
+                }}
+            </small>
+
+        </article>
+
+
+        <article
+            class="
+                {% if reconciliation_data.get('difference', 0) > 0 %}
+                    is-warning
+                {% endif %}
+            "
+        >
+
+            <span>
+                SELISIH
+            </span>
+
+            <strong>
+                {{
+                    reconciliation_data.get(
+                        "difference",
+                        0
+                    )
+                    | rupiah
+                }}
+            </strong>
+
+            <small>
+                Antara tarif selesai dan pembayaran masuk
+            </small>
+
+        </article>
+
+    </div>
+
+
+    <div class="driver-payment-reconciliation-progress">
+
+        <div>
+
+            <span>
+                Tingkat pembayaran
+            </span>
+
+            <strong>
+                {{
+                    reconciliation_data.get(
+                        "payment_rate",
+                        0
+                    )
+                }}%
+            </strong>
+
+        </div>
+
+
+        <div class="driver-payment-reconciliation-bar">
+
+            <span
+                style="
+                    width:
+                    {{
+                        reconciliation_data.get(
+                            'payment_rate',
+                            0
+                        )
+                    }}%;
+                "
+            ></span>
+
+        </div>
+
+    </div>
+
+
+    {% if reconciliation_data.get("mismatch_count", 0) > 0 %}
+
+        <div class="driver-payment-reconciliation-warning">
+
+            <span>
+                !
+            </span>
+
+            <div>
+
+                <strong>
+                    Nominal tidak cocok
+                </strong>
+
+                <p>
+                    {{
+                        reconciliation_data.get(
+                            "mismatch_count",
+                            0
+                        )
+                    }}
+                    transaksi memiliki nominal pembayaran
+                    yang berbeda dari tarif perjalanan.
+
+                    Total perbedaan:
+                    {{
+                        reconciliation_data.get(
+                            "mismatch_amount",
+                            0
+                        )
+                        | rupiah
+                    }}.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% if reconciliation_items %}
+
+<section class="driver-payment-reconciliation-issues">
+
+    <div class="driver-payment-history-section-head">
+
+        <div>
+
+            <span>
+                NEEDS ATTENTION
+            </span>
+
+            <strong>
+                Perlu Direkonsiliasi
+            </strong>
+
+        </div>
+
+
+        <small>
+            Maksimal 10 transaksi terbaru
+        </small>
+
+    </div>
+
+
+    <div class="driver-payment-reconciliation-list">
+
+        {% for item in reconciliation_items %}
+
+            <article class="driver-payment-reconciliation-item">
+
+                <div class="driver-payment-reconciliation-item-top">
+
+                    <div>
+
+                        <span>
+                            KODE PESANAN
+                        </span>
+
+                        <strong>
+                            {{ item.order_code }}
+                        </strong>
+
+                    </div>
+
+
+                    <span class="driver-payment-reconciliation-reason">
+
+                        {{ item.reason_label }}
+
+                    </span>
+
+                </div>
+
+
+                <div class="driver-payment-reconciliation-item-customer">
+
+                    {{
+                        item.customer_name
+                        or
+                        "Pelanggan"
+                    }}
+
+                </div>
+
+
+                <div class="driver-payment-reconciliation-item-meta">
+
+                    <div>
+
+                        <span>
+                            TARIF
+                        </span>
+
+                        <strong>
+                            {{ item.fare | rupiah }}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            PEMBAYARAN
+                        </span>
+
+                        <strong>
+                            {{
+                                item.payment_amount
+                                | rupiah
+                            }}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            STATUS
+                        </span>
+
+                        <strong>
+                            {{
+                                item.payment_status
+                            }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="driver-payment-reconciliation-item-actions">
+
+                    <a
+                        href="{{ url_for(
+                            'driver_order_detail',
+                            order_id=item.id
+                        ) }}"
+                    >
+                        Lihat Detail
+                    </a>
+
+
+                    {% if item.payment_status == "DIBAYAR" %}
+
+                        <a
+                            href="{{ url_for(
+                                'driver_order_receipt',
+                                order_id=item.id
+                            ) }}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Lihat Struk
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endif %}
+
+
+        <!-- =================================================
+             PHASE 20H.3
+             SEARCH + FILTER
+        ================================================== -->
+
+        <section class="driver-payment-history-filter-panel">
+
+            <div class="driver-payment-history-filter-heading">
+
+                <div>
+
+                    <span>
+                        SEARCH & FILTER
+                    </span>
+
+                    <strong>
+                        Temukan pembayaran
+                    </strong>
+
+                </div>
+
+
+                {% if has_active_filters %}
+
+                    <a
+                        href="{{ url_for('driver_payment_history_page') }}"
+                        class="driver-payment-history-reset"
+                    >
+                        Reset filter
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+            <form
+                method="GET"
+                action="{{ url_for('driver_payment_history_page') }}"
+                class="driver-payment-history-filter-form"
+                role="search"
+            >
+
+                <label class="driver-payment-history-search-field">
+
+                    <span>
+                        CARI TRANSAKSI
+                    </span>
+
+                    <div>
+
+                        <span
+                            class="driver-payment-history-search-icon"
+                            aria-hidden="true"
+                        >
+                            ⌕
+                        </span>
+
+                        <input
+                            type="search"
+                            name="q"
+                            value="{{ active_search }}"
+                            maxlength="100"
+                            autocomplete="off"
+                            placeholder="Kode pesanan atau nama pelanggan"
+                            aria-label="Cari kode pesanan atau nama pelanggan"
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <label class="driver-payment-history-select-field">
+
+                    <span>
+                        METODE
+                    </span>
+
+                    <select
+                        name="method"
+                        aria-label="Filter metode pembayaran"
+                    >
+
+                        <option
+                            value="ALL"
+                            {% if active_method == "ALL" %}selected{% endif %}
+                        >
+                            Semua Metode
+                        </option>
+
+                        <option
+                            value="TUNAI"
+                            {% if active_method == "TUNAI" %}selected{% endif %}
+                        >
+                            Tunai
+                        </option>
+
+                        <option
+                            value="QRIS"
+                            {% if active_method == "QRIS" %}selected{% endif %}
+                        >
+                            QRIS
+                        </option>
+
+                        <option
+                            value="TRANSFER_BANK"
+                            {% if active_method == "TRANSFER_BANK" %}selected{% endif %}
+                        >
+                            Transfer Bank
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label class="driver-payment-history-select-field">
+
+                    <span>
+                        PERIODE
+                    </span>
+
+                    <select
+                        name="period"
+                        aria-label="Filter periode pembayaran"
+                    >
+
+                        <option
+                            value="all"
+                            {% if active_period == "all" %}selected{% endif %}
+                        >
+                            Semua Waktu
+                        </option>
+
+                        <option
+                            value="today"
+                            {% if active_period == "today" %}selected{% endif %}
+                        >
+                            Hari Ini
+                        </option>
+
+                        <option
+                            value="7days"
+                            {% if active_period == "7days" %}selected{% endif %}
+                        >
+                            7 Hari
+                        </option>
+
+                        <option
+                            value="30days"
+                            {% if active_period == "30days" %}selected{% endif %}
+                        >
+                            30 Hari
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="driver-payment-history-filter-submit"
+                >
+                    <span>
+                        Terapkan
+                    </span>
+
+                    <span aria-hidden="true">
+                        →
+                    </span>
+                </button>
+
+            </form>
+
+
+            {% if has_active_filters %}
+
+                <div class="driver-payment-history-active-filters">
+
+                    <span class="driver-payment-history-active-label">
+                        FILTER AKTIF
+                    </span>
+
+
+                    {% if active_search %}
+
+                        <span class="driver-payment-history-filter-chip">
+                            Pencarian: {{ active_search }}
+                        </span>
+
+                    {% endif %}
+
+
+                    {% if active_method != "ALL" %}
+
+                        <span class="driver-payment-history-filter-chip">
+                            Metode:
+                            {% if active_method == "TRANSFER_BANK" %}
+                                Transfer Bank
+                            {% else %}
+                                {{ active_method | title }}
+                            {% endif %}
+                        </span>
+
+                    {% endif %}
+
+
+                    {% if active_period != "all" %}
+
+                        <span class="driver-payment-history-filter-chip">
+                            Periode:
+                            {% if active_period == "today" %}
+                                Hari Ini
+                            {% elif active_period == "7days" %}
+                                7 Hari
+                            {% else %}
+                                30 Hari
+                            {% endif %}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- =================================================
+             PAYMENT METHODS
+        ================================================== -->
+
+        <section class="driver-payment-history-methods">
+
+            <div class="driver-payment-history-section-head">
+
+                <div>
+
+                    <span>
+                        METODE PEMBAYARAN
+                    </span>
+
+                    <strong>
+                        Metode yang didukung
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="driver-payment-history-method-grid">
+
+                <article>
+
+                    <span class="method-icon">
+                        Rp
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Tunai
+                        </strong>
+
+                        <small>
+                            Pembayaran langsung ke driver
+                        </small>
+
+                    </div>
+
+                </article>
+
+
+                <article>
+
+                    <span class="method-icon">
+                        Q
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            QRIS
+                        </strong>
+
+                        <small>
+                            Pembayaran QR terverifikasi
+                        </small>
+
+                    </div>
+
+                </article>
+
+
+                <article>
+
+                    <span class="method-icon">
+                        ↗
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Transfer Bank
+                        </strong>
+
+                        <small>
+                            Transfer manual terkonfirmasi
+                        </small>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAYMENT HISTORY RESULTS
+        ================================================== -->
+
+        <section class="driver-payment-history-list-section">
+
+            <div class="driver-payment-history-section-head">
+
+                <div>
+
+                    <span>
+                        TRANSAKSI
+                    </span>
+
+                    <strong>
+                        {% if has_active_filters %}
+                            Hasil Pencarian
+                        {% else %}
+                            Pembayaran Terbaru
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+
+                {% if
+                    history_summary.get(
+                        "total_records",
+                        0
+                    )
+                    > 0
+                %}
+
+                    <small>
+                        {{ history_pagination.get("result_start", 0) }}
+                        –
+                        {{ history_pagination.get("result_end", 0) }}
+                        dari
+                        {{ history_summary.get("total_records", 0) }}
+                        transaksi
+                    </small>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if history_payments %}
+
+                <div class="driver-payment-history-list">
+
+                    {% for payment in history_payments %}
+
+                        <article class="driver-payment-history-card">
+
+                            <div class="driver-payment-history-card-top">
+
+                                <div>
+
+                                    <span>
+                                        KODE PESANAN
+                                    </span>
+
+                                    <strong>
+                                        {{ payment.order_code }}
+                                    </strong>
+
+                                </div>
+
+
+                                <span class="driver-payment-history-paid-badge">
+
+                                    <i></i>
+
+                                    DIBAYAR
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="driver-payment-history-customer">
+
+                                <span class="customer-avatar">
+
+                                    {{
+                                        (
+                                            payment.customer_name
+                                            or
+                                            "P"
+                                        )[0]
+                                        | upper
+                                    }}
+
+                                </span>
+
+
+                                <div>
+
+                                    <small>
+                                        PELANGGAN
+                                    </small>
+
+                                    <strong>
+                                        {{
+                                            payment.customer_name
+                                            or
+                                            "Pelanggan"
+                                        }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="driver-payment-history-card-meta">
+
+                                <div>
+
+                                    <span>
+                                        METODE
+                                    </span>
+
+                                    <strong>
+                                        {{ payment.method_label }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        NOMINAL
+                                    </span>
+
+                                    <strong class="amount">
+                                        {{ payment.amount | rupiah }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        DIBAYAR
+                                    </span>
+
+                                    <strong>
+                                        {{ payment.paid_at }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            {% if payment.reference %}
+
+                                <div class="driver-payment-history-reference">
+
+                                    <span>
+                                        REFERENSI
+                                    </span>
+
+                                    <strong>
+                                        {{ payment.reference }}
+                                    </strong>
+
+                                </div>
+
+                                <!-- =====================================================
+     PHASE 20H.4
+     PAYMENT VERIFICATION DETAIL
+====================================================== -->
+
+<div class="driver-payment-history-verification">
+
+    {% if payment.method != "TUNAI" %}
+
+        <div>
+
+            <span>
+                KONFIRMASI PELANGGAN
+            </span>
+
+            <strong>
+
+                {% if payment.customer_confirmed_at %}
+
+                    {{ payment.customer_confirmed_at }}
+
+                {% else %}
+
+                    -
+
+                {% endif %}
+
+            </strong>
+
+        </div>
+
+    {% endif %}
+
+
+    <div>
+
+        <span>
+            KONFIRMASI DRIVER
+        </span>
+
+        <strong>
+
+            {{
+                payment.driver_confirmed_at
+                or
+                payment.paid_at
+                or
+                "-"
+            }}
+
+        </strong>
+
+    </div>
+
+</div>
+
+                            {% endif %}
+
+
+                            <!-- =====================================================
+     PHASE 20H.4
+     PAYMENT DETAIL + RECEIPT
+====================================================== -->
+
+<div class="driver-payment-history-card-footer">
+
+    <div class="driver-payment-history-card-footer-meta">
+
+        <span>
+            {{
+                payment.completed_at
+                or
+                payment.created_at
+            }}
+        </span>
+
+
+        <span class="is-verified">
+            <i></i>
+            Pembayaran terverifikasi
+        </span>
+
+    </div>
+
+
+    <div class="driver-payment-history-actions">
+
+        <!-- =============================================
+             ORDER DETAIL
+        ============================================== -->
+
+        <a
+            href="{{ payment.detail_url }}"
+            class="
+                driver-payment-history-action
+                is-detail
+            "
+        >
+
+            <span
+                class="driver-payment-history-action-icon"
+                aria-hidden="true"
+            >
+                ≡
+            </span>
+
+
+            <span>
+                Lihat Detail
+            </span>
+
+        </a>
+
+
+        <!-- =============================================
+             DIGITAL RECEIPT
+        ============================================== -->
+
+        {% if
+            payment.receipt_available
+            and
+            payment.receipt_url
+        %}
+
+            <a
+                href="{{ payment.receipt_url }}"
+                class="
+                    driver-payment-history-action
+                    is-receipt
+                "
+                target="_blank"
+                rel="noopener"
+            >
+
+                <span
+                    class="driver-payment-history-action-icon"
+                    aria-hidden="true"
+                >
+                    ▤
+                </span>
+
+
+                <span>
+                    Lihat Struk
+                </span>
+
+            </a>
+
+
+        {% else %}
+
+            <span
+                class="
+                    driver-payment-history-action
+                    is-receipt
+                    is-disabled
+                "
+                aria-disabled="true"
+                title="Struk belum tersedia"
+            >
+
+                <span
+                    class="driver-payment-history-action-icon"
+                    aria-hidden="true"
+                >
+                    ▤
+                </span>
+
+
+                <span>
+                    Struk Tidak Tersedia
+                </span>
+
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- =========================================
+                     PHASE 20H.3 PAGINATION
+                ========================================== -->
+
+                {% if total_pages > 1 %}
+
+                    <nav
+                        class="driver-payment-history-pagination"
+                        aria-label="Navigasi halaman riwayat pembayaran"
+                    >
+
+                        {% if history_pagination.get("has_previous", false) %}
+
+                            <a
+                                href="{{ url_for(
+                                    'driver_payment_history_page',
+                                    page=current_page - 1,
+                                    q=active_search,
+                                    method=active_method,
+                                    period=active_period
+                                ) }}"
+                                class="driver-payment-history-page-nav"
+                                aria-label="Halaman sebelumnya"
+                            >
+                                ←
+                                <span>Sebelumnya</span>
+                            </a>
+
+                        {% else %}
+
+                            <span
+                                class="
+                                    driver-payment-history-page-nav
+                                    is-disabled
+                                "
+                                aria-disabled="true"
+                            >
+                                ←
+                                <span>Sebelumnya</span>
+                            </span>
+
+                        {% endif %}
+
+
+                        <div class="driver-payment-history-page-numbers">
+
+                            {% if page_numbers and page_numbers[0] > 1 %}
+
+                                <a
+                                    href="{{ url_for(
+                                        'driver_payment_history_page',
+                                        page=1,
+                                        q=active_search,
+                                        method=active_method,
+                                        period=active_period
+                                    ) }}"
+                                >
+                                    1
+                                </a>
+
+                                {% if page_numbers[0] > 2 %}
+                                    <span class="ellipsis">…</span>
+                                {% endif %}
+
+                            {% endif %}
+
+
+                            {% for page_number in page_numbers %}
+
+                                {% if page_number == current_page %}
+
+                                    <span
+                                        class="is-current"
+                                        aria-current="page"
+                                    >
+                                        {{ page_number }}
+                                    </span>
+
+                                {% else %}
+
+                                    <a
+                                        href="{{ url_for(
+                                            'driver_payment_history_page',
+                                            page=page_number,
+                                            q=active_search,
+                                            method=active_method,
+                                            period=active_period
+                                        ) }}"
+                                    >
+                                        {{ page_number }}
+                                    </a>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            {% if page_numbers and page_numbers[-1] < total_pages %}
+
+                                {% if page_numbers[-1] < total_pages - 1 %}
+                                    <span class="ellipsis">…</span>
+                                {% endif %}
+
+                                <a
+                                    href="{{ url_for(
+                                        'driver_payment_history_page',
+                                        page=total_pages,
+                                        q=active_search,
+                                        method=active_method,
+                                        period=active_period
+                                    ) }}"
+                                >
+                                    {{ total_pages }}
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if history_pagination.get("has_next", false) %}
+
+                            <a
+                                href="{{ url_for(
+                                    'driver_payment_history_page',
+                                    page=current_page + 1,
+                                    q=active_search,
+                                    method=active_method,
+                                    period=active_period
+                                ) }}"
+                                class="driver-payment-history-page-nav"
+                                aria-label="Halaman berikutnya"
+                            >
+                                <span>Berikutnya</span>
+                                →
+                            </a>
+
+                        {% else %}
+
+                            <span
+                                class="
+                                    driver-payment-history-page-nav
+                                    is-disabled
+                                "
+                                aria-disabled="true"
+                            >
+                                <span>Berikutnya</span>
+                                →
+                            </span>
+
+                        {% endif %}
+
+                    </nav>
+
+
+                    <div class="driver-payment-history-page-info">
+                        Halaman {{ current_page }} dari {{ total_pages }}
+                    </div>
+
+                {% endif %}
+
+
+            {% else %}
+
+                <div class="driver-payment-history-empty">
+
+                    <span class="driver-payment-history-empty-icon">
+                        {% if has_active_filters %}⌕{% else %}Rp{% endif %}
+                    </span>
+
+                    <strong>
+                        {% if has_active_filters %}
+                            Transaksi tidak ditemukan
+                        {% else %}
+                            Belum ada pembayaran terverifikasi
+                        {% endif %}
+                    </strong>
+
+                    <p>
+                        {% if has_active_filters %}
+                            Tidak ada transaksi yang cocok dengan
+                            pencarian atau filter saat ini.
+                        {% else %}
+                            Setelah perjalanan selesai dan pembayaran
+                            dikonfirmasi driver, transaksi akan
+                            tercatat otomatis di halaman ini.
+                        {% endif %}
+                    </p>
+
+                    {% if has_active_filters %}
+
+                        <a href="{{ url_for('driver_payment_history_page') }}">
+                            Reset Search & Filter →
+                        </a>
+
+                    {% else %}
+
+                        <a href="{{ url_for('driver_payments') }}">
+                            Buka Payment Control →
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- =================================================
+             FOOTER NAV
+        ================================================== -->
+
+        <div class="driver-payment-history-bottom">
+
+            <a href="{{ url_for('driver_dashboard') }}">
+
+                <span aria-hidden="true">
+                    ←
+                </span>
+
+                Kembali ke Dashboard
+
+            </a>
+
+        </div>
+
+    </main>
+
+
+<!-- =========================================================
+     PHASE 20H.7
+     MOBILE PAYMENT NAVIGATION
+========================================================== -->
+
+<nav
+    class="driver-payment-mobile-nav"
+    aria-label="Navigasi pembayaran driver"
+>
+
+    <a
+        href="{{ url_for('driver_dashboard') }}"
+        class="driver-payment-mobile-nav-item"
+    >
+
+        <span
+            class="driver-payment-mobile-nav-icon"
+            aria-hidden="true"
+        >
+            ⌂
+        </span>
+
+        <span>
+            Dashboard
+        </span>
+
+    </a>
+
+
+    <a
+        href="{{ url_for('driver_payments') }}"
+        class="driver-payment-mobile-nav-item"
+    >
+
+        <span
+            class="driver-payment-mobile-nav-icon"
+            aria-hidden="true"
+        >
+            Rp
+        </span>
+
+        <span>
+            Payment
+        </span>
+
+    </a>
+
+
+    <a
+        href="{{ url_for('driver_payment_history_page') }}"
+        class="
+            driver-payment-mobile-nav-item
+            is-active
+        "
+        aria-current="page"
+    >
+
+        <span
+            class="driver-payment-mobile-nav-icon"
+            aria-hidden="true"
+        >
+            ≡
+        </span>
+
+        <span>
+            Riwayat
+        </span>
+
+    </a>
+
+</nav>
+
+
+</div>
+
+{% endblock %}

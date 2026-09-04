@@ -1501,6 +1501,88 @@ Ojek Pribadi
 
     </div>
 
+<!-- =========================================
+     PHASE 20C
+     PAYMENT METHOD
+========================================== -->
+
+<div class="customer-payment-method">
+
+    <span class="customer-payment-label">
+        METODE PEMBAYARAN
+    </span>
+
+
+    <label class="customer-payment-option">
+
+        <input
+            type="radio"
+            name="paymentMethod"
+            value="TUNAI"
+            checked
+        >
+
+        <span>
+
+            <strong>
+                Tunai
+            </strong>
+
+            <small>
+                Bayar langsung kepada driver
+            </small>
+
+        </span>
+
+    </label>
+
+
+    <label class="customer-payment-option">
+
+        <input
+            type="radio"
+            name="paymentMethod"
+            value="QRIS"
+        >
+
+        <span>
+
+            <strong>
+                QRIS
+            </strong>
+
+            <small>
+                Scan QRIS untuk pembayaran
+            </small>
+
+        </span>
+
+    </label>
+
+
+    <label class="customer-payment-option">
+
+        <input
+            type="radio"
+            name="paymentMethod"
+            value="TRANSFER_BANK"
+        >
+
+        <span>
+
+            <strong>
+                Transfer Bank
+            </strong>
+
+            <small>
+                Transfer ke rekening driver
+            </small>
+
+        </span>
+
+    </label>
+
+</div>
 
     <!-- ORDER MESSAGE -->
 
@@ -1817,17 +1899,13 @@ Ojek Pribadi
 
 {% endblock %}
 
-
-
-
-
 {% block scripts %}
 
 <script
     src="{{ url_for(
         'static',
         filename='js/app.js',
-        v='customer-panel-fix-1'
+        v='phase20i-fixed'
     ) }}"
 ></script>
 

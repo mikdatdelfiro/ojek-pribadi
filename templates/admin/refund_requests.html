@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Permintaan Pengembalian Dana
+{% endblock %}
+
+
+{% block content %}
+
+<div class="driver-refund-page">
+
+    <main class="driver-refund-container">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="driver-refund-header">
+
+            <a
+                href="/driver/payments"
+                class="driver-refund-back"
+                aria-label="Kembali ke pembayaran"
+            >
+                ←
+            </a>
+
+
+            <div>
+
+                <span>
+                    PAYMENT CONTROL
+                </span>
+
+                <h1>
+                    Permintaan Refund
+                </h1>
+
+                <p>
+                    Permintaan pengembalian dana
+                    yang menunggu pemeriksaan driver.
+                </p>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             SUMMARY
+        ================================================== -->
+
+        <section class="driver-refund-summary">
+
+            <span>
+                MENUNGGU REVIEW
+            </span>
+
+            <strong>
+                {{ total_refund_requests }}
+            </strong>
+
+            <small>
+                permintaan
+            </small>
+
+        </section>
+
+
+        <!-- =================================================
+             REQUEST LIST
+        ================================================== -->
+
+        {% if refund_requests %}
+
+            <div class="driver-refund-list">
+
+                {% for item in refund_requests %}
+
+                    <article class="driver-refund-item">
+
+
+                        <div class="driver-refund-item-head">
+
+                            <div>
+
+                                <span>
+                                    {{ item.order_code }}
+                                </span>
+
+                                <strong>
+                                    {{ item.customer_name }}
+                                </strong>
+
+                            </div>
+
+
+                            <span class="driver-refund-pending-badge">
+                                PENDING
+                            </span>
+
+                        </div>
+
+
+                        <div class="driver-refund-amount">
+
+                            <span>
+                                NOMINAL PEMBAYARAN
+                            </span>
+
+                            <strong>
+                                {{
+                                    item.payment_amount
+                                    | rupiah
+                                }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="driver-refund-meta">
+
+                            <div>
+
+                                <small>
+                                    METODE
+                                </small>
+
+                                <strong>
+
+                                    {% if
+                                        item.payment_method
+                                        == "TRANSFER_BANK"
+                                    %}
+
+                                        Transfer Bank
+
+                                    {% elif
+                                        item.payment_method
+                                        == "QRIS"
+                                    %}
+
+                                        QRIS
+
+                                    {% else %}
+
+                                        Tunai
+
+                                    {% endif %}
+
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    DIAJUKAN
+                                </small>
+
+                                <strong>
+                                    {{
+                                        item.refund_requested_at
+                                        or "-"
+                                    }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="driver-refund-reason">
+
+                            <span>
+                                ALASAN PELANGGAN
+                            </span>
+
+                            <p>
+                                {{
+                                    item.refund_request_reason
+                                    or "-"
+                                }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="driver-refund-route">
+
+                            <small>
+                                RUTE
+                            </small>
+
+                            <p>
+                                {{ item.pickup }}
+                            </p>
+
+                            <span>
+                                ↓
+                            </span>
+
+                            <p>
+                                {{ item.destination }}
+                            </p>
+
+                        </div>
+
+
+                        <a
+                            href="{{
+                                url_for(
+                                    'driver_order_detail',
+                                    order_id=item.id
+                                )
+                            }}"
+                            class="driver-refund-detail-button"
+                        >
+                            Periksa Detail Pesanan
+
+                            <span>
+                                →
+                            </span>
+                        </a>
+
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <section class="driver-refund-empty">
+
+                <span>
+                    ✓
+                </span>
+
+                <strong>
+                    Tidak ada permintaan refund
+                </strong>
+
+                <p>
+                    Semua permintaan pengembalian dana
+                    sudah diproses atau belum ada
+                    permintaan baru.
+                </p>
+
+            </section>
+
+        {% endif %}
+
+
+    </main>
+
+</div>
+
+{% endblock %}

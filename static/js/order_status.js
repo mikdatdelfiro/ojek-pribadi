@@ -4,7 +4,30 @@
 // ============================================================
 // OJEK PRIBADI
 // CUSTOMER LIVE ORDER STATUS
-// Phase 16 - Customer Tracking Dark Premium Final
+// PHASE 20I.3F - CUSTOMER REFUND STATUS + SECURE RECEIPT
+//
+// FULL REPLACEMENT
+// ------------------------------------------------------------
+// Dipertahankan:
+// - Live tracking
+// - Driver profile
+// - Driver trust
+// - Journey timeline
+// - Customer review
+// - Payment confirmation QRIS / Transfer
+// - Payment experience
+// - Payment copy
+// - Payment toast
+// - Customer notifications
+// - Customer contact driver
+// - Polling
+//
+// Diperbaiki:
+// - Receipt tidak lagi membuka /order/.../receipt#token=...
+// - Receipt memakai secure API + X-Receipt-Token
+// - Receipt token dibaca dari sessionStorage
+// - Cash payment tetap dipantau setelah status SELESAI
+// - Receipt muncul setelah SELESAI + DIBAYAR
 // ============================================================
 
 
@@ -18,7 +41,9 @@ function getElement(
 ) {
 
     const element =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
 
     if (
@@ -51,10 +76,27 @@ const trackingPage =
 
 const orderCode =
     trackingPage
-        ? trackingPage.dataset.orderCode
+        ? String(
+            trackingPage.dataset.orderCode
+            || ""
+        )
+            .trim()
+            .toUpperCase()
         : "";
 
-        // ============================================================
+
+const initialStatus =
+    trackingPage
+        ? String(
+            trackingPage.dataset.initialStatus
+            || "MENUNGGU"
+        )
+            .trim()
+            .toUpperCase()
+        : "MENUNGGU";
+
+
+// ============================================================
 // PHASE 19E
 // PRIVATE REVIEW ACCESS TOKEN
 // ============================================================
@@ -127,7 +169,7 @@ function resolveCustomerReviewToken() {
         }
 
 
-        // Hilangkan token dari address bar
+        // Hilangkan review_token dari address bar
         // setelah berhasil dibaca.
         window.history.replaceState(
             null,
@@ -158,6 +200,12 @@ function resolveCustomerReviewToken() {
 
     catch (error) {
 
+        console.warn(
+            "[REVIEW TOKEN STORAGE]",
+            error
+        );
+
+
         return "";
 
     }
@@ -167,12 +215,6 @@ function resolveCustomerReviewToken() {
 
 const customerReviewToken =
     resolveCustomerReviewToken();
-
-
-const initialStatus =
-    trackingPage
-        ? trackingPage.dataset.initialStatus
-        : "MENUNGGU";
 
 
 // ============================================================
@@ -217,6 +259,291 @@ const rejectedCard =
 
 
 // ============================================================
+// PHASE 20D
+// PAYMENT CONFIRMATION DOM
+// ============================================================
+
+const customerPaymentConfirmButton =
+    document.getElementById(
+        "customerPaymentConfirmButton"
+    );
+
+
+const customerPaymentConfirmArea =
+    document.getElementById(
+        "customerPaymentConfirmArea"
+    );
+
+
+const customerPaymentConfirmMessage =
+    document.getElementById(
+        "customerPaymentConfirmMessage"
+    );
+
+// ============================================================
+// PHASE 20I.3B
+// CUSTOMER REFUND REQUEST DOM
+// ============================================================
+
+const customerRefundRequestArea =
+    document.getElementById(
+        "customerRefundRequestArea"
+    );
+
+
+const customerRefundRequestReason =
+    document.getElementById(
+        "customerRefundRequestReason"
+    );
+
+
+const customerRefundRequestButton =
+    document.getElementById(
+        "customerRefundRequestButton"
+    );
+
+
+const customerRefundRequestMessage =
+    document.getElementById(
+        "customerRefundRequestMessage"
+    );
+
+
+// ============================================================
+// PHASE 20I.3F
+// CUSTOMER REFUND STATUS DOM
+// ============================================================
+
+const customerRefundStatusCard =
+    document.getElementById(
+        "customerRefundStatusCard"
+    );
+
+
+const customerRefundStatusIcon =
+    document.getElementById(
+        "customerRefundStatusIcon"
+    );
+
+
+const customerRefundStatusTitle =
+    document.getElementById(
+        "customerRefundStatusTitle"
+    );
+
+
+const customerRefundStatusDescription =
+    document.getElementById(
+        "customerRefundStatusDescription"
+    );
+
+
+const customerRefundStatusBadge =
+    document.getElementById(
+        "customerRefundStatusBadge"
+    );
+
+
+const customerRefundRequestReasonBlock =
+    document.getElementById(
+        "customerRefundRequestReasonBlock"
+    );
+
+
+const customerRefundRequestReasonText =
+    document.getElementById(
+        "customerRefundRequestReasonText"
+    );
+
+
+const customerRefundRejectionBlock =
+    document.getElementById(
+        "customerRefundRejectionBlock"
+    );
+
+
+const customerRefundRejectionReasonText =
+    document.getElementById(
+        "customerRefundRejectionReasonText"
+    );
+
+
+const customerRefundAmountBlock =
+    document.getElementById(
+        "customerRefundAmountBlock"
+    );
+
+
+const customerRefundAmountText =
+    document.getElementById(
+        "customerRefundAmountText"
+    );
+
+
+const customerRefundRequestedAtBlock =
+    document.getElementById(
+        "customerRefundRequestedAtBlock"
+    );
+
+
+const customerRefundRequestedAtText =
+    document.getElementById(
+        "customerRefundRequestedAtText"
+    );
+
+
+const customerRefundReviewedAtBlock =
+    document.getElementById(
+        "customerRefundReviewedAtBlock"
+    );
+
+
+const customerRefundReviewedAtText =
+    document.getElementById(
+        "customerRefundReviewedAtText"
+    );
+
+
+const customerRefundedAtBlock =
+    document.getElementById(
+        "customerRefundedAtBlock"
+    );
+
+
+const customerRefundedAtText =
+    document.getElementById(
+        "customerRefundedAtText"
+    );
+
+
+const customerRefundStatusNotice =
+    document.getElementById(
+        "customerRefundStatusNotice"
+    );
+
+// ============================================================
+// PHASE 20F
+// CUSTOMER PAYMENT EXPERIENCE DOM
+// ============================================================
+
+const customerPaymentStatusBadge =
+    document.getElementById(
+        "customerPaymentStatusBadge"
+    );
+
+
+const customerPaymentLiveStatus =
+    document.getElementById(
+        "customerPaymentLiveStatus"
+    );
+
+
+const customerPaymentProgress =
+    document.getElementById(
+        "customerPaymentProgress"
+    );
+
+
+const customerPaymentToast =
+    document.getElementById(
+        "customerPaymentToast"
+    );
+
+
+const customerPaymentCopyButtons =
+    document.querySelectorAll(
+        ".customer-payment-copy-button"
+    );
+
+
+// ============================================================
+// PHASE 20G
+// LEGACY DIGITAL RECEIPT DOM
+// ============================================================
+
+const customerDigitalReceiptArea =
+    document.getElementById(
+        "customerDigitalReceiptArea"
+    );
+
+
+const customerDigitalReceiptButton =
+    document.getElementById(
+        "customerDigitalReceiptButton"
+    );
+
+
+// ============================================================
+// PHASE 20G.3
+// CUSTOMER DIGITAL RECEIPT DOM
+// ============================================================
+
+const customerReceiptConfig =
+    document.getElementById(
+        "customerReceiptConfig"
+    );
+
+
+const customerReceiptCard =
+    document.getElementById(
+        "customerReceiptCard"
+    );
+
+
+const customerReceiptMessage =
+    document.getElementById(
+        "customerReceiptMessage"
+    );
+
+
+const openCustomerReceiptButton =
+    document.getElementById(
+        "openCustomerReceiptButton"
+    );
+
+
+const customerReceiptModal =
+    document.getElementById(
+        "customerReceiptModal"
+    );
+
+
+const customerReceiptBackdrop =
+    document.getElementById(
+        "customerReceiptBackdrop"
+    );
+
+
+const closeCustomerReceiptButton =
+    document.getElementById(
+        "closeCustomerReceiptButton"
+    );
+
+
+const customerReceiptLoading =
+    document.getElementById(
+        "customerReceiptLoading"
+    );
+
+
+const customerReceiptError =
+    document.getElementById(
+        "customerReceiptError"
+    );
+
+
+const customerReceiptContent =
+    document.getElementById(
+        "customerReceiptContent"
+    );
+
+const customerReceiptPrintButton =
+    document.getElementById(
+        "customerReceiptPrintButton"
+    );
+
+
+// ============================================================
 // DRIVER CONTACT
 // ============================================================
 
@@ -236,51 +563,6 @@ const progressSteps =
         ".progress-step"
     );
 
-    // =====================================================
-// TIMELINE TIMESTAMP CONFIG
-// =====================================================
-
-const timelineTimestampKeys = {
-
-    0:
-        "created_at",
-
-    1:
-        "accepted_at",
-
-    2:
-        "to_pickup_at",
-
-    3:
-        "picked_up_at",
-
-    4:
-        "completed_at"
-
-};
-
-
-const statusTimestampKeys = {
-
-    MENUNGGU:
-        "created_at",
-
-    DITERIMA:
-        "accepted_at",
-
-    MENUJU_JEMPUT:
-        "to_pickup_at",
-
-    DIJEMPUT:
-        "picked_up_at",
-
-    SELESAI:
-        "completed_at",
-
-    DITOLAK:
-        "rejected_at"
-
-};
 
 // ============================================================
 // DRIVER PROFILE
@@ -316,7 +598,8 @@ const driverProfileName =
 
 const driverProfileBio =
     getElement(
-        "driverProfileBio",
+
+                "driverProfileBio",
         false
     );
 
@@ -341,7 +624,8 @@ const driverVehiclePlate =
         false
     );
 
-    // ============================================================
+
+// ============================================================
 // PHASE 19D
 // DRIVER TRUST
 // ============================================================
@@ -393,6 +677,7 @@ const driverTrustContact =
         "driverTrustContact",
         false
     );
+
 
 // ============================================================
 // PHASE 19A
@@ -460,6 +745,7 @@ const customerReviewResultStars =
         false
     );
 
+
 const customerReviewTagButtons =
     document.querySelectorAll(
         ".customer-review-tag"
@@ -494,8 +780,25 @@ const customerReviewResultFeedback =
     );
 
 
+// ============================================================
+// APPLICATION STATE
+// ============================================================
+
+let currentStatus =
+    null;
+
+
+let statusInterval =
+    null;
+
+
+let latestOrderData =
+    null;
+
+
 let selectedReviewTags =
     [];
+
 
 let selectedReviewRating =
     0;
@@ -509,125 +812,61 @@ let reviewSubmitting =
     false;
 
 
-    // ============================================================
-// PHASE 19B
-// QUICK TAGS
+let customerStatusToastTimer =
+    null;
+
+
+let customerPaymentToastTimer =
+    null;
+
+
+// ============================================================
+// STATUS TIMESTAMP CONFIG
 // ============================================================
 
-function toggleCustomerReviewTag(
-    button
-) {
+const timelineTimestampKeys = {
 
-    const tag =
-        button.dataset.reviewTag;
+    0:
+        "created_at",
 
+    1:
+        "accepted_at",
 
-    if (!tag) {
+    2:
+        "to_pickup_at",
 
-        return;
+    3:
+        "picked_up_at",
 
-    }
+    4:
+        "completed_at"
 
-
-    const selected =
-        selectedReviewTags.includes(
-            tag
-        );
-
-
-    if (selected) {
-
-        selectedReviewTags =
-            selectedReviewTags.filter(
-                function (
-                    item
-                ) {
-
-                    return (
-                        item !== tag
-                    );
-
-                }
-            );
-
-    }
-
-    else {
-
-        selectedReviewTags.push(
-            tag
-        );
-
-    }
+};
 
 
-    const nowSelected =
-        !selected;
+const statusTimestampKeys = {
+
+    MENUNGGU:
+        "created_at",
+
+    DITERIMA:
+        "accepted_at",
+
+    MENUJU_JEMPUT:
+        "to_pickup_at",
+
+    DIJEMPUT:
+        "picked_up_at",
+
+    SELESAI:
+        "completed_at",
+
+    DITOLAK:
+        "rejected_at"
+
+};
 
 
-    button.classList.toggle(
-        "is-active",
-        nowSelected
-    );
-
-
-    button.setAttribute(
-        "aria-pressed",
-        nowSelected
-            ? "true"
-            : "false"
-    );
-
-}
-
-
-customerReviewTagButtons.forEach(
-    function (
-        button
-    ) {
-
-        button.addEventListener(
-            "click",
-            function () {
-
-                toggleCustomerReviewTag(
-                    button
-                );
-
-            }
-        );
-
-    }
-);
-
-if (customerReviewFeedback) {
-
-    customerReviewFeedback.addEventListener(
-        "input",
-        function () {
-
-            const length =
-                customerReviewFeedback
-                    .value
-                    .length;
-
-
-            if (
-                customerReviewFeedbackCount
-            ) {
-
-                customerReviewFeedbackCount
-                    .textContent =
-                        String(
-                            length
-                        );
-
-            }
-
-        }
-    );
-
-}
 // ============================================================
 // STATUS CONFIGURATION
 // ============================================================
@@ -750,15 +989,2177 @@ const statusConfig = {
 
 
 // ============================================================
-// APPLICATION STATE
+// PHASE 12
+// CUSTOMER STATUS NOTIFICATION
 // ============================================================
 
-let currentStatus =
-    null;
+const customerStatusNotificationConfig = {
+
+    DITERIMA: {
+
+        title:
+            "Perjalanan dikonfirmasi",
+
+        message:
+            (
+                "Driver telah menerima "
+                +
+                "perjalanan Anda."
+            )
+
+    },
 
 
-let statusInterval =
-    null;
+    MENUJU_JEMPUT: {
+
+        title:
+            "Driver menuju Anda",
+
+        message:
+            (
+                "Pengemudi sedang menuju "
+                +
+                "lokasi penjemputan."
+            )
+
+    },
+
+
+    DIJEMPUT: {
+
+        title:
+            "Perjalanan dimulai",
+
+        message:
+            (
+                "Perjalanan menuju tujuan "
+                +
+                "sedang berlangsung."
+            )
+
+    },
+
+
+    SELESAI: {
+
+        title:
+            "Perjalanan selesai",
+
+        message:
+            (
+                "Anda telah sampai di tujuan. "
+                +
+                "Terima kasih."
+            )
+
+    },
+
+
+    DITOLAK: {
+
+        title:
+            "Perjalanan belum dapat diterima",
+
+        message:
+            (
+                "Maaf, perjalanan Anda belum "
+                +
+                "dapat diterima oleh driver."
+            )
+
+    }
+
+};
+
+
+const customerStatusBaseTitle =
+    document.title;
+
+
+// ============================================================
+// PHASE 19A
+// CUSTOMER RATING LABELS
+// ============================================================
+
+const reviewLabels = {
+
+    1:
+        "Kurang",
+
+    2:
+        "Cukup",
+
+    3:
+        "Baik",
+
+    4:
+        "Sangat Baik",
+
+    5:
+        "Luar Biasa"
+
+};
+
+
+// ============================================================
+// PHASE 20F
+// PAYMENT STATUS LABEL
+// ============================================================
+
+function getCustomerPaymentStatusLabel(
+    paymentStatus
+) {
+
+    switch (
+        String(
+            paymentStatus
+            || ""
+        )
+            .trim()
+            .toUpperCase()
+    ) {
+
+        case "DIBAYAR":
+
+            return "DIBAYAR";
+
+
+        case "DIKEMBALIKAN":
+
+            return "DIKEMBALIKAN";
+
+
+        case "MENUNGGU_KONFIRMASI":
+
+            return "MENUNGGU KONFIRMASI";
+
+
+        case "MENUNGGU_PEMBAYARAN":
+
+            return "MENUNGGU PEMBAYARAN";
+
+
+        case "GAGAL":
+
+            return "GAGAL";
+
+
+        case "KEDALUWARSA":
+
+            return "KEDALUWARSA";
+
+
+        default:
+
+            return "BELUM DIBAYAR";
+
+    }
+
+}
+
+
+// ============================================================
+// PHASE 20D
+// CUSTOMER SUBMIT PAYMENT CONFIRMATION
+//
+// Hanya QRIS / Transfer.
+// TUNAI dikonfirmasi oleh driver.
+// ============================================================
+
+async function submitCustomerPaymentConfirmation() {
+
+    if (
+        !orderCode
+        ||
+        !customerPaymentConfirmButton
+    ) {
+
+        return;
+
+    }
+
+
+    const customerConfirmed =
+        window.confirm(
+            (
+                "Pastikan pembayaran benar-benar "
+                +
+                "sudah berhasil.\n\n"
+                +
+                "Kirim konfirmasi pembayaran sekarang?"
+            )
+        );
+
+
+    if (!customerConfirmed) {
+
+        return;
+
+    }
+
+
+    if (!customerReviewToken) {
+
+                console.warn(
+            "[PAYMENT] Token customer tidak tersedia."
+        );
+
+
+        if (
+            customerPaymentConfirmMessage
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    "Akses pembayaran tidak tersedia. "
+                    +
+                    "Buka status dari perangkat "
+                    +
+                    "yang digunakan untuk memesan."
+                );
+
+        }
+
+
+        return;
+
+    }
+
+
+    customerPaymentConfirmButton.disabled =
+        true;
+
+
+    const originalText =
+        customerPaymentConfirmButton
+            .textContent;
+
+
+    customerPaymentConfirmButton.textContent =
+        "Mengirim konfirmasi...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        orderCode
+                    )
+                    +
+                    "/payment/confirm"
+                ),
+                {
+
+                    method:
+                        "POST",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json",
+
+                        "Content-Type":
+                            "application/json",
+
+                        "X-Review-Token":
+                            customerReviewToken
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {}
+                        )
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Konfirmasi pembayaran gagal."
+            );
+
+        }
+
+
+        if (
+            customerPaymentConfirmArea
+        ) {
+
+            customerPaymentConfirmArea.hidden =
+                true;
+
+        }
+
+
+        if (
+            customerPaymentConfirmMessage
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                data.message
+                ||
+                "Konfirmasi pembayaran berhasil dikirim.";
+
+        }
+
+
+        window.setTimeout(
+            function () {
+
+                fetchOrderStatus();
+
+            },
+            300
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "[CUSTOMER PAYMENT CONFIRM]",
+            error
+        );
+
+
+        customerPaymentConfirmButton.disabled =
+            false;
+
+
+        customerPaymentConfirmButton.textContent =
+            originalText;
+
+
+        if (
+            customerPaymentConfirmMessage
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    error.message
+                    ||
+                    "Konfirmasi pembayaran gagal."
+                );
+
+        }
+
+    }
+
+}
+
+// ============================================================
+// PHASE 20I.3F
+// REFUND FORMATTERS
+// ============================================================
+
+function formatCustomerRefundAmount(
+    value
+) {
+
+    const amount =
+        Number(
+            value
+            || 0
+        );
+
+
+    return (
+        "Rp"
+        +
+        Math.max(
+            0,
+            amount
+        ).toLocaleString(
+            "id-ID"
+        )
+    );
+
+}
+
+
+function formatCustomerRefundTimestamp(
+    value
+) {
+
+    const raw =
+        String(
+            value
+            || ""
+        ).trim();
+
+
+    if (!raw) {
+
+        return "-";
+
+    }
+
+
+    const match =
+        raw.match(
+            /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/
+        );
+
+
+    if (!match) {
+
+        return raw;
+
+    }
+
+
+    return (
+        match[3]
+        +
+        "/"
+        +
+        match[2]
+        +
+        "/"
+        +
+        match[1]
+        +
+        " • "
+        +
+        match[4]
+        +
+        ":"
+        +
+        match[5]
+    );
+
+}
+
+// ============================================================
+// PHASE 20I.3F
+// LIVE CUSTOMER REFUND STATUS
+// ============================================================
+
+function renderCustomerRefundStatus(
+    payment
+) {
+
+    if (!payment) {
+
+        return;
+
+    }
+
+
+    const refundRequest =
+        payment.refund_request
+        || {};
+
+
+    const status =
+        String(
+            refundRequest.status
+            || "NONE"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    // ========================================================
+    // CUSTOMER REQUEST FORM
+    // ========================================================
+
+    if (
+        customerRefundRequestArea
+    ) {
+
+        customerRefundRequestArea.hidden =
+            !Boolean(
+                refundRequest.can_customer_request
+            );
+
+    }
+
+
+    // ========================================================
+    // NONE
+    // ========================================================
+
+    if (
+        status
+        === "NONE"
+    ) {
+
+        if (
+            customerRefundStatusCard
+        ) {
+
+            customerRefundStatusCard.hidden =
+                true;
+
+        }
+
+
+        return;
+
+    }
+
+
+    if (
+        !customerRefundStatusCard
+    ) {
+
+        return;
+
+    }
+
+
+    customerRefundStatusCard.hidden =
+        false;
+
+
+    customerRefundStatusCard.classList.remove(
+        "is-pending",
+        "is-rejected",
+        "is-approved"
+    );
+
+
+    // ========================================================
+    // COMMON DATA
+    // ========================================================
+
+    const requestReason =
+        String(
+            refundRequest.request_reason
+            || ""
+        ).trim();
+
+
+    const rejectionReason =
+        String(
+            refundRequest.rejection_reason
+            || ""
+        ).trim();
+
+
+    if (
+        customerRefundRequestReasonBlock
+    ) {
+
+        customerRefundRequestReasonBlock.hidden =
+            !requestReason;
+
+    }
+
+
+    if (
+        customerRefundRequestReasonText
+    ) {
+
+        customerRefundRequestReasonText.textContent =
+            requestReason;
+
+    }
+
+
+    if (
+        customerRefundRequestedAtBlock
+    ) {
+
+        customerRefundRequestedAtBlock.hidden =
+            !refundRequest.requested_at;
+
+    }
+
+
+    if (
+        customerRefundRequestedAtText
+    ) {
+
+        customerRefundRequestedAtText.textContent =
+            formatCustomerRefundTimestamp(
+                refundRequest.requested_at
+            );
+
+    }
+
+
+    // ========================================================
+    // RESET FINAL/REJECTION ELEMENTS
+    // ========================================================
+
+    if (
+        customerRefundRejectionBlock
+    ) {
+
+        customerRefundRejectionBlock.hidden =
+            true;
+
+    }
+
+
+    if (
+        customerRefundAmountBlock
+    ) {
+
+        customerRefundAmountBlock.hidden =
+            true;
+
+    }
+
+
+    if (
+        customerRefundReviewedAtBlock
+    ) {
+
+        customerRefundReviewedAtBlock.hidden =
+            true;
+
+    }
+
+
+    if (
+        customerRefundedAtBlock
+    ) {
+
+        customerRefundedAtBlock.hidden =
+            true;
+
+    }
+
+
+    // ========================================================
+    // PENDING
+    // ========================================================
+
+    if (
+        status
+        === "PENDING"
+    ) {
+
+        customerRefundStatusCard.classList.add(
+            "is-pending"
+        );
+
+
+        if (
+            customerRefundStatusIcon
+        ) {
+
+            customerRefundStatusIcon.textContent =
+                "⏳";
+
+        }
+
+
+        if (
+            customerRefundStatusBadge
+        ) {
+
+            customerRefundStatusBadge.textContent =
+                "PENDING";
+
+        }
+
+
+        if (
+            customerRefundStatusTitle
+        ) {
+
+            customerRefundStatusTitle.textContent =
+                "Menunggu review driver";
+
+        }
+
+
+        if (
+            customerRefundStatusDescription
+        ) {
+
+            customerRefundStatusDescription.textContent =
+                (
+                    "Permintaan pengembalian dana "
+                    +
+                    "Anda sedang diperiksa oleh driver."
+                );
+
+        }
+
+
+        if (
+            customerRefundStatusNotice
+        ) {
+
+            customerRefundStatusNotice.textContent =
+                (
+                    "Pembayaran tetap berstatus DIBAYAR "
+                    +
+                    "sampai driver benar-benar "
+                    +
+                    "memproses pengembalian dana."
+                );
+
+        }
+
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // REJECTED
+    // ========================================================
+
+    if (
+        status
+        === "REJECTED"
+    ) {
+
+        customerRefundStatusCard.classList.add(
+            "is-rejected"
+        );
+
+
+        if (
+            customerRefundStatusIcon
+        ) {
+
+            customerRefundStatusIcon.textContent =
+                "!";
+
+        }
+
+
+        if (
+            customerRefundStatusBadge
+        ) {
+
+            customerRefundStatusBadge.textContent =
+                "DITOLAK";
+
+        }
+
+
+        if (
+            customerRefundStatusTitle
+        ) {
+
+            customerRefundStatusTitle.textContent =
+                "Permintaan refund ditolak";
+
+        }
+
+
+        if (
+            customerRefundStatusDescription
+        ) {
+
+            customerRefundStatusDescription.textContent =
+                (
+                    "Driver sudah meninjau "
+                    +
+                    "permintaan pengembalian dana Anda."
+                );
+
+        }
+
+
+        if (
+            customerRefundRejectionBlock
+        ) {
+
+            customerRefundRejectionBlock.hidden =
+                !rejectionReason;
+                }
+
+
+        if (
+            customerRefundRejectionReasonText
+        ) {
+
+            customerRefundRejectionReasonText.textContent =
+                rejectionReason;
+
+        }
+
+
+        if (
+            customerRefundReviewedAtBlock
+        ) {
+
+            customerRefundReviewedAtBlock.hidden =
+                !refundRequest.reviewed_at;
+
+        }
+
+
+        if (
+            customerRefundReviewedAtText
+        ) {
+
+            customerRefundReviewedAtText.textContent =
+                formatCustomerRefundTimestamp(
+                    refundRequest.reviewed_at
+                );
+
+        }
+
+
+        if (
+            customerRefundStatusNotice
+        ) {
+
+            customerRefundStatusNotice.textContent =
+                (
+                    "Dana tidak dikembalikan. "
+                    +
+                    "Pembayaran tetap tercatat DIBAYAR."
+                );
+
+        }
+
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // APPROVED
+    // ========================================================
+
+    if (
+        status
+        === "APPROVED"
+    ) {
+
+        customerRefundStatusCard.classList.add(
+            "is-approved"
+        );
+
+
+        if (
+            customerRefundStatusIcon
+        ) {
+
+            customerRefundStatusIcon.textContent =
+                "✓";
+
+        }
+
+
+        if (
+            customerRefundStatusBadge
+        ) {
+
+            customerRefundStatusBadge.textContent =
+                "DIKEMBALIKAN";
+
+        }
+
+
+        if (
+            customerRefundStatusTitle
+        ) {
+
+            customerRefundStatusTitle.textContent =
+                "Dana sudah dikembalikan";
+
+        }
+
+
+        if (
+            customerRefundStatusDescription
+        ) {
+
+            customerRefundStatusDescription.textContent =
+                (
+                    "Driver telah mengonfirmasi "
+                    +
+                    "pengembalian dana Anda."
+                );
+
+        }
+
+
+        if (
+            customerRefundAmountBlock
+        ) {
+
+            customerRefundAmountBlock.hidden =
+                false;
+
+        }
+
+
+        if (
+            customerRefundAmountText
+        ) {
+
+            customerRefundAmountText.textContent =
+                formatCustomerRefundAmount(
+                    payment.refund_amount
+                );
+
+        }
+
+
+        if (
+            customerRefundReviewedAtBlock
+        ) {
+
+            customerRefundReviewedAtBlock.hidden =
+                !refundRequest.reviewed_at;
+
+        }
+
+
+        if (
+            customerRefundReviewedAtText
+        ) {
+
+            customerRefundReviewedAtText.textContent =
+                formatCustomerRefundTimestamp(
+                    refundRequest.reviewed_at
+                );
+
+        }
+
+
+        if (
+            customerRefundedAtBlock
+        ) {
+
+            customerRefundedAtBlock.hidden =
+                !payment.refunded_at;
+
+        }
+
+
+        if (
+            customerRefundedAtText
+        ) {
+
+            customerRefundedAtText.textContent =
+                formatCustomerRefundTimestamp(
+                    payment.refunded_at
+                );
+
+        }
+
+
+        if (
+            customerRefundStatusNotice
+        ) {
+
+            customerRefundStatusNotice.textContent =
+                (
+                    "Pembayaran sudah berstatus "
+                    +
+                    "DIKEMBALIKAN."
+                );
+
+        }
+
+    }
+
+}
+
+// ============================================================
+// PHASE 20F
+// RENDER CUSTOMER PAYMENT EXPERIENCE
+// ============================================================
+
+function renderCustomerPaymentExperience(
+    payment
+) {
+
+    if (!payment) {
+
+        return;
+
+    }
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const method =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    // ========================================================
+    // STATUS BADGE
+    // ========================================================
+
+    if (
+        customerPaymentStatusBadge
+    ) {
+
+        customerPaymentStatusBadge.textContent =
+            getCustomerPaymentStatusLabel(
+                status
+            );
+
+
+        customerPaymentStatusBadge.classList.remove(
+            "is-paid",
+            "is-review",
+            "is-pending",
+            "is-refunded"
+        );
+
+
+        if (
+            status
+            === "DIKEMBALIKAN"
+        ) {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-refunded"
+            );
+
+        }
+
+        else if (
+            status
+            === "DIBAYAR"
+        ) {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-paid"
+            );
+
+        }
+
+        else if (
+            status
+            === "MENUNGGU_KONFIRMASI"
+        ) {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-review"
+            );
+
+        }
+
+        else {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-pending"
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // LIVE MESSAGE
+    // ========================================================
+
+    if (
+        customerPaymentLiveStatus
+    ) {
+
+        if (
+            status
+            === "DIKEMBALIKAN"
+        ) {
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        ↩
+                    </span>
+
+                    <div>
+                        <strong>
+                            Dana sudah dikembalikan
+                        </strong>
+
+                        <p>
+                            Pengembalian dana telah
+                            dikonfirmasi oleh driver.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+        else if (
+            status
+            === "DIBAYAR"
+        ) {
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        ✓
+                    </span>
+
+                    <div>
+                        <strong>
+                            Pembayaran berhasil
+                        </strong>
+
+                        <p>
+                            Pembayaran Anda sudah
+                            dikonfirmasi oleh driver.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+        else if (
+            status
+            === "MENUNGGU_KONFIRMASI"
+        ) {
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        ⏳
+                    </span>
+
+                    <div>
+                        <strong>
+                            Sedang diverifikasi
+                        </strong>
+
+                        <p>
+                            Konfirmasi pembayaran sudah
+                            dikirim. Tunggu driver
+                            melakukan verifikasi.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+        else if (
+            method
+            === "TUNAI"
+        ) {
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        Rp
+                    </span>
+
+                    <div>
+                        <strong>
+                            Pembayaran tunai
+                        </strong>
+
+                        <p>
+                            Bayarkan tarif langsung
+                            kepada driver.
+                            Setelah perjalanan selesai,
+                            driver akan mengonfirmasi
+                            pembayaran tunai Anda.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+        else {
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        !
+                    </span>
+
+                    <div>
+                        <strong>
+                            Pembayaran belum selesai
+                        </strong>
+
+                        <p>
+                            Selesaikan pembayaran
+                            kemudian kirim konfirmasi.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // CONFIRM BUTTON
+    // ========================================================
+
+    if (
+        customerPaymentConfirmArea
+    ) {
+
+        customerPaymentConfirmArea.hidden =
+            !payment.can_customer_confirm;
+
+    }
+
+
+    // ========================================================
+    // CONFIRM MESSAGE
+    // ========================================================
+
+    if (
+        customerPaymentConfirmMessage
+    ) {
+
+        if (
+            status
+            === "DIKEMBALIKAN"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                "↩ Dana sudah dikembalikan.";
+
+        }
+
+        else if (
+            status
+            === "DIBAYAR"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                "✓ Pembayaran sudah dikonfirmasi.";
+
+        }
+
+        else if (
+            status
+            === "MENUNGGU_KONFIRMASI"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    "Konfirmasi sudah dikirim. "
+                    +
+                    "Menunggu verifikasi driver."
+                );
+
+        }
+
+        else if (
+            method
+            === "TUNAI"
+            &&
+            latestOrderData
+            &&
+            latestOrderData.status
+            === "SELESAI"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    "Menunggu driver mengonfirmasi "
+                    +
+                    "pembayaran tunai."
+                );
+
+        }
+
+        else {
+
+            customerPaymentConfirmMessage.hidden =
+                true;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // PHASE 20I.3F
+    // CUSTOMER REFUND LIVE STATUS
+    // ========================================================
+
+    renderCustomerRefundStatus(
+        payment
+    );
+
+
+    updateCustomerPaymentProgress(
+        payment
+    );
+
+}
+
+// ============================================================
+// PHASE 20I.3B
+// SUBMIT CUSTOMER REFUND REQUEST
+// ============================================================
+
+async function submitCustomerRefundRequest() {
+
+    if (
+        !orderCode
+        ||
+        !customerRefundRequestButton
+        ||
+        !customerRefundRequestReason
+    ) {
+
+        return;
+
+    }
+
+
+    const reason =
+        String(
+            customerRefundRequestReason.value
+            || ""
+        ).trim();
+
+
+    if (
+        reason.length < 3
+    ) {
+
+        if (
+            customerRefundRequestMessage
+        ) {
+
+            customerRefundRequestMessage.hidden =
+                false;
+
+
+            customerRefundRequestMessage.textContent =
+                (
+                    "Masukkan alasan pengembalian "
+                    +
+                    "dana minimal 3 karakter."
+                );
+
+        }
+
+
+        customerRefundRequestReason.focus();
+
+                return;
+
+    }
+
+
+    if (
+        !customerReviewToken
+    ) {
+
+        if (
+            customerRefundRequestMessage
+        ) {
+
+            customerRefundRequestMessage.hidden =
+                false;
+
+
+            customerRefundRequestMessage.textContent =
+                (
+                    "Akses pesanan tidak tersedia. "
+                    +
+                    "Buka status dari perangkat "
+                    +
+                    "yang digunakan untuk memesan."
+                );
+
+        }
+
+
+        return;
+
+    }
+
+
+    const confirmed =
+        window.confirm(
+            (
+                "Ajukan pengembalian dana?\n\n"
+                +
+                "Permintaan akan dikirim "
+                +
+                "kepada driver untuk diperiksa."
+            )
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const originalText =
+        customerRefundRequestButton
+            .textContent;
+
+
+    customerRefundRequestButton.disabled =
+        true;
+
+
+    customerRefundRequestButton.textContent =
+        "Mengirim permintaan...";
+
+
+    if (
+        customerRefundRequestMessage
+    ) {
+
+        customerRefundRequestMessage.hidden =
+            true;
+
+
+        customerRefundRequestMessage.textContent =
+            "";
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        orderCode
+                    )
+                    +
+                    "/refund-request"
+                ),
+                {
+
+                    method:
+                        "POST",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json",
+
+                        "Content-Type":
+                            "application/json",
+
+                        "X-Review-Token":
+                            customerReviewToken
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                reason:
+                                    reason
+                            }
+                        )
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Permintaan refund gagal."
+            );
+
+        }
+
+
+        // ====================================================
+        // Setelah request berhasil, form langsung ditutup.
+        // Sumber state final tetap Live Status API.
+        // ====================================================
+
+        if (
+            customerRefundRequestArea
+        ) {
+
+            customerRefundRequestArea.hidden =
+                true;
+
+        }
+
+
+        if (
+            customerRefundRequestMessage
+        ) {
+
+            customerRefundRequestMessage.hidden =
+                false;
+
+
+            customerRefundRequestMessage.textContent =
+                data.message
+                ||
+                "Permintaan pengembalian dana berhasil dikirim.";
+
+        }
+
+
+        // ====================================================
+        // Order sebelumnya mungkin SELESAI + DIBAYAR sehingga
+        // polling sudah berhenti. Hidupkan lagi untuk PENDING.
+        // ====================================================
+
+        startPolling();
+
+
+        window.setTimeout(
+            function () {
+
+                fetchOrderStatus();
+
+            },
+            150
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "[CUSTOMER REFUND REQUEST]",
+            error
+        );
+
+
+        customerRefundRequestButton.disabled =
+            false;
+
+
+        customerRefundRequestButton.textContent =
+            originalText;
+
+
+        if (
+            customerRefundRequestMessage
+        ) {
+
+            customerRefundRequestMessage.hidden =
+                false;
+
+
+            customerRefundRequestMessage.textContent =
+                (
+                    error.message
+                    ||
+                    "Permintaan refund gagal."
+                );
+
+        }
+
+    }
+
+}
+
+// ============================================================
+// PHASE 20F
+// PAYMENT PROGRESS
+// ============================================================
+
+function updateCustomerPaymentProgress(
+    payment
+) {
+
+    if (
+        !customerPaymentProgress
+        ||
+        !payment
+    ) {
+
+        return;
+
+    }
+
+
+    const method =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const steps =
+        customerPaymentProgress
+            .querySelectorAll(
+                ".customer-payment-step"
+            );
+
+
+    if (
+        !steps.length
+    ) {
+
+        return;
+
+    }
+
+
+    const paymentFinalized =
+        (
+            status
+            === "DIBAYAR"
+            ||
+            status
+            === "DIKEMBALIKAN"
+        );
+
+
+    steps.forEach(
+        function (
+            step
+        ) {
+
+            step.classList.remove(
+                "is-active"
+            );
+
+        }
+    );
+
+
+    // ========================================================
+    // CASH
+    // ========================================================
+
+    if (
+        method
+        === "TUNAI"
+    ) {
+
+        steps[
+            0
+        ]?.classList.add(
+            "is-active"
+        );
+
+
+        if (
+            paymentFinalized
+        ) {
+
+            steps[
+                1
+            ]?.classList.add(
+                "is-active"
+            );
+
+
+            steps[
+                2
+            ]?.classList.add(
+                "is-active"
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // QRIS / BANK TRANSFER
+    // ========================================================
+
+    steps[
+        0
+    ]?.classList.add(
+        "is-active"
+    );
+
+
+    if (
+        status
+        === "MENUNGGU_KONFIRMASI"
+        ||
+        paymentFinalized
+    ) {
+
+        steps[
+            1
+        ]?.classList.add(
+            "is-active"
+        );
+
+    }
+
+
+    if (
+        paymentFinalized
+    ) {
+
+        steps[
+            2
+        ]?.classList.add(
+            "is-active"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// PHASE 20D
+// UPDATE CUSTOMER PAYMENT STATUS
+// ============================================================
+
+function updateCustomerPaymentStatus(
+    payment
+) {
+
+    if (!payment) {
+
+        return;
+
+    }
+
+
+    if (
+        customerPaymentConfirmArea
+    ) {
+
+        customerPaymentConfirmArea.hidden =
+            !payment.can_customer_confirm;
+
+    }
+
+
+    if (
+        !customerPaymentConfirmMessage
+    ) {
+
+        return;
+
+    }
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const method =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        status
+        === "DIKEMBALIKAN"
+    ) {
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            "↩ Dana sudah dikembalikan.";
+
+
+        return;
+
+    }
+
+
+    if (
+        status
+        === "DIBAYAR"
+    ) {
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            "✓ Pembayaran sudah dikonfirmasi.";
+
+
+        return;
+
+    }
+
+
+    if (
+        status
+        === "MENUNGGU_KONFIRMASI"
+    ) {
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            (
+                "Pembayaran sedang menunggu "
+                +
+                "konfirmasi driver."
+            );
+
+
+        return;
+
+    }
+
+
+    if (
+        method
+        === "TUNAI"
+        &&
+        latestOrderData
+        &&
+        latestOrderData.status
+        === "SELESAI"
+    ) {
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            (
+                "Pembayaran tunai belum dikonfirmasi. "
+                +
+                "Menunggu driver."
+            );
+
+
+        return;
+
+    }
+
+
+    customerPaymentConfirmMessage.hidden =
+        true;
+
+}
+
+
+// ============================================================
+// PHASE 20F
+// PAYMENT COPY
+// ============================================================
+
+async function copyCustomerPaymentValue(
+    value
+) {
+
+    const text =
+        String(
+            value
+            || ""
+        ).trim();
+
+
+    if (!text) {
+
+        return false;
+
+    }
+
+
+    try {
+
+        if (
+            navigator.clipboard
+            &&
+            window.isSecureContext
+        ) {
+
+            await navigator.clipboard.writeText(
+                text
+            );
+
+
+            return true;
+
+        }
+
+
+        const textarea =
+            document.createElement(
+                "textarea"
+            );
+
+
+        textarea.value =
+            text;
+
+
+        textarea.style.position =
+            "fixed";
+
+
+        textarea.style.opacity =
+            "0";
+
+
+        document.body.appendChild(
+            textarea
+        );
+
+                textarea.focus();
+
+        textarea.select();
+
+
+        const copied =
+            document.execCommand(
+                "copy"
+            );
+
+
+        textarea.remove();
+
+
+        return copied;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "[PAYMENT COPY]",
+            error
+        );
+
+
+        return false;
+
+    }
+
+}
+
+
+// ============================================================
+// PHASE 20F
+// PAYMENT TOAST
+// ============================================================
+
+function showCustomerPaymentToast(
+    message
+) {
+
+    if (
+        !customerPaymentToast
+    ) {
+
+        return;
+
+    }
+
+
+    customerPaymentToast.textContent =
+        message;
+
+
+    customerPaymentToast.hidden =
+        false;
+
+
+    customerPaymentToast.classList.add(
+        "is-visible"
+    );
+
+
+    if (
+        customerPaymentToastTimer
+    ) {
+
+        window.clearTimeout(
+            customerPaymentToastTimer
+        );
+
+    }
+
+
+    customerPaymentToastTimer =
+        window.setTimeout(
+            function () {
+
+                customerPaymentToast.classList.remove(
+                    "is-visible"
+                );
+
+
+                window.setTimeout(
+                    function () {
+
+                        customerPaymentToast.hidden =
+                            true;
+
+                    },
+                    220
+                );
+
+            },
+            1800
+        );
+
+}
+
+
+// ============================================================
+// PHASE 20F
+// PAYMENT COPY EVENTS
+// ============================================================
+
+customerPaymentCopyButtons.forEach(
+    function (
+        button
+    ) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const value =
+                    button.dataset.copyValue
+                    || "";
+
+
+                const label =
+                    button.dataset.copyLabel
+                    || "Data";
+
+
+                const copied =
+                    await copyCustomerPaymentValue(
+                        value
+                    );
+
+
+                if (
+                    copied
+                ) {
+
+                    showCustomerPaymentToast(
+                        (
+                            label
+                            +
+                            " berhasil disalin"
+                        )
+                    );
+
+                }
+
+                else {
+
+                    showCustomerPaymentToast(
+                        (
+                            label
+                            +
+                            " tidak dapat disalin"
+                        )
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
 
 
 // ============================================================
@@ -769,16 +3170,14 @@ function updateDriverProfile(
     profile
 ) {
 
-    if (!driverProfileCard) {
+    if (
+        !driverProfileCard
+    ) {
 
         return;
 
     }
 
-
-    // --------------------------------------------------------
-    // HIDE PROFILE
-    // --------------------------------------------------------
 
     if (!profile) {
 
@@ -791,17 +3190,9 @@ function updateDriverProfile(
     }
 
 
-    // --------------------------------------------------------
-    // SHOW PROFILE
-    // --------------------------------------------------------
-
     driverProfileCard.hidden =
         false;
 
-
-    // --------------------------------------------------------
-    // DRIVER NAME
-    // --------------------------------------------------------
 
     const driverName =
         (
@@ -811,7 +3202,9 @@ function updateDriverProfile(
         );
 
 
-    if (driverProfileName) {
+    if (
+        driverProfileName
+    ) {
 
         driverProfileName.textContent =
             driverName;
@@ -819,11 +3212,9 @@ function updateDriverProfile(
     }
 
 
-    // --------------------------------------------------------
-    // BIO
-    // --------------------------------------------------------
-
-    if (driverProfileBio) {
+    if (
+        driverProfileBio
+    ) {
 
         driverProfileBio.textContent =
             (
@@ -835,11 +3226,9 @@ function updateDriverProfile(
     }
 
 
-    // --------------------------------------------------------
-    // VEHICLE
-    // --------------------------------------------------------
-
-    if (driverVehicleName) {
+    if (
+        driverVehicleName
+    ) {
 
         driverVehicleName.textContent =
             (
@@ -851,7 +3240,9 @@ function updateDriverProfile(
     }
 
 
-    if (driverVehicleColor) {
+    if (
+        driverVehicleColor
+    ) {
 
         driverVehicleColor.textContent =
             (
@@ -863,7 +3254,9 @@ function updateDriverProfile(
     }
 
 
-    if (driverVehiclePlate) {
+    if (
+        driverVehiclePlate
+    ) {
 
         driverVehiclePlate.textContent =
             (
@@ -875,27 +3268,23 @@ function updateDriverProfile(
     }
 
 
-    // --------------------------------------------------------
-    // INITIAL
-    // --------------------------------------------------------
-
     const initial =
         driverName
-            .charAt(0)
+            .charAt(
+                0
+            )
             .toUpperCase();
 
 
-    if (driverProfileInitial) {
+    if (
+        driverProfileInitial
+    ) {
 
         driverProfileInitial.textContent =
             initial;
 
     }
 
-
-    // --------------------------------------------------------
-    // PHOTO
-    // --------------------------------------------------------
 
     if (
         driverProfilePhoto
@@ -911,16 +3300,15 @@ function updateDriverProfile(
             false;
 
 
-        if (driverProfileInitial) {
+        if (
+            driverProfileInitial
+        ) {
 
             driverProfileInitial.hidden =
                 true;
 
         }
 
-
-        // Jika foto gagal dimuat,
-        // tampilkan initial sebagai fallback.
 
         driverProfilePhoto.onerror =
             function () {
@@ -929,7 +3317,9 @@ function updateDriverProfile(
                     true;
 
 
-                if (driverProfileInitial) {
+                if (
+                    driverProfileInitial
+                ) {
 
                     driverProfileInitial.hidden =
                         false;
@@ -942,7 +3332,9 @@ function updateDriverProfile(
 
     else {
 
-        if (driverProfilePhoto) {
+        if (
+            driverProfilePhoto
+        ) {
 
             driverProfilePhoto.removeAttribute(
                 "src"
@@ -955,7 +3347,9 @@ function updateDriverProfile(
         }
 
 
-        if (driverProfileInitial) {
+        if (
+            driverProfileInitial
+        ) {
 
             driverProfileInitial.hidden =
                 false;
@@ -966,6 +3360,7 @@ function updateDriverProfile(
 
 }
 
+
 // ============================================================
 // PHASE 19D
 // UPDATE DRIVER TRUST
@@ -975,7 +3370,9 @@ function updateDriverTrust(
     trust
 ) {
 
-    if (!driverTrustArea) {
+    if (
+        !driverTrustArea
+    ) {
 
         return;
 
@@ -986,6 +3383,7 @@ function updateDriverTrust(
 
         driverTrustArea.hidden =
             true;
+
 
         return;
 
@@ -1017,11 +3415,9 @@ function updateDriverTrust(
         || 0;
 
 
-    // ========================================================
-    // RATING
-    // ========================================================
-
-    if (driverTrustRating) {
+    if (
+        driverTrustRating
+    ) {
 
         driverTrustRating.textContent =
             (
@@ -1035,11 +3431,9 @@ function updateDriverTrust(
     }
 
 
-    // ========================================================
-    // LABEL
-    // ========================================================
-
-    if (driverTrustLabel) {
+    if (
+        driverTrustLabel
+    ) {
 
         driverTrustLabel.textContent =
             (
@@ -1051,50 +3445,49 @@ function updateDriverTrust(
     }
 
 
-    // ========================================================
-    // REVIEW COUNT
-    // ========================================================
+    if (
+        driverTrustReviewCount
+    ) {
 
-    if (driverTrustReviewCount) {
+        if (
+            reviewCount
+            === 0
+        ) {
 
-        if (reviewCount === 0) {
-
-            driverTrustReviewCount
-                .textContent =
-                    "Belum ada ulasan";
+            driverTrustReviewCount.textContent =
+                "Belum ada ulasan";
 
         }
 
-        else if (reviewCount === 1) {
+        else if (
+            reviewCount
+            === 1
+        ) {
 
-            driverTrustReviewCount
-                .textContent =
-                    "Berdasarkan 1 ulasan";
+            driverTrustReviewCount.textContent =
+                "Berdasarkan 1 ulasan";
 
         }
 
         else {
 
-            driverTrustReviewCount
-                .textContent =
-                    (
-                        "Berdasarkan "
-                        +
-                        reviewCount
-                        +
-                        " ulasan"
-                    );
+            driverTrustReviewCount.textContent =
+                (
+                    "Berdasarkan "
+                    +
+                    reviewCount
+                    +
+                    " ulasan"
+                );
 
         }
 
     }
 
 
-    // ========================================================
-    // COMPLETED TRIPS
-    // ========================================================
-
-    if (driverTrustCompleted) {
+    if (
+        driverTrustCompleted
+    ) {
 
         driverTrustCompleted.textContent =
             (
@@ -1106,38 +3499,33 @@ function updateDriverTrust(
     }
 
 
-    // ========================================================
-    // VEHICLE
-    // ========================================================
-
-    if (driverTrustVehicle) {
+    if (
+        driverTrustVehicle
+    ) {
 
         driverTrustVehicle.hidden =
             (
-                trust
-                    .vehicle_data_available
+                trust.vehicle_data_available
                 !== true
             );
 
     }
 
 
-    // ========================================================
-    // CONTACT
-    // ========================================================
-
-    if (driverTrustContact) {
+    if (
+        driverTrustContact
+    ) {
 
         driverTrustContact.hidden =
             (
-                trust
-                    .contact_available
+                trust.contact_available
                 !== true
             );
 
     }
 
 }
+
 
 // ============================================================
 // DRIVER CONTACT
@@ -1147,7 +3535,9 @@ function updateDriverContact(
     status
 ) {
 
-    if (!customerDriverContact) {
+    if (
+        !customerDriverContact
+    ) {
 
         return;
 
@@ -1179,17 +3569,15 @@ function updateDriverContact(
         );
 
 
-    // Tambahan proteksi agar tombol benar-benar
-    // tidak tampil ketika status belum diizinkan.
-
     customerDriverContact.hidden =
         !canContact;
 
 }
 
-// =====================================================
+
+// ============================================================
 // JOURNEY TIMESTAMP FORMAT
-// =====================================================
+// ============================================================
 
 function formatJourneyTimestamp(
     value
@@ -1207,18 +3595,7 @@ function formatJourneyTimestamp(
             value
         ).trim();
 
-
-    /*
-        Backend:
-
-        2026-08-27 21:33:20
-
-        Tampilan:
-
-        21:33
-    */
-
-    const match =
+            const match =
         timestamp.match(
             /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
         );
@@ -1237,9 +3614,10 @@ function formatJourneyTimestamp(
 
 }
 
-// =====================================================
+
+// ============================================================
 // CREATE PROGRESS TIMESTAMP
-// =====================================================
+// ============================================================
 
 function getProgressTimestampElement(
     step
@@ -1251,7 +3629,9 @@ function getProgressTimestampElement(
         );
 
 
-    if (timestampElement) {
+    if (
+        timestampElement
+    ) {
 
         return timestampElement;
 
@@ -1272,14 +3652,15 @@ function getProgressTimestampElement(
         "--:--";
 
 
-    // Cari deskripsi di dalam progress step.
     const description =
         step.querySelector(
             "p"
         );
 
 
-    if (description) {
+    if (
+        description
+    ) {
 
         description.insertAdjacentElement(
             "afterend",
@@ -1301,9 +3682,10 @@ function getProgressTimestampElement(
 
 }
 
-// =====================================================
+
+// ============================================================
 // UPDATE JOURNEY TIMELINE TIMESTAMPS
-// =====================================================
+// ============================================================
 
 function updateTimelineTimestamps(
     timestamps
@@ -1333,7 +3715,9 @@ function updateTimelineTimestamps(
                 ];
 
 
-            if (!timestampKey) {
+            if (
+                !timestampKey
+            ) {
 
                 return;
 
@@ -1352,7 +3736,9 @@ function updateTimelineTimestamps(
                 ];
 
 
-            if (timestampValue) {
+            if (
+                timestampValue
+            ) {
 
                 timestampElement.textContent =
                     formatJourneyTimestamp(
@@ -1392,9 +3778,10 @@ function updateTimelineTimestamps(
 
 }
 
-// =====================================================
+
+// ============================================================
 // CURRENT STATUS TIMESTAMP
-// =====================================================
+// ============================================================
 
 function updateCurrentStatusTimestamp(
     status,
@@ -1418,7 +3805,9 @@ function updateCurrentStatusTimestamp(
         );
 
 
-    if (!timestampElement) {
+    if (
+        !timestampElement
+    ) {
 
         timestampElement =
             document.createElement(
@@ -1457,7 +3846,9 @@ function updateCurrentStatusTimestamp(
             : null;
 
 
-    if (!timestampValue) {
+    if (
+        !timestampValue
+    ) {
 
         timestampElement.hidden =
             true;
@@ -1487,9 +3878,10 @@ function updateCurrentStatusTimestamp(
 
 }
 
-// =====================================================
+
+// ============================================================
 // REJECTED TIMESTAMP
-// =====================================================
+// ============================================================
 
 function updateRejectedTimestamp(
     timestamps
@@ -1512,7 +3904,9 @@ function updateRejectedTimestamp(
         );
 
 
-    if (!element) {
+    if (
+        !element
+    ) {
 
         element =
             document.createElement(
@@ -1535,7 +3929,9 @@ function updateRejectedTimestamp(
         timestamps.rejected_at;
 
 
-    if (!rejectedAt) {
+    if (
+        !rejectedAt
+    ) {
 
         element.hidden =
             true;
@@ -1561,9 +3957,10 @@ function updateRejectedTimestamp(
 
 }
 
-// =====================================================
+
+// ============================================================
 // UPDATE ALL JOURNEY TIMESTAMPS
-// =====================================================
+// ============================================================
 
 function updateJourneyTimestamps(
     status,
@@ -1594,13 +3991,16 @@ function updateJourneyTimestamps(
 
 }
 
+
 // ============================================================
 // LAST UPDATE
 // ============================================================
 
 function updateLastUpdate() {
 
-    if (!lastUpdate) {
+    if (
+        !lastUpdate
+    ) {
 
         return;
 
@@ -1686,10 +4086,6 @@ function updateProgress(
     );
 
 
-    // --------------------------------------------------------
-    // COMPLETED
-    // --------------------------------------------------------
-
     if (
         status
         === "SELESAI"
@@ -1716,90 +4112,9 @@ function updateProgress(
 
 }
 
-// ============================================================
-// PHASE 12
-// CUSTOMER STATUS NOTIFICATION
-// ============================================================
-
-const customerStatusNotificationConfig = {
-
-    DITERIMA: {
-        title:
-            "Perjalanan dikonfirmasi",
-
-        message:
-            (
-                "Driver telah menerima "
-                +
-                "perjalanan Anda."
-            )
-    },
-
-
-    MENUJU_JEMPUT: {
-        title:
-            "Driver menuju Anda",
-
-        message:
-            (
-                "Pengemudi sedang menuju "
-                +
-                "lokasi penjemputan."
-            )
-    },
-
-
-    DIJEMPUT: {
-        title:
-            "Perjalanan dimulai",
-
-        message:
-            (
-                "Perjalanan menuju tujuan "
-                +
-                "sedang berlangsung."
-            )
-    },
-
-
-    SELESAI: {
-        title:
-            "Perjalanan selesai",
-
-        message:
-            (
-                "Anda telah sampai di tujuan. "
-                +
-                "Terima kasih."
-            )
-    },
-
-
-    DITOLAK: {
-        title:
-            "Perjalanan belum dapat diterima",
-
-        message:
-            (
-                "Maaf, perjalanan Anda belum "
-                +
-                "dapat diterima oleh driver."
-            )
-    }
-
-};
-
-
-const customerStatusBaseTitle =
-    document.title;
-
-
-let customerStatusToastTimer =
-    null;
-
 
 // ============================================================
-// CREATE CUSTOMER TOAST
+// CREATE CUSTOMER STATUS TOAST
 // ============================================================
 
 function getCustomerStatusToast() {
@@ -1810,7 +4125,9 @@ function getCustomerStatusToast() {
         );
 
 
-    if (toast) {
+    if (
+        toast
+    ) {
 
         return toast;
 
@@ -1879,8 +4196,7 @@ function getCustomerStatusToast() {
         message
     );
 
-
-    document.body.appendChild(
+        document.body.appendChild(
         toast
     );
 
@@ -1904,7 +4220,9 @@ function showCustomerStatusNotification(
         ];
 
 
-    if (!config) {
+    if (
+        !config
+    ) {
 
         return;
 
@@ -1927,7 +4245,9 @@ function showCustomerStatusNotification(
         );
 
 
-    if (title) {
+    if (
+        title
+    ) {
 
         title.textContent =
             config.title;
@@ -1935,7 +4255,9 @@ function showCustomerStatusNotification(
     }
 
 
-    if (message) {
+    if (
+        message
+    ) {
 
         message.textContent =
             config.message;
@@ -1956,7 +4278,9 @@ function showCustomerStatusNotification(
     );
 
 
-    if (customerStatusToastTimer) {
+    if (
+        customerStatusToastTimer
+    ) {
 
         window.clearTimeout(
             customerStatusToastTimer
@@ -1978,10 +4302,6 @@ function showCustomerStatusNotification(
         );
 
 
-    // --------------------------------------------------------
-    // TAB TITLE
-    // --------------------------------------------------------
-
     document.title =
         (
             config.title
@@ -1989,10 +4309,6 @@ function showCustomerStatusNotification(
             " • Ojek Pribadi"
         );
 
-
-    // --------------------------------------------------------
-    // MOBILE VIBRATION
-    // --------------------------------------------------------
 
     if (
         "vibrate"
@@ -2022,29 +4338,139 @@ window.addEventListener(
     }
 );
 
+
 // ============================================================
-// PHASE 19A
-// CUSTOMER RATING
+// PHASE 19B
+// QUICK TAGS
 // ============================================================
 
-const reviewLabels = {
+function toggleCustomerReviewTag(
+    button
+) {
 
-    1:
-        "Kurang",
+    const tag =
+        button.dataset.reviewTag;
 
-    2:
-        "Cukup",
 
-    3:
-        "Baik",
+    if (!tag) {
 
-    4:
-        "Sangat Baik",
+        return;
 
-    5:
-        "Luar Biasa"
+    }
 
-};
+
+    const selected =
+        selectedReviewTags.includes(
+            tag
+        );
+
+
+    if (
+        selected
+    ) {
+
+        selectedReviewTags =
+            selectedReviewTags.filter(
+                function (
+                    item
+                ) {
+
+                    return (
+                        item
+                        !== tag
+                    );
+
+                }
+            );
+
+    }
+
+    else {
+
+        selectedReviewTags.push(
+            tag
+        );
+
+    }
+
+
+    const nowSelected =
+        !selected;
+
+
+    button.classList.toggle(
+        "is-active",
+        nowSelected
+    );
+
+
+    button.setAttribute(
+        "aria-pressed",
+        nowSelected
+            ? "true"
+            : "false"
+    );
+
+}
+
+
+// ============================================================
+// REVIEW TAG EVENTS
+// ============================================================
+
+customerReviewTagButtons.forEach(
+    function (
+        button
+    ) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                toggleCustomerReviewTag(
+                    button
+                );
+
+            }
+        );
+
+    }
+);
+
+
+// ============================================================
+// REVIEW FEEDBACK COUNTER
+// ============================================================
+
+if (
+    customerReviewFeedback
+) {
+
+    customerReviewFeedback.addEventListener(
+        "input",
+        function () {
+
+            const length =
+                customerReviewFeedback
+                    .value
+                    .length;
+
+
+            if (
+                customerReviewFeedbackCount
+            ) {
+
+                customerReviewFeedbackCount.textContent =
+                    String(
+                        length
+                    );
+
+            }
+
+        }
+    );
+
+}
 
 
 // ============================================================
@@ -2100,7 +4526,9 @@ function updateCustomerReviewStars(
     );
 
 
-    if (customerReviewLabel) {
+    if (
+        customerReviewLabel
+    ) {
 
         customerReviewLabel.textContent =
             selectedReviewRating
@@ -2112,12 +4540,17 @@ function updateCustomerReviewStars(
     }
 
 
-    if (customerReviewSubmit) {
+    if (
+        customerReviewSubmit
+    ) {
 
         customerReviewSubmit.disabled =
             (
-                selectedReviewRating < 1
+                selectedReviewRating
+                < 1
+
                 ||
+
                 reviewSubmitting
             );
 
@@ -2141,11 +4574,9 @@ function showCustomerReviewSuccess(
     }
 
 
-    // ========================================================
-    // FORM / SUCCESS STATE
-    // ========================================================
-
-    if (customerReviewForm) {
+    if (
+        customerReviewForm
+    ) {
 
         customerReviewForm.hidden =
             true;
@@ -2153,7 +4584,9 @@ function showCustomerReviewSuccess(
     }
 
 
-    if (customerReviewSuccess) {
+    if (
+        customerReviewSuccess
+    ) {
 
         customerReviewSuccess.hidden =
             false;
@@ -2161,11 +4594,9 @@ function showCustomerReviewSuccess(
     }
 
 
-    // ========================================================
-    // STARS
-    // ========================================================
-
-    if (customerReviewResultStars) {
+    if (
+        customerReviewResultStars
+    ) {
 
         const rating =
             Number(
@@ -2191,11 +4622,9 @@ function showCustomerReviewSuccess(
     }
 
 
-    // ========================================================
-    // TAGS
-    // ========================================================
-
-    if (customerReviewResultTags) {
+    if (
+        customerReviewResultTags
+    ) {
 
         customerReviewResultTags.innerHTML =
             "";
@@ -2271,11 +4700,9 @@ function showCustomerReviewSuccess(
     }
 
 
-    // ========================================================
-    // FEEDBACK
-    // ========================================================
-
-    if (customerReviewResultFeedback) {
+    if (
+        customerReviewResultFeedback
+    ) {
 
         const feedback =
             String(
@@ -2295,6 +4722,7 @@ function showCustomerReviewSuccess(
 
 }
 
+
 // ============================================================
 // LOAD REVIEW
 // ============================================================
@@ -2312,7 +4740,9 @@ async function loadCustomerReview() {
     }
 
 
-    if (!customerReviewToken) {
+    if (
+        !customerReviewToken
+    ) {
 
         console.warn(
             "[REVIEW] Token akses tidak tersedia."
@@ -2364,7 +4794,8 @@ async function loadCustomerReview() {
                     }
 
                 }
-            );
+
+                            );
 
 
         const data =
@@ -2386,13 +4817,13 @@ async function loadCustomerReview() {
         }
 
 
-        // ====================================================
-        // EXISTING REVIEW
-        // ====================================================
+        if (
+            data.review
+        ) {
 
-        if (data.review) {
-
-            if (customerReviewCard) {
+            if (
+                customerReviewCard
+            ) {
 
                 customerReviewCard.hidden =
                     false;
@@ -2410,13 +4841,13 @@ async function loadCustomerReview() {
         }
 
 
-        // ====================================================
-        // NOT ELIGIBLE
-        // ====================================================
+        if (
+            !data.eligible
+        ) {
 
-        if (!data.eligible) {
-
-            if (customerReviewCard) {
+            if (
+                customerReviewCard
+            ) {
 
                 customerReviewCard.hidden =
                     true;
@@ -2429,11 +4860,9 @@ async function loadCustomerReview() {
         }
 
 
-        // ====================================================
-        // ELIGIBLE
-        // ====================================================
-
-        if (customerReviewCard) {
+        if (
+            customerReviewCard
+        ) {
 
             customerReviewCard.hidden =
                 false;
@@ -2466,7 +4895,9 @@ function updateCustomerReviewVisibility(
     status
 ) {
 
-    if (!customerReviewCard) {
+    if (
+        !customerReviewCard
+    ) {
 
         return;
 
@@ -2484,7 +4915,9 @@ function updateCustomerReviewVisibility(
         !completed;
 
 
-    if (completed) {
+    if (
+        completed
+    ) {
 
         loadCustomerReview();
 
@@ -2516,7 +4949,9 @@ async function submitCustomerReview() {
         true;
 
 
-    if (customerReviewSubmit) {
+    if (
+        customerReviewSubmit
+    ) {
 
         customerReviewSubmit.disabled =
             true;
@@ -2524,7 +4959,9 @@ async function submitCustomerReview() {
     }
 
 
-    if (customerReviewSubmitText) {
+    if (
+        customerReviewSubmitText
+    ) {
 
         customerReviewSubmitText.textContent =
             "Menyimpan...";
@@ -2532,7 +4969,9 @@ async function submitCustomerReview() {
     }
 
 
-    if (customerReviewMessage) {
+    if (
+        customerReviewMessage
+    ) {
 
         customerReviewMessage.textContent =
             "";
@@ -2554,6 +4993,7 @@ async function submitCustomerReview() {
                     "/review"
                 ),
                 {
+
                     method:
                         "POST",
 
@@ -2592,6 +5032,7 @@ async function submitCustomerReview() {
 
                             }
                         )
+
                 }
             );
 
@@ -2629,12 +5070,16 @@ async function submitCustomerReview() {
         );
 
 
-        if (customerReviewMessage) {
+        if (
+            customerReviewMessage
+        ) {
 
             customerReviewMessage.textContent =
-                error.message
-                ||
-                "Penilaian belum berhasil disimpan.";
+                (
+                    error.message
+                    ||
+                    "Penilaian belum berhasil disimpan."
+                );
 
         }
 
@@ -2646,7 +5091,9 @@ async function submitCustomerReview() {
             false;
 
 
-        if (customerReviewSubmitText) {
+        if (
+            customerReviewSubmitText
+        ) {
 
             customerReviewSubmitText.textContent =
                 "Kirim Penilaian";
@@ -2699,7 +5146,9 @@ customerReviewStars.forEach(
 );
 
 
-if (customerReviewSubmit) {
+if (
+    customerReviewSubmit
+) {
 
     customerReviewSubmit.addEventListener(
         "click",
@@ -2707,6 +5156,1094 @@ if (customerReviewSubmit) {
     );
 
 }
+
+
+// ============================================================
+// PHASE 20G.3
+// RECEIPT ORDER CODE
+// ============================================================
+
+function getCustomerReceiptOrderCode() {
+
+    const configuredOrderCode =
+        (
+            customerReceiptConfig
+            &&
+            customerReceiptConfig.dataset
+        )
+            ? customerReceiptConfig.dataset.orderCode
+            : "";
+
+
+    return String(
+        configuredOrderCode
+        ||
+        orderCode
+        ||
+        ""
+    )
+        .trim()
+        .toUpperCase();
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// RECEIPT TOKEN
+// ============================================================
+
+function getCustomerReceiptToken(
+    receiptOrderCode
+) {
+
+    receiptOrderCode =
+        String(
+            receiptOrderCode
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        !receiptOrderCode
+    ) {
+
+        return "";
+
+    }
+
+
+    try {
+
+        return String(
+            sessionStorage.getItem(
+                `receipt_token:${receiptOrderCode}`
+            )
+            || ""
+        ).trim();
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[RECEIPT TOKEN]",
+            error
+        );
+
+
+        return "";
+
+    }
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// FORMAT RUPIAH
+// ============================================================
+
+function formatReceiptRupiah(
+    value
+) {
+
+    const amount =
+        Number(
+            value
+            || 0
+        );
+
+
+    return new Intl.NumberFormat(
+        "id-ID",
+        {
+
+            style:
+                "currency",
+
+            currency:
+                "IDR",
+
+            maximumFractionDigits:
+                0
+
+        }
+    ).format(
+        amount
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// FORMAT DATE TIME
+// ============================================================
+
+function formatReceiptDateTime(
+    value
+) {
+
+    if (!value) {
+
+        return "-";
+
+    }
+
+
+    const normalized =
+        String(
+            value
+        )
+            .trim()
+            .replace(
+                " ",
+                "T"
+            );
+
+
+    const date =
+        new Date(
+            normalized
+        );
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(
+            value
+        );
+
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "id-ID",
+        {
+
+            dateStyle:
+                "medium",
+
+            timeStyle:
+                "short"
+
+        }
+    ).format(
+        date
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// SAFE TEXT
+// ============================================================
+
+function setReceiptText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+
+    if (
+        !element
+    ) {
+
+        return;
+
+    }
+
+
+    element.textContent =
+        (
+            value === null
+            ||
+            value === undefined
+            ||
+            value === ""
+        )
+            ? "-"
+            : String(
+                value
+            );
+
+}
+
+
+// ============================================================
+// PHASE 20G.6.5
+// RESET CUSTOMER RECEIPT CONTENT
+// ============================================================
+
+function resetCustomerReceiptContent() {
+
+    setReceiptText("receiptOrderCode", "-");
+    setReceiptText("receiptCustomerName", "-");
+    setReceiptText("receiptPickup", "-");
+    setReceiptText("receiptDestination", "-");
+    setReceiptText("receiptDistance", "-");
+
+        setReceiptText("receiptDuration", "-");
+    setReceiptText("receiptPaymentMethod", "-");
+    setReceiptText("receiptPaymentStatus", "-");
+    setReceiptText("receiptPaidAt", "-");
+    setReceiptText("receiptTotal", "Rp0");
+
+
+    if (
+        customerReceiptContent
+    ) {
+
+        customerReceiptContent.hidden =
+            true;
+
+
+        customerReceiptContent.setAttribute(
+            "aria-busy",
+            "true"
+        );
+
+    }
+
+
+    if (
+        customerReceiptPrintButton
+    ) {
+
+        customerReceiptPrintButton.disabled =
+            true;
+
+    }
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// RECEIPT AVAILABILITY
+// ============================================================
+
+function updateCustomerReceiptAvailability(
+    order
+) {
+
+    if (!order) {
+
+        return;
+
+    }
+
+
+    const receiptOrderCode =
+        String(
+            order.order_code
+            ||
+            getCustomerReceiptOrderCode()
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const orderStatus =
+        String(
+            order.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const payment =
+        order.payment
+        || {};
+
+
+    const paymentStatus =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const paymentMethod =
+        String(
+            payment.method
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const paymentAmount =
+        Number(
+            payment.amount
+            || 0
+        );
+
+
+    const fare =
+        Number(
+            order.fare
+            || 0
+        );
+
+
+    const paidAt =
+        String(
+            payment.paid_at
+            || ""
+        ).trim();
+
+
+    const receiptToken =
+        getCustomerReceiptToken(
+            receiptOrderCode
+        );
+
+
+    const validPaymentMethod =
+        [
+            "TUNAI",
+            "QRIS",
+            "TRANSFER_BANK"
+        ].includes(
+            paymentMethod
+        );
+
+
+    const completedAndPaid =
+        (
+            orderStatus
+            === "SELESAI"
+
+            &&
+
+            paymentStatus
+            === "DIBAYAR"
+        );
+
+
+    const receiptEligible =
+        (
+            completedAndPaid
+
+            &&
+
+            Boolean(
+                paidAt
+            )
+
+            &&
+
+            Number.isFinite(
+                fare
+            )
+
+            &&
+
+            Number.isFinite(
+                paymentAmount
+            )
+
+            &&
+
+            fare > 0
+
+            &&
+
+            paymentAmount > 0
+
+            &&
+
+            paymentAmount
+            === fare
+
+            &&
+
+            validPaymentMethod
+        );
+
+
+    const canOpenReceipt =
+        (
+            receiptEligible
+
+            &&
+
+            Boolean(
+                receiptToken
+            )
+        );
+
+
+    if (
+        customerReceiptCard
+    ) {
+
+        customerReceiptCard.hidden =
+            !canOpenReceipt;
+
+    }
+
+
+    if (
+        customerDigitalReceiptArea
+    ) {
+
+        customerDigitalReceiptArea.hidden =
+            (
+                customerReceiptCard
+                    ? true
+                    : !canOpenReceipt
+            );
+
+    }
+
+
+    if (
+        !customerReceiptMessage
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        completedAndPaid
+        &&
+        !receiptEligible
+    ) {
+
+        customerReceiptMessage.textContent =
+            (
+                "Pembayaran sudah dikonfirmasi. "
+                +
+                "Struk digital sedang disiapkan."
+            );
+
+
+        customerReceiptMessage.hidden =
+            false;
+
+
+        return;
+
+    }
+
+
+    if (
+        receiptEligible
+        &&
+        !receiptToken
+    ) {
+
+        customerReceiptMessage.textContent =
+            (
+                "Struk pembayaran sudah siap, tetapi "
+                +
+                "akses aman tidak ditemukan pada sesi "
+                +
+                "browser ini."
+            );
+
+
+        customerReceiptMessage.hidden =
+            false;
+
+
+        return;
+
+    }
+
+
+    customerReceiptMessage.hidden =
+        true;
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// RECEIPT MODAL
+// ============================================================
+
+function openCustomerReceiptModal() {
+
+    if (
+        !customerReceiptModal
+    ) {
+
+        return;
+
+    }
+
+
+    customerReceiptModal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "receipt-modal-open"
+    );
+
+}
+
+
+function closeCustomerReceiptModal() {
+
+    if (
+        !customerReceiptModal
+    ) {
+
+        return;
+
+    }
+
+
+    customerReceiptModal.hidden =
+        true;
+
+
+    document.body.classList.remove(
+        "receipt-modal-open"
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// RENDER RECEIPT
+// ============================================================
+
+function renderCustomerReceipt(
+    receipt
+) {
+
+    if (!receipt) {
+
+        return;
+
+    }
+
+
+    setReceiptText(
+        "receiptOrderCode",
+        receipt.order_code
+    );
+
+
+    setReceiptText(
+        "receiptCustomerName",
+        receipt.customer_name
+    );
+
+
+    setReceiptText(
+        "receiptPickup",
+        receipt.pickup
+    );
+
+
+    setReceiptText(
+        "receiptDestination",
+        receipt.destination
+    );
+
+
+    setReceiptText(
+        "receiptDistance",
+        (
+            Number(
+                receipt.distance_km
+                || 0
+            ).toFixed(
+                1
+            )
+            +
+            " km"
+        )
+    );
+
+
+    setReceiptText(
+        "receiptDuration",
+        (
+            Number(
+                receipt.duration_minutes
+                || 0
+            )
+            +
+            " menit"
+        )
+    );
+
+
+    setReceiptText(
+        "receiptPaymentMethod",
+        receipt.payment_method_label
+    );
+
+
+    setReceiptText(
+        "receiptPaymentStatus",
+        (
+            receipt.payment_status
+            === "DIBAYAR"
+                ? "Dibayar"
+                : receipt.payment_status
+        )
+    );
+
+
+    setReceiptText(
+        "receiptPaidAt",
+        formatReceiptDateTime(
+            receipt.paid_at
+        )
+    );
+
+
+    setReceiptText(
+        "receiptTotal",
+        formatReceiptRupiah(
+            receipt.fare
+        )
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// FALLBACK RECEIPT DISPLAY
+//
+// Jika modal baru belum ada di template,
+// data receipt tetap bisa dilihat tanpa membuka URL baru.
+// ============================================================
+
+function showReceiptFallback(
+    receipt
+) {
+
+    if (
+        customerReceiptModal
+    ) {
+
+        return;
+
+    }
+
+
+    const lines = [
+
+        "OJEK PRIBADI",
+
+        "Struk Pembayaran",
+
+        "",
+
+        `Kode: ${receipt.order_code || "-"}`,
+
+        `Pelanggan: ${receipt.customer_name || "-"}`,
+
+        `Jemput: ${receipt.pickup || "-"}`,
+
+        `Tujuan: ${receipt.destination || "-"}`,
+
+        `Metode: ${receipt.payment_method_label || "-"}`,
+
+        `Status: ${receipt.payment_status || "-"}`,
+
+        `Total: ${formatReceiptRupiah(receipt.fare)}`,
+
+        `Dibayar: ${formatReceiptDateTime(receipt.paid_at)}`
+
+    ];
+
+
+    window.alert(
+        lines.join(
+            "\n"
+        )
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// LOAD SECURE DIGITAL RECEIPT
+// ============================================================
+
+async function loadCustomerDigitalReceipt() {
+
+    const receiptOrderCode =
+        getCustomerReceiptOrderCode();
+
+
+    if (
+        !receiptOrderCode
+    ) {
+
+        console.warn(
+            "[RECEIPT] Kode pesanan tidak tersedia."
+        );
+
+
+        return;
+
+    }
+
+
+    const receiptToken =
+        getCustomerReceiptToken(
+            receiptOrderCode
+        );
+
+
+    if (
+        !receiptToken
+    ) {
+
+        if (
+            customerReceiptMessage
+        ) {
+
+            customerReceiptMessage.textContent =
+                (
+                    "Akses aman struk tidak tersedia "
+                    +
+                    "pada sesi browser ini."
+                );
+
+
+            customerReceiptMessage.hidden =
+                false;
+
+        }
+
+
+        window.alert(
+            (
+                "Akses struk tidak tersedia. "
+                +
+                "Gunakan tab atau sesi browser "
+                +
+                "yang sama dengan saat membuat pesanan."
+            )
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        customerReceiptModal
+    ) {
+
+        openCustomerReceiptModal();
+
+    }
+
+
+    resetCustomerReceiptContent();
+
+
+    if (
+        customerReceiptLoading
+    ) {
+
+        customerReceiptLoading.hidden =
+            false;
+
+    }
+
+
+    if (
+        customerReceiptContent
+    ) {
+
+        customerReceiptContent.hidden =
+            true;
+
+    }
+
+
+    if (
+        customerReceiptError
+    ) {
+
+        customerReceiptError.hidden =
+            true;
+
+                    customerReceiptError.textContent =
+            "";
+
+    }
+
+
+    if (
+        openCustomerReceiptButton
+    ) {
+
+        openCustomerReceiptButton.disabled =
+            true;
+
+    }
+
+
+    if (
+        customerDigitalReceiptButton
+    ) {
+
+        customerDigitalReceiptButton.disabled =
+            true;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                (
+                    "/api/orders/"
+                    +
+                    encodeURIComponent(
+                        receiptOrderCode
+                    )
+                    +
+                    "/receipt"
+                ),
+                {
+
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json",
+
+                        "X-Receipt-Token":
+                            receiptToken
+
+                    }
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            response.status
+            === 409
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Struk pembayaran belum tersedia."
+            );
+
+        }
+
+
+        if (
+            response.status
+            === 404
+        ) {
+
+            throw new Error(
+                (
+                    data.message
+                    ||
+                    "Akses struk tidak valid atau tidak tersedia."
+                )
+            );
+
+        }
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+            ||
+            !data.receipt
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                "Struk pembayaran belum dapat dimuat."
+            );
+
+        }
+
+
+        renderCustomerReceipt(
+            data.receipt
+        );
+
+
+        if (
+            customerReceiptContent
+        ) {
+
+            customerReceiptContent.hidden =
+                false;
+
+
+            customerReceiptContent.setAttribute(
+                "aria-busy",
+                "false"
+            );
+
+        }
+
+
+        if (
+            customerReceiptPrintButton
+        ) {
+
+            customerReceiptPrintButton.disabled =
+                false;
+
+        }
+
+
+        showReceiptFallback(
+            data.receipt
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "[CUSTOMER RECEIPT ERROR]",
+            error
+        );
+
+
+        if (
+            customerReceiptContent
+        ) {
+
+            customerReceiptContent.hidden =
+                true;
+
+
+            customerReceiptContent.setAttribute(
+                "aria-busy",
+                "false"
+            );
+
+        }
+
+
+        if (
+            customerReceiptPrintButton
+        ) {
+
+            customerReceiptPrintButton.disabled =
+                true;
+
+        }
+
+
+        if (
+            customerReceiptError
+        ) {
+
+            customerReceiptError.textContent =
+                (
+                    error.message
+                    ||
+                    "Struk pembayaran belum dapat dimuat."
+                );
+
+
+            customerReceiptError.hidden =
+                false;
+
+        }
+
+        else {
+
+            window.alert(
+                (
+                    error.message
+                    ||
+                    "Struk pembayaran belum dapat dimuat."
+                )
+            );
+
+        }
+
+    }
+
+    finally {
+
+        if (
+            customerReceiptLoading
+        ) {
+
+            customerReceiptLoading.hidden =
+                true;
+
+        }
+
+
+        if (
+            openCustomerReceiptButton
+        ) {
+
+            openCustomerReceiptButton.disabled =
+                false;
+
+        }
+
+
+        if (
+            customerDigitalReceiptButton
+        ) {
+
+            customerDigitalReceiptButton.disabled =
+                false;
+
+        }
+
+    }
+
+}
+
 
 // ============================================================
 // UPDATE STATUS UI
@@ -2725,9 +6262,13 @@ function updateStatusUI(
     }
 
 
-    // ========================================================
-    // ALWAYS UPDATE THESE
-    // ========================================================
+    status =
+        String(
+            status
+        )
+            .trim()
+            .toUpperCase();
+
 
     updateDriverContact(
         status
@@ -2745,46 +6286,43 @@ function updateStatusUI(
 
 
     updateLastUpdate();
+
+
     updateCustomerReviewVisibility(
-    status
-);
-
-
-    // Tidak perlu menjalankan animasi ulang
-    // jika status masih sama.
-    if (
-    status
-    === currentStatus
-) {
-
-    return;
-
-}
-
-
-const previousStatus =
-    currentStatus;
-
-
-currentStatus =
-    status;
-
-
-// ========================================================
-// PHASE 12
-// NOTIFY CUSTOMER
-// ========================================================
-
-if (
-    previousStatus
-    !== null
-) {
-
-    showCustomerStatusNotification(
         status
     );
 
-}
+
+    // Tidak perlu menjalankan animasi ulang
+    // bila status masih sama.
+    if (
+        status
+        === currentStatus
+    ) {
+
+        return;
+
+    }
+
+
+    const previousStatus =
+        currentStatus;
+
+
+    currentStatus =
+        status;
+
+
+    if (
+        previousStatus
+        !== null
+    ) {
+
+        showCustomerStatusNotification(
+            status
+        );
+
+    }
 
 
     // ========================================================
@@ -2796,7 +6334,9 @@ if (
         === "DITOLAK"
     ) {
 
-        if (rejectedCard) {
+        if (
+            rejectedCard
+        ) {
 
             rejectedCard.classList.add(
                 "show"
@@ -2805,7 +6345,9 @@ if (
         }
 
 
-        if (liveStatusCard) {
+        if (
+            liveStatusCard
+        ) {
 
             liveStatusCard.classList.add(
                 "rejected"
@@ -2814,7 +6356,9 @@ if (
         }
 
 
-        if (liveIcon) {
+        if (
+            liveIcon
+        ) {
 
             liveIcon.textContent =
                 "×";
@@ -2822,7 +6366,9 @@ if (
         }
 
 
-        if (liveStatusTitle) {
+        if (
+            liveStatusTitle
+        ) {
 
             liveStatusTitle.textContent =
                 "Perjalanan belum dapat diterima";
@@ -2830,7 +6376,9 @@ if (
         }
 
 
-        if (liveStatusDescription) {
+        if (
+            liveStatusDescription
+        ) {
 
             liveStatusDescription.textContent =
                 (
@@ -2864,11 +6412,9 @@ if (
     }
 
 
-    // ========================================================
-    // REMOVE REJECTED STATE
-    // ========================================================
-
-    if (rejectedCard) {
+    if (
+        rejectedCard
+    ) {
 
         rejectedCard.classList.remove(
             "show"
@@ -2877,7 +6423,9 @@ if (
     }
 
 
-    if (liveStatusCard) {
+    if (
+        liveStatusCard
+    ) {
 
         liveStatusCard.classList.remove(
             "rejected"
@@ -2886,17 +6434,15 @@ if (
     }
 
 
-    // ========================================================
-    // GET CONFIG
-    // ========================================================
-
     const config =
         statusConfig[
             status
         ];
 
 
-    if (!config) {
+    if (
+        !config
+    ) {
 
         console.warn(
             "[ORDER STATUS] Status tidak dikenal:",
@@ -2909,18 +6455,15 @@ if (
     }
 
 
-    // ========================================================
-    // STATUS CHANGE ANIMATION
-    // ========================================================
-
-    if (liveStatusCard) {
+    if (
+        liveStatusCard
+    ) {
 
         liveStatusCard.classList.remove(
             "status-change"
         );
 
 
-        // Force browser reflow.
         void liveStatusCard.offsetWidth;
 
 
@@ -2931,11 +6474,9 @@ if (
     }
 
 
-    // ========================================================
-    // ICON
-    // ========================================================
-
-    if (liveIcon) {
+    if (
+        liveIcon
+    ) {
 
         liveIcon.textContent =
             config.icon;
@@ -2943,11 +6484,9 @@ if (
     }
 
 
-    // ========================================================
-    // TITLE
-    // ========================================================
-
-    if (liveStatusTitle) {
+    if (
+        liveStatusTitle
+    ) {
 
         liveStatusTitle.textContent =
             config.title;
@@ -2955,11 +6494,9 @@ if (
     }
 
 
-    // ========================================================
-    // DESCRIPTION
-    // ========================================================
-
-    if (liveStatusDescription) {
+    if (
+        liveStatusDescription
+    ) {
 
         liveStatusDescription.textContent =
             config.description;
@@ -2967,31 +6504,144 @@ if (
     }
 
 
-    // ========================================================
-    // PROGRESS
-    // ========================================================
-
     updateProgress(
         config.step,
         status
     );
 
 
-    // ========================================================
-    // COMPLETED
-    // ========================================================
-
-    if (
-        status
-        === "SELESAI"
-    ) {
-
-        stopPolling();
-
-    }
+    // Penting:
+    // Jangan stop polling hanya karena status = SELESAI.
+    // Untuk TUNAI, payment_status masih bisa berubah dari
+    // BELUM_DIBAYAR -> DIBAYAR setelah driver konfirmasi.
 
 }
 
+
+
+// ============================================================
+// PHASE 20I.3F
+// REFUND-AWARE POLLING DECISION
+// ============================================================
+
+function shouldContinueCustomerPolling(
+    order
+) {
+
+    if (!order) {
+
+        return (
+            initialStatus
+            !== "DITOLAK"
+        );
+
+    }
+
+
+    const orderStatus =
+        String(
+            order.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const payment =
+        order.payment
+        || {};
+
+
+    const paymentStatus =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const refundRequestStatus =
+        String(
+            (
+                payment.refund_request
+                &&
+                payment.refund_request.status
+            )
+            ||
+            "NONE"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    // Perjalanan ditolak adalah final.
+    if (
+        orderStatus
+        === "DITOLAK"
+    ) {
+
+        return false;
+
+    }
+
+
+    // Customer sedang menunggu keputusan driver.
+    // Tetap polling walaupun perjalanan sudah SELESAI
+    // dan payment masih DIBAYAR.
+    if (
+        refundRequestStatus
+        === "PENDING"
+    ) {
+
+        return true;
+
+            }
+
+
+    // SELESAI + state payment/refund final.
+    if (
+        orderStatus
+        === "SELESAI"
+
+        &&
+
+        (
+            paymentStatus
+            === "DIBAYAR"
+
+            ||
+
+            paymentStatus
+            === "DIKEMBALIKAN"
+        )
+
+        &&
+
+        (
+            refundRequestStatus
+            === "NONE"
+
+            ||
+
+            refundRequestStatus
+            === "APPROVED"
+
+            ||
+
+            refundRequestStatus
+            === "REJECTED"
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
 
 // ============================================================
 // FETCH ORDER STATUS
@@ -2999,7 +6649,9 @@ if (
 
 async function fetchOrderStatus() {
 
-    if (!orderCode) {
+    if (
+        !orderCode
+    ) {
 
         console.error(
             "[ORDER STATUS] Kode pesanan tidak tersedia."
@@ -3013,17 +6665,25 @@ async function fetchOrderStatus() {
 
     try {
 
+        const statusUrl =
+            (
+                "/api/orders/"
+                +
+                encodeURIComponent(
+                    orderCode
+                )
+                +
+                "/status"
+                +
+                "?_="
+                +
+                Date.now()
+            );
+
+
         const response =
             await fetch(
-                (
-                    "/api/orders/"
-                    +
-                    encodeURIComponent(
-                        orderCode
-                    )
-                    +
-                    "/status"
-                ),
+                statusUrl,
                 {
 
                     method:
@@ -3043,7 +6703,9 @@ async function fetchOrderStatus() {
             );
 
 
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
             throw new Error(
                 `HTTP ${response.status}`
@@ -3059,7 +6721,8 @@ async function fetchOrderStatus() {
         if (
             !data
             ||
-            data.success !== true
+            data.success
+            !== true
             ||
             !data.order
         ) {
@@ -3077,13 +6740,26 @@ async function fetchOrderStatus() {
         }
 
 
-        // ====================================================
-        // STATUS + DRIVER PROFILE
-        // ====================================================
+        latestOrderData =
+            data.order;
 
-        // ====================================================
-        // LIVE STATUS
-        // ====================================================
+
+        updateCustomerPaymentStatus(
+            data.order.payment
+            || null
+        );
+
+
+        renderCustomerPaymentExperience(
+            data.order.payment
+            || null
+        );
+
+
+        updateCustomerReceiptAvailability(
+            data.order
+        );
+
 
         updateStatusUI(
             data.order.status,
@@ -3096,17 +6772,36 @@ async function fetchOrderStatus() {
         );
 
 
-        // ====================================================
-        // LIVE TIMESTAMPS
-        // ====================================================
-
         updateJourneyTimestamps(
             data.order.status,
+
             data.order.timestamps
             || null
         );
 
-            }
+
+        // ====================================================
+        // PHASE 20I.3F
+        // REFUND-AWARE POLLING
+        // ====================================================
+
+        if (
+            shouldContinueCustomerPolling(
+                data.order
+            )
+        ) {
+
+            startPolling();
+
+        }
+
+        else {
+
+            stopPolling();
+
+        }
+
+    }
 
     catch (error) {
 
@@ -3126,16 +6821,27 @@ async function fetchOrderStatus() {
 
 function startPolling() {
 
-    if (statusInterval) {
+    if (
+        statusInterval
+    ) {
 
         return;
 
     }
 
 
+    console.log(
+        "[ORDER STATUS] Live polling dimulai."
+    );
+
+
     statusInterval =
         window.setInterval(
-            fetchOrderStatus,
+            function () {
+
+                fetchOrderStatus();
+
+            },
             3000
         );
 
@@ -3144,7 +6850,9 @@ function startPolling() {
 
 function stopPolling() {
 
-    if (!statusInterval) {
+    if (
+        !statusInterval
+    ) {
 
         return;
 
@@ -3159,16 +6867,17 @@ function stopPolling() {
     statusInterval =
         null;
 
+
+    console.log(
+        "[ORDER STATUS] Live polling dihentikan."
+    );
+
 }
 
 
 // ============================================================
 // INITIAL STATUS
 // ============================================================
-
-// Status HTML awal.
-// Driver profile belum perlu dipaksakan dari HTML;
-// fetch API berikutnya akan mengambil data terbaru.
 
 updateStatusUI(
     initialStatus,
@@ -3186,12 +6895,14 @@ fetchOrderStatus();
 
 // ============================================================
 // START LIVE POLLING
+//
+// Status SELESAI tetap polling,
+// karena pembayaran tunai mungkin belum dikonfirmasi.
 // ============================================================
 
 if (
-    initialStatus !== "SELESAI"
-    &&
-    initialStatus !== "DITOLAK"
+    initialStatus
+    !== "DITOLAK"
 ) {
 
     startPolling();
@@ -3230,12 +6941,18 @@ document.addEventListener(
 
 
             if (
-                currentStatus !== "SELESAI"
-                &&
-                currentStatus !== "DITOLAK"
+                shouldContinueCustomerPolling(
+                    latestOrderData
+                )
             ) {
 
                 startPolling();
+
+            }
+
+            else {
+
+                stopPolling();
 
             }
 
@@ -3260,9 +6977,203 @@ window.addEventListener(
 
 
 // ============================================================
+// PHASE 20D
+// PAYMENT CONFIRM BUTTON EVENT
+// ============================================================
+
+if (
+    customerPaymentConfirmButton
+) {
+
+    customerPaymentConfirmButton.addEventListener(
+        "click",
+        function () {
+
+            submitCustomerPaymentConfirmation();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// LEGACY RECEIPT BUTTON EVENT
+//
+// Tidak lagi menggunakan:
+// /order/<code>/receipt#token=...
+// ============================================================
+
+if (
+    customerDigitalReceiptButton
+) {
+
+    customerDigitalReceiptButton.addEventListener(
+        "click",
+        function (
+            event
+        ) {
+
+            event.preventDefault();
+
+
+            loadCustomerDigitalReceipt();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// NEW RECEIPT BUTTON EVENT
+// ============================================================
+
+if (
+    openCustomerReceiptButton
+) {
+
+    openCustomerReceiptButton.addEventListener(
+        "click",
+        function (
+            event
+        ) {
+
+            event.preventDefault();
+
+
+            loadCustomerDigitalReceipt();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// PHASE 20G.3
+// CLOSE RECEIPT
+// ============================================================
+
+if (
+    closeCustomerReceiptButton
+) {
+
+    closeCustomerReceiptButton.addEventListener(
+        "click",
+        closeCustomerReceiptModal
+    );
+
+}
+
+
+if (
+    customerReceiptBackdrop
+) {
+
+    customerReceiptBackdrop.addEventListener(
+        "click",
+        closeCustomerReceiptModal
+    );
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    function (
+        event
+    ) {
+
+        if (
+            event.key
+            === "Escape"
+
+            &&
+            customerReceiptModal
+
+            &&
+            !customerReceiptModal.hidden
+        ) {
+
+            closeCustomerReceiptModal();
+
+        }
+
+    }
+);
+
+// ============================================================
+// PHASE 20G.6
+// CUSTOMER RECEIPT PRINT / SAVE PDF
+// ============================================================
+
+if (
+    customerReceiptPrintButton
+) {
+
+    customerReceiptPrintButton.addEventListener(
+        "click",
+        function () {
+
+            if (
+                !customerReceiptContent
+
+                ||
+
+                customerReceiptContent.hidden
+
+                ||
+
+                customerReceiptPrintButton.disabled
+            ) {
+
+                return;
+
+            }
+
+
+            document.body.classList.add(
+                "customer-receipt-print-mode"
+            );
+
+
+            window.print();
+
+        }
+    );
+
+}
+
+
+window.addEventListener(
+    "afterprint",
+    function () {
+
+        document.body.classList.remove(
+            "customer-receipt-print-mode"
+        );
+
+    }
+);
+
+if (
+    customerRefundRequestButton
+) {
+
+    customerRefundRequestButton.addEventListener(
+        "click",
+        submitCustomerRefundRequest
+    );
+
+}
+
+// ============================================================
 // APP READY
 // ============================================================
 
 console.log(
-    "[ORDER STATUS] Live tracking aktif."
+    "[ORDER STATUS] Live tracking + refund status + secure receipt aktif."
 );
