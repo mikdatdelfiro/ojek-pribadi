@@ -389,7 +389,7 @@ Detail {{ order.order_code }}
 
         </section>
 
-        <!-- =========================================================
+    <!-- =========================================================
      PHASE 20G.8
      DRIVER PAYMENT CONFIRMATION
      MANUAL CASH / QRIS / TRANSFER
@@ -791,6 +791,73 @@ Detail {{ order.order_code }}
 
                 </form>
 
+                <div class="driver-payment-failure-divider">
+                    <span>ATAU</span>
+                </div>
+
+
+                <form
+                    method="POST"
+
+                    action="{{
+                        url_for(
+                            'driver_fail_manual_payment',
+                            order_code=order.order_code
+                        )
+                    }}"
+
+                    class="driver-payment-failure-form"
+
+                    onsubmit="
+                        return confirm(
+                            'Yakin pembayaran ini gagal atau tidak valid?'
+                        );
+                    "
+                >
+
+                    <input
+                        type="hidden"
+                        name="_csrf_token"
+                        value="{{ driver_csrf_token() }}"
+                    >
+
+
+                    <label
+                        for="paymentFailureReason"
+                        class="driver-payment-failure-label"
+                    >
+                        Alasan pembayaran gagal
+                    </label>
+
+
+                    <textarea
+                        id="paymentFailureReason"
+
+                        name="failure_reason"
+
+                        class="driver-payment-failure-reason"
+
+                        rows="3"
+
+                        minlength="3"
+
+                        maxlength="300"
+
+                        required
+
+                        placeholder="Contoh: Dana tidak masuk setelah transaksi diperiksa."
+                    ></textarea>
+
+
+                    <button
+                        type="submit"
+                        class="driver-payment-failure-button"
+                    >
+                        × Tandai Pembayaran Gagal
+                    </button>
+
+                </form>
+
             </div>
 
 
@@ -880,7 +947,6 @@ Detail {{ order.order_code }}
     {% endif %}
 
 </section>
-
 <!-- =========================================================
      PHASE 20I.3
      DRIVER PAYMENT REFUND

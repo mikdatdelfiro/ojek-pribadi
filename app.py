@@ -868,12 +868,18 @@ PAYMENT_ACTOR_TRANSITIONS = {
             PAYMENT_STATUS_AWAITING_CONFIRMATION,
             PAYMENT_STATUS_PAID,
         ),
+        
+        (
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+            PAYMENT_STATUS_FAILED,
+        ),
 
         # Digunakan PHASE 20I.3 nanti.
         (
             PAYMENT_STATUS_PAID,
             PAYMENT_STATUS_REFUNDED,
         ),
+        
     },
 
 
@@ -900,6 +906,15 @@ PAYMENT_ACTOR_TRANSITIONS = {
         ),
     },
 }
+
+# ============================================================
+# PHASE 20I.4D
+# FAILED PAYMENT CONFIGURATION
+# ============================================================
+
+PAYMENT_FAILURE_REASON_MIN_LENGTH = 3
+
+PAYMENT_FAILURE_REASON_MAX_LENGTH = 300
 
 # ============================================================
 # PHASE 20I.3
@@ -1609,6 +1624,37 @@ def init_database():
             ALTER TABLE orders
             ADD COLUMN IF NOT EXISTS
             payment_driver_confirmed_at TEXT
+            """
+        )
+        
+                # ====================================================
+        # PHASE 20I.4D
+        # FAILED PAYMENT MIGRATION
+        # ====================================================
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            payment_failed_at TEXT
+            """
+        )
+
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            payment_failure_reason TEXT
+            """
+        )
+
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS
+            payment_failure_actor TEXT
             """
         )
         
@@ -2404,6 +2450,25 @@ def init_database():
             idx_orders_paid_at
 
             ON orders(paid_at)
+            """
+        )
+        
+        # ====================================================
+        # PHASE 20I.4D
+        # FAILED PAYMENT INDEX
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_orders_payment_failed_at
+
+            ON orders(
+                payment_failed_at DESC
+            )
+
+            WHERE
+                payment_failed_at IS NOT NULL
             """
         )
         
@@ -8867,7 +8932,1278 @@ def get_payment_expiry_state(
                 0,
                 seconds_remaining
             ),
-    }    
+    }
+    
+    # ============================================================
+# PHASE 20I.4B
+# START DIGITAL PAYMENT EXPIRY WINDOW
+# ============================================================
+
+def start_payment_expiry_window(
+    connection,
+    order,
+    started_at=None
+):
+
+    if not order:
+
+        raise ValueError(
+            "Pesanan tidak ditemukan."
+        )
+
+
+    # ========================================================
+    # PAYMENT METHOD
+    # ========================================================
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    # ========================================================
+    # CASH DOES NOT EXPIRE
+    # ========================================================
+
+    if not payment_method_is_digital(
+        payment_method
+    ):
+
+        return {
+            "started":
+                False,
+
+            "already_started":
+                False,
+
+            "enabled":
+                False,
+
+            "expires_at":
+                None,
+
+            "reason":
+                "NOT_DIGITAL",
+        }
+
+
+    # ========================================================
+    # PAYMENT STATUS
+    # ========================================================
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    # ========================================================
+    # ONLY TRANSIENT DIGITAL PAYMENT MAY START WINDOW
+    # ========================================================
+
+    if (
+        payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        return {
+            "started":
+                False,
+
+            "already_started":
+                bool(
+                    order.get(
+                        "payment_expires_at"
+                    )
+                ),
+
+            "enabled":
+                True,
+
+            "expires_at":
+                order.get(
+                    "payment_expires_at"
+                ),
+
+            "reason":
+                "PAYMENT_NOT_TRANSIENT",
+        }
+
+
+    # ========================================================
+    # IDEMPOTENT
+    #
+    # Jangan memperpanjang deadline jika sudah pernah dimulai.
+    # ========================================================
+
+    existing_expires_at = (
+        order.get(
+            "payment_expires_at"
+        )
+    )
+
+
+    if (
+        parse_payment_timestamp(
+            existing_expires_at
+        )
+        is not None
+    ):
+
+        return {
+            "started":
+                False,
+
+            "already_started":
+                True,
+
+            "enabled":
+                True,
+
+            "expires_at":
+                existing_expires_at,
+
+            "reason":
+                "ALREADY_STARTED",
+        }
+
+
+    # ========================================================
+    # BASE TIME
+    # ========================================================
+
+    base_time = (
+        parse_payment_timestamp(
+            started_at
+        )
+    )
+
+
+    if base_time is None:
+
+        base_time = (
+            datetime.now(
+                APP_TZ
+            )
+        )
+
+
+    # ========================================================
+    # EXPIRY
+    # ========================================================
+
+    expires_at = (
+        base_time
+        +
+        timedelta(
+            minutes=
+                PAYMENT_EXPIRY_MINUTES
+        )
+    ).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+
+    payment_updated_at = (
+        base_time.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+    )
+
+
+    # ========================================================
+    # ATOMIC UPDATE
+    #
+    # Deadline hanya boleh dipasang apabila:
+    #
+    # - digital
+    # - status masih pending / awaiting
+    # - expiry belum pernah ada
+    # ========================================================
+
+    cursor = (
+        connection.execute(
+            """
+            UPDATE orders
+
+            SET
+                payment_expires_at = ?,
+
+                payment_updated_at = ?
+
+            WHERE
+                id = ?
+
+                AND payment_method IN (
+                    ?,
+                    ?
+                )
+
+                AND payment_status IN (
+                    ?,
+                    ?
+                )
+
+                AND payment_expires_at IS NULL
+            """,
+            (
+                expires_at,
+
+                payment_updated_at,
+
+                order[
+                    "id"
+                ],
+
+                PAYMENT_METHOD_QRIS,
+
+                PAYMENT_METHOD_BANK_TRANSFER,
+
+                PAYMENT_STATUS_PENDING,
+
+                PAYMENT_STATUS_AWAITING_CONFIRMATION,
+            )
+        )
+    )
+
+
+    affected_rows = int(
+        cursor.rowcount
+        or 0
+    )
+
+
+    # ========================================================
+    # SUCCESS
+    # ========================================================
+
+    if affected_rows == 1:
+
+        return {
+            "started":
+                True,
+
+            "already_started":
+                False,
+
+            "enabled":
+                True,
+
+            "expires_at":
+                expires_at,
+
+            "reason":
+                None,
+        }
+
+
+    # ========================================================
+    # CONCURRENT / IDEMPOTENT RELOAD
+    # ========================================================
+
+    latest_order = (
+        connection.execute(
+            """
+            SELECT *
+
+            FROM orders
+
+            WHERE id = ?
+
+            LIMIT 1
+            """,
+            (
+                order[
+                    "id"
+                ],
+            )
+        )
+        .fetchone()
+    )
+
+
+    if not latest_order:
+
+        raise RuntimeError(
+            (
+                "Pesanan tidak ditemukan "
+                "saat payment window dimulai."
+            )
+        )
+
+
+    latest_expires_at = (
+        latest_order.get(
+            "payment_expires_at"
+        )
+    )
+
+
+    if (
+        parse_payment_timestamp(
+            latest_expires_at
+        )
+        is not None
+    ):
+
+        return {
+            "started":
+                False,
+
+            "already_started":
+                True,
+
+            "enabled":
+                True,
+
+            "expires_at":
+                latest_expires_at,
+
+            "reason":
+                "ALREADY_STARTED",
+        }
+
+
+    latest_payment_status = (
+        get_effective_payment_status(
+            latest_order
+        )
+    )
+
+
+    if (
+        latest_payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        return {
+            "started":
+                False,
+
+            "already_started":
+                False,
+
+            "enabled":
+                True,
+
+            "expires_at":
+                latest_expires_at,
+
+            "reason":
+                "PAYMENT_STATUS_CHANGED",
+        }
+
+
+    raise RuntimeError(
+        (
+            "Payment window tidak dapat dimulai. "
+            "Silakan muat ulang data pesanan."
+        )
+    )
+    
+    # ============================================================
+# PHASE 20I.4C
+# PAYMENT EXPIRY DUE CHECK
+# ============================================================
+
+def payment_expiry_is_due(
+    order,
+    checked_at=None
+):
+
+    if not order:
+
+        return False
+
+
+    # ========================================================
+    # DIGITAL ONLY
+    # ========================================================
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    if not payment_method_is_digital(
+        payment_method
+    ):
+
+        return False
+
+
+    # ========================================================
+    # ONLY TRANSIENT PAYMENT STATES
+    # ========================================================
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    if (
+        payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        return False
+
+
+    # ========================================================
+    # EXPIRY TIMESTAMP
+    # ========================================================
+
+    expires_at = (
+        parse_payment_timestamp(
+            order.get(
+                "payment_expires_at"
+            )
+        )
+    )
+
+
+    if expires_at is None:
+
+        return False
+
+
+    # ========================================================
+    # CHECK TIME
+    # ========================================================
+
+    if checked_at is None:
+
+        current_time = (
+            datetime.now(
+                APP_TZ
+            )
+        )
+
+    elif isinstance(
+        checked_at,
+        datetime
+    ):
+
+        current_time = (
+            checked_at
+        )
+
+
+        if (
+            current_time.tzinfo
+            is None
+        ):
+
+            current_time = (
+                current_time.replace(
+                    tzinfo=APP_TZ
+                )
+            )
+
+    else:
+
+        current_time = (
+            parse_payment_timestamp(
+                checked_at
+            )
+        )
+
+
+        if current_time is None:
+
+            current_time = (
+                datetime.now(
+                    APP_TZ
+                )
+            )
+
+
+    return (
+        current_time
+        >= expires_at
+    )
+    
+    # ============================================================
+# PHASE 20I.4C
+# EXPIRE ONE DIGITAL PAYMENT
+#
+# Tidak melakukan commit.
+# Caller bertanggung jawab atas transaction.
+# ============================================================
+
+def expire_payment_if_due(
+    connection,
+    order,
+    checked_at=None
+):
+
+    if not order:
+
+        raise ValueError(
+            "Pesanan tidak ditemukan."
+        )
+
+
+    # ========================================================
+    # PAYMENT METHOD
+    # ========================================================
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    if not payment_method_is_digital(
+        payment_method
+    ):
+
+        return {
+            "expired_now":
+                False,
+
+            "already_expired":
+                False,
+
+            "due":
+                False,
+
+            "reason":
+                "NOT_DIGITAL",
+
+            "order":
+                order,
+        }
+
+
+    # ========================================================
+    # PAYMENT STATUS
+    # ========================================================
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    # ========================================================
+    # ALREADY EXPIRED
+    # ========================================================
+
+    if (
+        payment_status
+        == PAYMENT_STATUS_EXPIRED
+    ):
+
+        return {
+            "expired_now":
+                False,
+
+            "already_expired":
+                True,
+
+            "due":
+                True,
+
+            "reason":
+                "ALREADY_EXPIRED",
+
+            "order":
+                order,
+        }
+
+
+    # ========================================================
+    # FINAL / NON-TRANSIENT STATE
+    # ========================================================
+
+    if (
+        payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        return {
+            "expired_now":
+                False,
+
+            "already_expired":
+                False,
+
+            "due":
+                False,
+
+            "reason":
+                "PAYMENT_NOT_TRANSIENT",
+
+            "order":
+                order,
+        }
+
+
+    # ========================================================
+    # EXPIRY MUST EXIST
+    # ========================================================
+
+    expires_at_raw = str(
+        order.get(
+            "payment_expires_at"
+        )
+        or ""
+    ).strip()
+
+
+    expires_at = (
+        parse_payment_timestamp(
+            expires_at_raw
+        )
+    )
+
+
+    if expires_at is None:
+
+        return {
+            "expired_now":
+                False,
+
+            "already_expired":
+                False,
+
+            "due":
+                False,
+
+            "reason":
+                "NO_EXPIRY",
+
+            "order":
+                order,
+        }
+
+
+    # ========================================================
+    # CHECK TIME
+    # ========================================================
+
+    if checked_at is None:
+
+        current_time = (
+            datetime.now(
+                APP_TZ
+            )
+        )
+
+    elif isinstance(
+        checked_at,
+        datetime
+    ):
+
+        current_time = (
+            checked_at
+        )
+
+
+        if (
+            current_time.tzinfo
+            is None
+        ):
+
+            current_time = (
+                current_time.replace(
+                    tzinfo=APP_TZ
+                )
+            )
+
+    else:
+
+        current_time = (
+            parse_payment_timestamp(
+                checked_at
+            )
+        )
+
+
+        if current_time is None:
+
+            current_time = (
+                datetime.now(
+                    APP_TZ
+                )
+            )
+
+
+    # ========================================================
+    # NOT DUE YET
+    # ========================================================
+
+    if (
+        current_time
+        < expires_at
+    ):
+
+        return {
+            "expired_now":
+                False,
+
+            "already_expired":
+                False,
+
+            "due":
+                False,
+
+            "reason":
+                "NOT_DUE",
+
+            "order":
+                order,
+        }
+
+
+    checked_at_text = (
+        current_time.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+    )
+
+
+    # ========================================================
+    # TRANSITION SECURITY
+    #
+    # PENDING/AWAITING -> EXPIRED by SYSTEM
+    # ========================================================
+
+    transition = (
+        validate_payment_status_transition(
+            order,
+            PAYMENT_STATUS_EXPIRED,
+            PAYMENT_AUDIT_ACTOR_SYSTEM
+        )
+    )
+
+
+    # ========================================================
+    # OLD AUDIT SNAPSHOT
+    # ========================================================
+
+    old_snapshot = (
+        build_payment_audit_snapshot(
+            order
+        )
+    )
+
+
+    # ========================================================
+    # ATOMIC UPDATE
+    #
+    # payment_expires_at tetap disimpan sebagai historical
+    # metadata. Tidak dihapus.
+    # ========================================================
+
+    update_cursor = (
+        connection.execute(
+            """
+            UPDATE orders
+
+            SET
+                payment_status = ?,
+
+                payment_updated_at = ?
+
+            WHERE
+                id = ?
+
+                AND payment_method IN (
+                    ?,
+                    ?
+                )
+
+                AND payment_status = ?
+
+                AND payment_expires_at IS NOT NULL
+
+                AND payment_expires_at = ?
+
+                AND payment_expires_at <= ?
+            """,
+            (
+                PAYMENT_STATUS_EXPIRED,
+
+                checked_at_text,
+
+                order[
+                    "id"
+                ],
+
+                PAYMENT_METHOD_QRIS,
+
+                PAYMENT_METHOD_BANK_TRANSFER,
+
+                transition[
+                    "old_status"
+                ],
+
+                expires_at_raw,
+
+                checked_at_text,
+            )
+        )
+    )
+
+
+    affected_rows = int(
+        update_cursor.rowcount
+        or 0
+    )
+
+
+    # ========================================================
+    # CONCURRENCY / IDEMPOTENCY
+    # ========================================================
+
+    if affected_rows != 1:
+
+        latest_order = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE id = ?
+
+                LIMIT 1
+                """,
+                (
+                    order[
+                        "id"
+                    ],
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not latest_order:
+
+            raise RuntimeError(
+                (
+                    "Pesanan tidak ditemukan "
+                    "saat expiry diproses."
+                )
+            )
+
+
+        latest_status = (
+            get_effective_payment_status(
+                latest_order
+            )
+        )
+
+
+        if (
+            latest_status
+            == PAYMENT_STATUS_EXPIRED
+        ):
+
+            return {
+                "expired_now":
+                    False,
+
+                "already_expired":
+                    True,
+
+                "due":
+                    True,
+
+                "reason":
+                    "ALREADY_EXPIRED",
+
+                "order":
+                    latest_order,
+            }
+
+
+        # Payment mungkin sudah DIBAYAR oleh transaksi
+        # lain tepat sebelum expiration UPDATE.
+        if (
+            latest_status
+            not in (
+                PAYMENT_STATUS_PENDING,
+                PAYMENT_STATUS_AWAITING_CONFIRMATION,
+            )
+        ):
+
+            return {
+                "expired_now":
+                    False,
+
+                "already_expired":
+                    False,
+
+                "due":
+                    False,
+
+                "reason":
+                    "PAYMENT_STATUS_CHANGED",
+
+                "order":
+                    latest_order,
+            }
+
+
+        # Expiry mungkin berubah oleh transaksi lain.
+        if not payment_expiry_is_due(
+            latest_order,
+            checked_at=current_time
+        ):
+
+            return {
+                "expired_now":
+                    False,
+
+                "already_expired":
+                    False,
+
+                "due":
+                    False,
+
+                "reason":
+                    "EXPIRY_CHANGED",
+
+                "order":
+                    latest_order,
+            }
+
+
+        raise RuntimeError(
+            (
+                "Status pembayaran berubah saat "
+                "expiration sedang diproses."
+            )
+        )
+
+
+    # ========================================================
+    # UPDATED ORDER
+    # ========================================================
+
+    updated_order = dict(
+        order
+    )
+
+
+    updated_order[
+        "payment_status"
+    ] = (
+        PAYMENT_STATUS_EXPIRED
+    )
+
+
+    updated_order[
+        "payment_updated_at"
+    ] = (
+        checked_at_text
+    )
+
+
+    # ========================================================
+    # AUDIT SNAPSHOT
+    # ========================================================
+
+    new_snapshot = (
+        build_payment_audit_snapshot(
+            updated_order
+        )
+    )
+
+
+    # ========================================================
+    # PAYMENT_EXPIRED AUDIT
+    #
+    # Tidak commit di sini.
+    # ========================================================
+
+    record_payment_audit_event(
+        connection,
+        order,
+
+        action=
+            PAYMENT_AUDIT_ACTION_EXPIRED,
+
+        actor_type=
+            PAYMENT_AUDIT_ACTOR_SYSTEM,
+
+        old_snapshot=
+            old_snapshot,
+
+        new_snapshot=
+            new_snapshot,
+
+        reason=(
+            "Batas waktu pembayaran digital "
+            "telah berakhir."
+        )
+    )
+
+
+    return {
+        "expired_now":
+            True,
+
+        "already_expired":
+            False,
+
+        "due":
+            True,
+
+        "reason":
+            "EXPIRED",
+
+        "order":
+            updated_order,
+    }
+    
+    # ============================================================
+# PHASE 20I.4C
+# DATABASE-DRIVEN EXPIRATION PROCESSOR
+#
+# Tidak menggunakan thread / scheduler.
+#
+# Setiap order diproses transaction-per-order agar satu error
+# tidak menggagalkan seluruh batch.
+# ============================================================
+
+def process_expired_payments(
+    limit=50
+):
+
+    try:
+
+        limit = int(
+            limit
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        limit = 50
+
+
+    limit = max(
+        1,
+        min(
+            limit,
+            100
+        )
+    )
+
+
+    checked_at = (
+        current_timestamp()
+    )
+
+
+    connection = None
+
+
+    result = {
+        "checked":
+            0,
+
+        "expired":
+            0,
+
+        "skipped":
+            0,
+
+        "errors":
+            0,
+
+        "checked_at":
+            checked_at,
+    }
+
+
+    try:
+
+        connection = (
+            get_db()
+        )
+
+
+        # ====================================================
+        # ONLY EXPIRED DIGITAL CANDIDATES
+        #
+        # payment_expires_at disimpan:
+        # YYYY-MM-DD HH:MM:SS
+        #
+        # sehingga lexical comparison aman untuk format ini.
+        # ====================================================
+
+        rows = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE
+                    payment_method IN (
+                        ?,
+                        ?
+                    )
+
+                    AND payment_status IN (
+                        ?,
+                        ?
+                    )
+
+                    AND payment_expires_at
+                        IS NOT NULL
+
+                    AND payment_expires_at <= ?
+
+                ORDER BY
+                    payment_expires_at ASC,
+                    id ASC
+
+                LIMIT ?
+                """,
+                (
+                    PAYMENT_METHOD_QRIS,
+
+                    PAYMENT_METHOD_BANK_TRANSFER,
+
+                    PAYMENT_STATUS_PENDING,
+
+                    PAYMENT_STATUS_AWAITING_CONFIRMATION,
+
+                    checked_at,
+
+                    limit,
+                )
+            )
+            .fetchall()
+        )
+
+
+        # Reset read transaction sebelum processing.
+        connection.rollback()
+
+
+        for order in rows:
+
+            result[
+                "checked"
+            ] += 1
+
+
+            try:
+
+                expiration = (
+                    expire_payment_if_due(
+                        connection,
+                        order,
+                        checked_at=checked_at
+                    )
+                )
+
+
+                if expiration[
+                    "expired_now"
+                ]:
+
+                    # Payment mutation + audit
+                    # commit bersama.
+                    connection.commit()
+
+
+                    result[
+                        "expired"
+                    ] += 1
+
+
+                else:
+
+                    connection.rollback()
+
+
+                    result[
+                        "skipped"
+                    ] += 1
+
+
+            except Exception:
+
+                connection.rollback()
+
+
+                result[
+                    "errors"
+                ] += 1
+
+
+                app.logger.exception(
+                    (
+                        "[PAYMENT EXPIRATION PROCESS ERROR] "
+                        f"order="
+                        f"{order.get('order_code')}"
+                    )
+                )
+
+
+        return result
+
+
+    except Exception:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        app.logger.exception(
+            "[PAYMENT EXPIRATION BATCH ERROR]"
+        )
+
+
+        result[
+            "errors"
+        ] += 1
+
+
+        return result
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()    
 
 # ============================================================
 # PHASE 20A
@@ -9470,6 +10806,16 @@ def order_payment_payload(
         "updated_at":
             order.get(
                 "payment_updated_at"
+            ),
+            
+        "failed_at":
+            order.get(
+                "payment_failed_at"
+            ),
+
+        "failure_reason":
+            order.get(
+                "payment_failure_reason"
             ),
             
         "expires_at":
@@ -10360,7 +11706,23 @@ def mark_customer_payment_submitted(
         current_timestamp()
     )
     
-        # ========================================================
+    # ========================================================
+    # PHASE 20I.4C
+    # DEADLINE SECURITY
+    # ========================================================
+
+    if payment_expiry_is_due(
+        order
+    ):
+
+        raise ValueError(
+            (
+                "Batas waktu pembayaran "
+                "telah berakhir."
+            )
+        )
+    
+    # ========================================================
     # PHASE 20I.2
     # TRANSITION SECURITY
     # ========================================================
@@ -10662,6 +12024,490 @@ def get_verified_payment_amount(
 
 
     return payment_amount
+
+# ============================================================
+# PHASE 20I.4D
+# FAILED PAYMENT HELPERS
+# ============================================================
+
+def normalize_payment_failure_reason(
+    value
+):
+
+    reason = str(
+        value
+        or ""
+    )
+
+
+    reason = re.sub(
+        r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
+        "",
+        reason
+    )
+
+
+    reason = " ".join(
+        reason
+        .strip()
+        .split()
+    )
+
+
+    if (
+        len(
+            reason
+        )
+        <
+        PAYMENT_FAILURE_REASON_MIN_LENGTH
+    ):
+
+        raise ValueError(
+            (
+                "Alasan pembayaran gagal minimal "
+                f"{PAYMENT_FAILURE_REASON_MIN_LENGTH} "
+                "karakter."
+            )
+        )
+
+
+    return reason[
+        :PAYMENT_FAILURE_REASON_MAX_LENGTH
+    ]
+    
+def fail_payment(
+    connection,
+    order,
+    reason,
+    actor_type=PAYMENT_AUDIT_ACTOR_SYSTEM
+):
+
+    if not order:
+
+        raise ValueError(
+            "Pesanan tidak ditemukan."
+        )
+
+
+    # ========================================================
+    # PAYMENT METHOD
+    # ========================================================
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    if not payment_method_is_digital(
+        payment_method
+    ):
+
+        raise ValueError(
+            (
+                "Status GAGAL pada proses ini hanya "
+                "digunakan untuk pembayaran digital."
+            )
+        )
+
+
+    # ========================================================
+    # ACTOR
+    # ========================================================
+
+    actor_type = str(
+        actor_type
+        or ""
+    ).strip().upper()
+
+
+    if (
+        actor_type
+        not in (
+            PAYMENT_AUDIT_ACTOR_DRIVER,
+            PAYMENT_AUDIT_ACTOR_SYSTEM,
+        )
+    ):
+
+        raise ValueError(
+            "Aktor pembayaran gagal tidak valid."
+        )
+
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    # ========================================================
+    # IDEMPOTENT
+    # ========================================================
+
+    if (
+        payment_status
+        == PAYMENT_STATUS_FAILED
+    ):
+
+        return {
+            "already_failed":
+                True,
+
+            "payment": {
+                "status":
+                    PAYMENT_STATUS_FAILED,
+
+                "failed_at":
+                    order.get(
+                        "payment_failed_at"
+                    ),
+
+                "failure_reason":
+                    order.get(
+                        "payment_failure_reason"
+                    ),
+            },
+
+            "order":
+                order,
+        }
+
+
+    # ========================================================
+    # DRIVER MAY ONLY REJECT CUSTOMER-SUBMITTED PAYMENT
+    # ========================================================
+
+    if (
+        actor_type
+        == PAYMENT_AUDIT_ACTOR_DRIVER
+
+        and
+
+        payment_status
+        != PAYMENT_STATUS_AWAITING_CONFIRMATION
+    ):
+
+        raise ValueError(
+            (
+                "Driver hanya dapat menandai pembayaran "
+                "GAGAL setelah pelanggan mengirim "
+                "konfirmasi pembayaran."
+            )
+        )
+
+
+    # ========================================================
+    # SYSTEM ONLY HANDLES TRANSIENT DIGITAL PAYMENT
+    # ========================================================
+
+    if (
+        actor_type
+        == PAYMENT_AUDIT_ACTOR_SYSTEM
+
+        and
+
+        payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        raise ValueError(
+            (
+                "Pembayaran pada kondisi ini tidak "
+                "dapat ditandai sebagai GAGAL."
+            )
+        )
+
+
+    # ========================================================
+    # EXPIRED MUST WIN OVER FAILED
+    # ========================================================
+
+    if payment_expiry_is_due(
+        order
+    ):
+
+        raise ValueError(
+            (
+                "Batas waktu pembayaran sudah berakhir. "
+                "Proses sebagai KEDALUWARSA, bukan GAGAL."
+            )
+        )
+
+
+    reason = (
+        normalize_payment_failure_reason(
+            reason
+        )
+    )
+
+
+    # ========================================================
+    # TRANSITION SECURITY
+    # ========================================================
+
+    transition = (
+        validate_payment_status_transition(
+            order,
+            PAYMENT_STATUS_FAILED,
+            actor_type
+        )
+    )
+
+
+    failed_at = (
+        current_timestamp()
+    )
+
+
+    old_snapshot = (
+        build_payment_audit_snapshot(
+            order
+        )
+    )
+
+
+    # ========================================================
+    # ATOMIC UPDATE
+    # ========================================================
+
+    update_cursor = (
+        connection.execute(
+            """
+            UPDATE orders
+
+            SET
+                payment_status = ?,
+
+                payment_failed_at = ?,
+
+                payment_failure_reason = ?,
+
+                payment_failure_actor = ?,
+
+                payment_updated_at = ?
+
+            WHERE
+                id = ?
+
+                AND payment_method IN (
+                    ?,
+                    ?
+                )
+
+                AND payment_status = ?
+            """,
+            (
+                PAYMENT_STATUS_FAILED,
+
+                failed_at,
+
+                reason,
+
+                actor_type,
+
+                failed_at,
+
+                order[
+                    "id"
+                ],
+
+                PAYMENT_METHOD_QRIS,
+
+                PAYMENT_METHOD_BANK_TRANSFER,
+
+                transition[
+                    "old_status"
+                ],
+            )
+        )
+    )
+
+
+    affected_rows = int(
+        update_cursor.rowcount
+        or 0
+    )
+
+
+    # ========================================================
+    # CONCURRENCY
+    # ========================================================
+
+    if affected_rows != 1:
+
+        latest_order = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE id = ?
+
+                LIMIT 1
+                """,
+                (
+                    order[
+                        "id"
+                    ],
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not latest_order:
+
+            raise RuntimeError(
+                "Pesanan tidak ditemukan setelah update."
+            )
+
+
+        latest_status = (
+            get_effective_payment_status(
+                latest_order
+            )
+        )
+
+
+        if (
+            latest_status
+            == PAYMENT_STATUS_FAILED
+        ):
+
+            return {
+                "already_failed":
+                    True,
+
+                "payment": {
+                    "status":
+                        PAYMENT_STATUS_FAILED,
+
+                    "failed_at":
+                        latest_order.get(
+                            "payment_failed_at"
+                        ),
+
+                    "failure_reason":
+                        latest_order.get(
+                            "payment_failure_reason"
+                        ),
+                },
+
+                "order":
+                    latest_order,
+            }
+
+
+        raise RuntimeError(
+            (
+                "Status pembayaran berubah saat "
+                "pembayaran gagal diproses. "
+                "Silakan muat ulang halaman."
+            )
+        )
+
+
+    # ========================================================
+    # UPDATED ORDER
+    # ========================================================
+
+    updated_order = dict(
+        order
+    )
+
+
+    updated_order[
+        "payment_status"
+    ] = (
+        PAYMENT_STATUS_FAILED
+    )
+
+
+    updated_order[
+        "payment_failed_at"
+    ] = (
+        failed_at
+    )
+
+
+    updated_order[
+        "payment_failure_reason"
+    ] = (
+        reason
+    )
+
+
+    updated_order[
+        "payment_failure_actor"
+    ] = (
+        actor_type
+    )
+
+
+    updated_order[
+        "payment_updated_at"
+    ] = (
+        failed_at
+    )
+
+
+    # ========================================================
+    # AUDIT
+    # ========================================================
+
+    new_snapshot = (
+        build_payment_audit_snapshot(
+            updated_order
+        )
+    )
+
+
+    record_payment_audit_event(
+        connection,
+        order,
+
+        action=
+            PAYMENT_AUDIT_ACTION_FAILED,
+
+        actor_type=
+            actor_type,
+
+        old_snapshot=
+            old_snapshot,
+
+        new_snapshot=
+            new_snapshot,
+
+        reason=
+            reason
+    )
+
+
+    return {
+        "already_failed":
+            False,
+
+        "payment": {
+            "status":
+                PAYMENT_STATUS_FAILED,
+
+            "failed_at":
+                failed_at,
+
+            "failure_reason":
+                reason,
+        },
+
+        "order":
+            updated_order,
+    }
 # ============================================================
 # PHASE 20B
 # CONFIRM CASH PAYMENT
@@ -11031,6 +12877,22 @@ def confirm_manual_payment(
             (
                 "Pelanggan belum mengirim "
                 "konfirmasi pembayaran."
+            )
+        )
+        
+    # ========================================================
+    # PHASE 20I.4C
+    # DEADLINE SECURITY
+    # ========================================================
+
+    if payment_expiry_is_due(
+        order
+    ):
+
+        raise ValueError(
+            (
+                "Batas waktu pembayaran "
+                "telah berakhir."
             )
         )
         
@@ -13673,6 +15535,73 @@ def customer_confirm_payment(
                         ),
                 }
             ), 403
+            
+                    # ====================================================
+        # PHASE 20I.4C
+        # DO NOT ACCEPT PAYMENT SUBMISSION AFTER DEADLINE
+        # ====================================================
+
+        expiration = (
+            expire_payment_if_due(
+                connection,
+                order
+            )
+        )
+
+
+        if (
+            expiration[
+                "expired_now"
+            ]
+            or
+            expiration[
+                "already_expired"
+            ]
+        ):
+
+            if expiration[
+                "expired_now"
+            ]:
+
+                connection.commit()
+
+
+            expired_order = (
+                expiration.get(
+                    "order"
+                )
+                or order
+            )
+
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "expired":
+                        True,
+
+                    "payment":
+                        order_payment_payload(
+                            expired_order
+                        ),
+
+                    "message":
+                        (
+                            "Batas waktu pembayaran "
+                            "telah berakhir."
+                        ),
+                }
+            ), 409
+
+
+        order = (
+            expiration.get(
+                "order"
+            )
+            or order
+        )
 
 
         # ====================================================
@@ -14142,6 +16071,97 @@ def get_customer_order_status(
                         "Pesanan tidak ditemukan.",
                 }
             ), 404
+            
+                    # ====================================================
+        # PHASE 20I.4C
+        # LAZY AUTOMATIC PAYMENT EXPIRATION
+        #
+        # Customer polling menjadi salah satu trigger.
+        # ====================================================
+
+        try:
+
+            expiration = (
+                expire_payment_if_due(
+                    connection,
+                    order
+                )
+            )
+
+
+            if expiration[
+                "expired_now"
+            ]:
+
+                # UPDATE payment + audit
+                # commit bersama.
+                connection.commit()
+
+
+                order = (
+                    expiration[
+                        "order"
+                    ]
+                )
+
+
+            elif expiration[
+                "already_expired"
+            ]:
+
+                order = (
+                    expiration[
+                        "order"
+                    ]
+                )
+
+
+            elif (
+                expiration.get(
+                    "order"
+                )
+            ):
+
+                order = (
+                    expiration[
+                        "order"
+                    ]
+                )
+
+
+        except Exception:
+
+            # Jangan biarkan processor expiry membuat
+            # seluruh live-status customer mati.
+            connection.rollback()
+
+
+            app.logger.exception(
+                (
+                    "[CUSTOMER PAYMENT EXPIRY ERROR] "
+                    f"order={order_code}"
+                )
+            )
+
+
+            # Ambil state terakhir yang benar dari DB.
+            order = (
+                connection.execute(
+                    """
+                    SELECT *
+
+                    FROM orders
+
+                    WHERE order_code = ?
+
+                    LIMIT 1
+                    """,
+                    (
+                        order_code,
+                    )
+                )
+                .fetchone()
+            )
 
 
         # ====================================================
@@ -17491,6 +19511,15 @@ def driver_profile():
 )
 @driver_login_required
 def driver_dashboard():
+    
+    # ========================================================
+    # PHASE 20I.4C
+    # PROCESS EXPIRED DIGITAL PAYMENTS
+    # ========================================================
+
+    process_expired_payments(
+        limit=50
+    )
 
     connection = (
         get_db()
@@ -21173,6 +23202,64 @@ def driver_confirm_manual_payment(
                     "driver_dashboard"
                 )
             )
+            
+                    # ====================================================
+        # PHASE 20I.4C
+        # EXPIRE BEFORE DRIVER CONFIRMATION
+        # ====================================================
+
+        expiration = (
+            expire_payment_if_due(
+                connection,
+                order
+            )
+        )
+
+
+        if (
+            expiration[
+                "expired_now"
+            ]
+            or
+            expiration[
+                "already_expired"
+            ]
+        ):
+
+            if expiration[
+                "expired_now"
+            ]:
+
+                connection.commit()
+
+
+            flash(
+                (
+                    "Pembayaran sudah kedaluwarsa "
+                    "dan tidak dapat dikonfirmasi."
+                ),
+                "error"
+            )
+
+
+            return redirect(
+                url_for(
+                    "driver_order_detail",
+
+                    order_id=
+                        order[
+                            "id"
+                        ]
+                )
+            )
+
+
+        order = (
+            expiration.get(
+                "order"
+            )
+            or order
+        )
 
 
         result = (
@@ -21274,6 +23361,278 @@ def driver_confirm_manual_payment(
     )
     
     # ============================================================
+# PHASE 20I.4D
+# DRIVER MARK DIGITAL PAYMENT FAILED
+# ============================================================
+
+@app.route(
+    "/driver/orders/<string:order_code>/payment/manual/fail",
+    methods=["POST"]
+)
+@driver_login_required
+@driver_csrf_required
+def driver_fail_manual_payment(
+    order_code
+):
+
+    order_code = str(
+        order_code
+        or ""
+    ).strip().upper()
+
+
+    reason = (
+        request.form.get(
+            "failure_reason",
+            ""
+        )
+    )
+
+
+    connection = None
+    order = None
+
+
+    try:
+
+        connection = (
+            get_db()
+        )
+
+
+        order = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE order_code = ?
+
+                LIMIT 1
+                """,
+                (
+                    order_code,
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not order:
+
+            flash(
+                "Pesanan tidak ditemukan.",
+                "error"
+            )
+
+
+            return redirect(
+                url_for(
+                    "driver_dashboard"
+                )
+            )
+
+
+        # ====================================================
+        # EXPIRY HAS PRIORITY
+        # ====================================================
+
+        expiration = (
+            expire_payment_if_due(
+                connection,
+                order
+            )
+        )
+
+
+        if (
+            expiration[
+                "expired_now"
+            ]
+        ):
+
+            connection.commit()
+
+
+            flash(
+                (
+                    "Batas waktu pembayaran sudah habis. "
+                    "Pembayaran otomatis menjadi "
+                    "KEDALUWARSA."
+                ),
+                "info"
+            )
+
+
+            return redirect(
+                url_for(
+                    "driver_order_detail",
+                    order_id=
+                        order[
+                            "id"
+                        ]
+                )
+            )
+
+
+        if (
+            expiration[
+                "already_expired"
+            ]
+        ):
+
+            flash(
+                (
+                    "Pembayaran sudah berstatus "
+                    "KEDALUWARSA."
+                ),
+                "info"
+            )
+
+
+            return redirect(
+                url_for(
+                    "driver_order_detail",
+                    order_id=
+                        order[
+                            "id"
+                        ]
+                )
+            )
+
+
+        order = (
+            expiration.get(
+                "order"
+            )
+            or order
+        )
+
+
+        # ====================================================
+        # FAILED
+        # ====================================================
+
+        result = (
+            fail_payment(
+                connection,
+                order,
+
+                reason=
+                    reason,
+
+                actor_type=
+                    PAYMENT_AUDIT_ACTOR_DRIVER
+            )
+        )
+
+
+        connection.commit()
+
+
+        if result[
+            "already_failed"
+        ]:
+
+            flash(
+                (
+                    "Pembayaran sudah ditandai "
+                    "GAGAL sebelumnya."
+                ),
+                "info"
+            )
+
+
+        else:
+
+            flash(
+                (
+                    "Pembayaran berhasil ditandai "
+                    "sebagai GAGAL."
+                ),
+                "success"
+            )
+
+
+    except ValueError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        flash(
+            str(
+                error
+            ),
+            "error"
+        )
+
+
+    except RuntimeError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        flash(
+            str(
+                error
+            ),
+            "error"
+        )
+
+
+    except Exception:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        app.logger.exception(
+            "[DRIVER PAYMENT FAILED ERROR]"
+        )
+
+
+        flash(
+            (
+                "Status pembayaran gagal "
+                "belum dapat diproses."
+            ),
+            "error"
+        )
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()
+
+
+    if order:
+
+        return redirect(
+            url_for(
+                "driver_order_detail",
+                order_id=
+                    order[
+                        "id"
+                    ]
+            )
+        )
+
+
+    return redirect(
+        url_for(
+            "driver_dashboard"
+        )
+    )
+    
+# ============================================================
 # PHASE 20I.3
 # DRIVER REFUND PAYMENT
 # ============================================================
@@ -22071,7 +24430,7 @@ def driver_payments():
             payment_method,
     )
     
-    # ============================================================
+# ============================================================
 # PHASE 20I.3C
 # DRIVER REFUND REQUEST REVIEW PAGE
 # ============================================================
@@ -22463,6 +24822,7 @@ def update_driver_service_status():
 
 # ============================================================
 # DRIVER UPDATE ORDER STATUS
+# PHASE 20I.4B - PAYMENT EXPIRY WINDOW
 # ============================================================
 
 @app.route(
@@ -22482,22 +24842,28 @@ def update_order_status(
     )
 
 
-    new_status = (
+    new_status = str(
         data.get(
             "status",
             ""
         )
-        .strip()
-        .upper()
-    )
+        or ""
+    ).strip().upper()
 
 
-    connection = (
-        get_db()
-    )
+    connection = None
 
 
     try:
+
+        connection = (
+            get_db()
+        )
+
+
+        # ====================================================
+        # CURRENT ORDER
+        # ====================================================
 
         order = (
             connection.execute(
@@ -22507,6 +24873,8 @@ def update_order_status(
                 FROM orders
 
                 WHERE id = ?
+
+                LIMIT 1
                 """,
                 (
                     order_id,
@@ -22529,11 +24897,21 @@ def update_order_status(
             ), 404
 
 
+        current_status = str(
+            order.get(
+                "status"
+            )
+            or ""
+        ).strip().upper()
+
+
+        # ====================================================
+        # JOURNEY TRANSITION
+        # ====================================================
+
         allowed_next_statuses = (
             ALLOWED_TRANSITIONS.get(
-                order[
-                    "status"
-                ],
+                current_status,
                 set()
             )
         )
@@ -22558,9 +24936,9 @@ def update_order_status(
             ), 400
 
 
-                # ----------------------------------------------------
-        # STATUS TIMESTAMP
-        # ----------------------------------------------------
+        # ====================================================
+        # TIMESTAMP
+        # ====================================================
 
         status_timestamp_column = (
             STATUS_TIMESTAMP_COLUMNS.get(
@@ -22574,73 +24952,246 @@ def update_order_status(
         )
 
 
+        # ====================================================
+        # ATOMIC JOURNEY STATUS UPDATE
+        #
+        # Tambahkan old status di WHERE untuk melindungi
+        # double-click / concurrent transition.
+        # ====================================================
+
         if status_timestamp_column:
 
-            connection.execute(
-                f"""
-                UPDATE orders
+            update_cursor = (
+                connection.execute(
+                    f"""
+                    UPDATE orders
 
-                SET
-                    status = ?,
+                    SET
+                        status = ?,
 
-                    {status_timestamp_column} = ?
+                        {status_timestamp_column} = ?
 
-                WHERE id = ?
-                """,
-                (
-                    new_status,
+                    WHERE
+                        id = ?
 
-                    status_timestamp,
+                        AND status = ?
+                    """,
+                    (
+                        new_status,
 
-                    order_id,
+                        status_timestamp,
+
+                        order_id,
+
+                        current_status,
+                    )
                 )
             )
 
 
         else:
 
-            connection.execute(
-                """
-                UPDATE orders
+            update_cursor = (
+                connection.execute(
+                    """
+                    UPDATE orders
 
-                SET status = ?
+                    SET
+                        status = ?
 
-                WHERE id = ?
-                """,
-                (
-                    new_status,
+                    WHERE
+                        id = ?
 
-                    order_id,
+                        AND status = ?
+                    """,
+                    (
+                        new_status,
+
+                        order_id,
+
+                        current_status,
+                    )
                 )
             )
 
+
+        affected_rows = int(
+            update_cursor.rowcount
+            or 0
+        )
+
+
+        if affected_rows != 1:
+
+            raise RuntimeError(
+                (
+                    "Status pesanan berubah saat "
+                    "permintaan sedang diproses. "
+                    "Silakan muat ulang halaman."
+                )
+            )
+
+
+        # ====================================================
+        # PHASE 20I.4B
+        # START PAYMENT EXPIRY WINDOW
+        #
+        # Hanya ketika:
+        #
+        # MENUNGGU -> DITERIMA
+        #
+        # Digital:
+        # QRIS / Transfer
+        # ====================================================
+
+        payment_expiry = {
+            "started":
+                False,
+
+            "already_started":
+                False,
+
+            "enabled":
+                False,
+
+            "expires_at":
+                None,
+
+            "reason":
+                "NOT_STARTED",
+        }
+
+
+        if (
+            new_status
+            == STATUS_ACCEPTED
+        ):
+
+            payment_expiry = (
+                start_payment_expiry_window(
+                    connection,
+                    order,
+
+                    started_at=
+                        status_timestamp
+                )
+            )
+
+
+        # ====================================================
+        # ONE TRANSACTION
+        # ====================================================
+
         connection.commit()
+
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "status":
+                    new_status,
+
+                "timestamp":
+                    status_timestamp,
+
+                "payment_expiry":
+                    payment_expiry,
+
+                "message":
+                    STATUS_MESSAGES.get(
+                        new_status,
+                        "Status berhasil diperbarui."
+                    ),
+            }
+        )
+
+
+    except ValueError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    str(
+                        error
+                    ),
+            }
+        ), 400
+
+
+    except RuntimeError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    str(
+                        error
+                    ),
+            }
+        ), 409
+
+
+    except Exception as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        app.logger.exception(
+            "[DRIVER ORDER STATUS UPDATE ERROR]"
+        )
+
+
+        response_data = {
+            "success":
+                False,
+
+            "message":
+                (
+                    "Status pesanan belum "
+                    "dapat diperbarui."
+                ),
+        }
+
+
+        if APP_ENV == "development":
+
+            response_data[
+                "debug"
+            ] = (
+                f"{type(error).__name__}: "
+                f"{str(error)}"
+            )
+
+
+        return jsonify(
+            response_data
+        ), 500
+
 
     finally:
 
-        connection.close()
+        if connection is not None:
 
-
-    return jsonify(
-        {
-            "success":
-                True,
-
-            "status":
-                new_status,
-
-            "timestamp":
-                status_timestamp,
-
-            "message":
-                STATUS_MESSAGES.get(
-                    new_status,
-                    "Status berhasil diperbarui."
-                ),
-        }
-    )
-
-
+            connection.close()
 # ============================================================
 # SECURITY HEADERS
 # PHASE 14E

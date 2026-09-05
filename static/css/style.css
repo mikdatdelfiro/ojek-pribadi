@@ -37603,3 +37603,497 @@ PRODUCTION / RENDER
     }
 
 }
+
+/* ==========================================================
+PHASE 20I.4D
+FAILED PAYMENT
+========================================================== */
+
+.driver-payment-failure-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.driver-payment-failure-divider::before,
+.driver-payment-failure-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, .06);
+}
+
+.driver-payment-failure-divider span {
+    color: rgba(255, 255, 255, .28);
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.driver-payment-failure-form {
+    display: grid;
+    gap: 10px;
+}
+
+.driver-payment-failure-label {
+    color: rgba(255, 255, 255, .55);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.driver-payment-failure-reason {
+    width: 100%;
+    min-height: 86px;
+    box-sizing: border-box;
+    padding: 12px 13px;
+
+    border:
+        1px solid rgba(248, 113, 113, .14);
+
+    border-radius: 12px;
+
+    outline: none;
+    resize: vertical;
+
+    background:
+        rgba(0, 0, 0, .18);
+
+    color:
+        rgba(255, 255, 255, .9);
+
+    font: inherit;
+    font-size: 11px;
+}
+
+.driver-payment-failure-reason:focus {
+    border-color:
+        rgba(248, 113, 113, .42);
+}
+
+.driver-payment-failure-button {
+    width: 100%;
+    min-height: 46px;
+
+    border:
+        1px solid rgba(248, 113, 113, .25);
+
+    border-radius: 12px;
+
+    background:
+        rgba(248, 113, 113, .055);
+
+    color:
+        #fca5a5;
+
+    cursor: pointer;
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.driver-payment-failure-button:hover {
+    background:
+        rgba(248, 113, 113, .11);
+}
+
+/* ==========================================================
+PHASE 20I.4E
+CUSTOMER PAYMENT FINAL STATES
+========================================================== */
+
+.customer-payment-status-badge.is-failed {
+    background:
+        rgba(248, 113, 113, .09);
+
+    color:
+        #fca5a5;
+}
+
+
+.customer-payment-status-badge.is-expired {
+    background:
+        rgba(251, 146, 60, .09);
+
+    color:
+        #fdba74;
+}
+
+/* ==========================================================
+CUSTOMER PAYMENT EXPIRY COUNTDOWN
+========================================================== */
+
+.customer-payment-expiry {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        13px;
+
+    margin-top:
+        12px;
+
+    padding:
+        14px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .12);
+
+    border-radius:
+        15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(52, 211, 153, .055),
+            rgba(255, 255, 255, .018)
+        );
+}
+
+
+.customer-payment-expiry[hidden] {
+    display:
+        none !important;
+}
+
+
+.customer-payment-expiry-icon {
+    flex:
+        0 0 40px;
+
+    width:
+        40px;
+
+    height:
+        40px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(52, 211, 153, .09);
+
+    color:
+        #34d399;
+
+    font-size:
+        18px;
+}
+
+
+.customer-payment-expiry-content {
+    min-width:
+        0;
+
+    flex:
+        1;
+}
+
+
+.customer-payment-expiry-content > span {
+    display:
+        block;
+
+    margin-bottom:
+        3px;
+
+    color:
+        rgba(255, 255, 255, .35);
+
+    font-size:
+        6px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        .09em;
+}
+
+
+.customer-payment-expiry-content > strong {
+    display:
+        block;
+
+    color:
+        #34d399;
+
+    font-size:
+        20px;
+
+    line-height:
+        1.1;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+.customer-payment-expiry-content > small {
+    display:
+        block;
+
+    margin-top:
+        5px;
+
+    color:
+        rgba(255, 255, 255, .48);
+
+    font-size:
+        8px;
+
+    line-height:
+        1.55;
+}
+
+.customer-payment-expiry.is-warning {
+    border-color:
+        rgba(251, 191, 36, .18);
+
+    background:
+        rgba(251, 191, 36, .045);
+}
+
+
+.customer-payment-expiry.is-warning
+.customer-payment-expiry-icon,
+.customer-payment-expiry.is-warning
+.customer-payment-expiry-content > strong {
+    color:
+        #fbbf24;
+}
+
+
+.customer-payment-expiry.is-warning
+.customer-payment-expiry-icon {
+    background:
+        rgba(251, 191, 36, .08);
+}
+
+
+.customer-payment-expiry.is-critical {
+    border-color:
+        rgba(248, 113, 113, .22);
+
+    background:
+        rgba(248, 113, 113, .05);
+}
+
+
+.customer-payment-expiry.is-critical
+.customer-payment-expiry-icon,
+.customer-payment-expiry.is-critical
+.customer-payment-expiry-content > strong {
+    color:
+        #fca5a5;
+}
+
+
+.customer-payment-expiry.is-critical
+.customer-payment-expiry-icon {
+    background:
+        rgba(248, 113, 113, .09);
+}
+
+/* ==========================================================
+CUSTOMER PAYMENT FAILURE DETAIL
+========================================================== */
+
+.customer-payment-failure {
+    margin-top:
+        12px;
+
+    padding:
+        14px;
+
+    border:
+        1px solid
+        rgba(248, 113, 113, .16);
+
+    border-radius:
+        15px;
+
+    background:
+        rgba(248, 113, 113, .035);
+}
+
+
+.customer-payment-failure[hidden] {
+    display:
+        none !important;
+}
+
+
+.customer-payment-failure-head {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        11px;
+}
+
+
+.customer-payment-failure-icon {
+    flex:
+        0 0 38px;
+
+    width:
+        38px;
+
+    height:
+        38px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(248, 113, 113, .09);
+
+    color:
+        #fca5a5;
+
+    font-size:
+        17px;
+
+    font-weight:
+        900;
+}
+
+
+.customer-payment-failure-head div > span {
+    display:
+        block;
+
+    margin-bottom:
+        3px;
+
+    color:
+        rgba(248, 113, 113, .6);
+
+    font-size:
+        6px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        .09em;
+}
+
+
+.customer-payment-failure-head strong {
+    color:
+        #ffffff;
+
+    font-size:
+        10px;
+}
+
+
+.customer-payment-failure-reason,
+.customer-payment-failure-time {
+    margin-top:
+        12px;
+
+    padding-top:
+        12px;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .05);
+}
+
+
+.customer-payment-failure-reason > span,
+.customer-payment-failure-time > span {
+    display:
+        block;
+
+    margin-bottom:
+        5px;
+
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size:
+        6px;
+
+    font-weight:
+        800;
+}
+
+
+.customer-payment-failure-reason p {
+    margin:
+        0;
+
+    color:
+        rgba(255, 255, 255, .72);
+
+    font-size:
+        9px;
+
+    line-height:
+        1.6;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+.customer-payment-failure-time strong {
+    color:
+        rgba(255, 255, 255, .7);
+
+    font-size:
+        9px;
+}
+
+.customer-payment-live-status.is-failed {
+    border-color:
+        rgba(248, 113, 113, .14);
+
+    background:
+        rgba(248, 113, 113, .035);
+}
+
+
+.customer-payment-live-status.is-failed
+.customer-payment-live-icon {
+    color:
+        #fca5a5;
+}
+
+
+.customer-payment-live-status.is-expired {
+    border-color:
+        rgba(251, 146, 60, .14);
+
+    background:
+        rgba(251, 146, 60, .035);
+}
+
+
+.customer-payment-live-status.is-expired
+.customer-payment-live-icon {
+    color:
+        #fdba74;
+}
