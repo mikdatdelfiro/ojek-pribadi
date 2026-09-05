@@ -4,7 +4,7 @@
 // ============================================================
 // OJEK PRIBADI
 // CUSTOMER LIVE ORDER STATUS
-// PHASE 20I.3F - CUSTOMER REFUND STATUS + SECURE RECEIPT
+// PHASE 20I.4E - CUSTOMER LIVE PAYMENT STATUS
 //
 // FULL REPLACEMENT
 // ------------------------------------------------------------
@@ -15,19 +15,21 @@
 // - Journey timeline
 // - Customer review
 // - Payment confirmation QRIS / Transfer
-// - Payment experience
-// - Payment copy
-// - Payment toast
+// - Secure receipt
+// - Customer refund request + live refund status
+// - Payment copy + toast
 // - Customer notifications
 // - Customer contact driver
-// - Polling
+// - Refund-aware polling
 //
-// Diperbaiki:
-// - Receipt tidak lagi membuka /order/.../receipt#token=...
-// - Receipt memakai secure API + X-Receipt-Token
-// - Receipt token dibaca dari sessionStorage
-// - Cash payment tetap dipantau setelah status SELESAI
-// - Receipt muncul setelah SELESAI + DIBAYAR
+// Ditambahkan / diperkuat:
+// - Countdown pembayaran digital
+// - Countdown tetap berjalan saat MENUNGGU_KONFIRMASI
+// - Live state GAGAL + alasan kegagalan
+// - Live state KEDALUWARSA
+// - Final payment state menyembunyikan tombol konfirmasi
+// - Expiry tetap server-authoritative
+// - Cleanup timer countdown saat halaman ditutup
 // ============================================================
 
 
@@ -438,6 +440,59 @@ const customerPaymentLiveStatus =
     );
 
 
+// ============================================================
+// PHASE 20I.4E
+// PAYMENT EXPIRY / FAILED DOM
+// ============================================================
+
+const customerPaymentExpiry =
+    document.getElementById(
+        "customerPaymentExpiry"
+    );
+
+
+const customerPaymentExpiryCountdown =
+    document.getElementById(
+        "customerPaymentExpiryCountdown"
+    );
+
+
+const customerPaymentExpiryText =
+    document.getElementById(
+        "customerPaymentExpiryText"
+    );
+
+
+const customerPaymentFailure =
+    document.getElementById(
+        "customerPaymentFailure"
+    );
+
+
+const customerPaymentFailureReasonBlock =
+    document.getElementById(
+        "customerPaymentFailureReasonBlock"
+    );
+
+
+const customerPaymentFailureReason =
+    document.getElementById(
+        "customerPaymentFailureReason"
+    );
+
+
+const customerPaymentFailureTimeBlock =
+    document.getElementById(
+        "customerPaymentFailureTimeBlock"
+    );
+
+
+const customerPaymentFailureTime =
+    document.getElementById(
+        "customerPaymentFailureTime"
+    );
+
+
 const customerPaymentProgress =
     document.getElementById(
         "customerPaymentProgress"
@@ -819,6 +874,21 @@ let customerStatusToastTimer =
 let customerPaymentToastTimer =
     null;
 
+// ============================================================
+// PHASE 20I.4E
+// CUSTOMER PAYMENT EXPIRY STATE
+// ============================================================
+
+let customerPaymentExpiryInterval =
+    null;
+
+
+let customerPaymentExpiryTarget =
+    null;
+
+
+let customerPaymentExpiryRefreshRequested =
+    false;    
 
 // ============================================================
 // STATUS TIMESTAMP CONFIG
@@ -1463,6 +1533,930 @@ function formatCustomerRefundTimestamp(
 }
 
 // ============================================================
+// PHASE 20I.4E
+// PAYMENT TIMESTAMP FORMATTER
+// ============================================================
+
+function formatCustomerPaymentTimestamp(
+    value
+) {
+
+    const raw =
+        String(
+            value
+            || ""
+        ).trim();
+
+
+    if (!raw) {
+
+        return "-";
+
+    }
+
+
+    const match =
+        raw.match(
+            /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/
+        );
+
+
+    if (!match) {
+
+        return raw;
+
+    }
+
+
+    return (
+        match[3]
+        +
+        "/"
+        +
+        match[2]
+        +
+        "/"
+        +
+        match[1]
+        +
+        " • "
+        +
+        match[4]
+        +
+        ":"
+        +
+        match[5]
+    );
+
+}
+
+function formatCustomerPaymentCountdown(
+    totalSeconds
+) {
+
+    const safeSeconds =
+        Math.max(
+            0,
+            Math.floor(
+                Number(
+                    totalSeconds
+                    || 0
+                )
+            )
+        );
+
+
+    const minutes =
+        Math.floor(
+            safeSeconds
+            / 60
+        );
+
+
+    const seconds =
+        safeSeconds
+        % 60;
+
+
+    return (
+        String(
+            minutes
+        ).padStart(
+            2,
+            "0"
+        )
+        +
+        ":"
+        +
+        String(
+            seconds
+        ).padStart(
+            2,
+            "0"
+        )
+    );
+
+}
+
+function stopCustomerPaymentExpiryCountdown() {
+
+    if (
+        customerPaymentExpiryInterval
+    ) {
+
+        window.clearInterval(
+            customerPaymentExpiryInterval
+        );
+
+
+        customerPaymentExpiryInterval =
+            null;
+
+    }
+
+
+    customerPaymentExpiryTarget =
+        null;
+
+}
+
+function startCustomerPaymentExpiryCountdown(
+    secondsRemaining
+) {
+
+    const safeSeconds =
+        Math.max(
+            0,
+            Math.floor(
+                Number(
+                    secondsRemaining
+                    || 0
+                )
+            )
+        );
+
+
+    stopCustomerPaymentExpiryCountdown();
+
+
+    customerPaymentExpiryTarget =
+        Date.now()
+        +
+        (
+            safeSeconds
+            * 1000
+        );
+
+
+    function renderCountdown() {
+
+        if (
+            !customerPaymentExpiryTarget
+        ) {
+
+            return;
+
+        }
+
+
+        const remaining =
+            Math.max(
+                0,
+                Math.ceil(
+                    (
+                        customerPaymentExpiryTarget
+                        -
+                        Date.now()
+                    )
+                    / 1000
+                )
+            );
+
+
+        if (
+            customerPaymentExpiryCountdown
+        ) {
+
+            customerPaymentExpiryCountdown.textContent =
+                formatCustomerPaymentCountdown(
+                    remaining
+                );
+
+        }
+
+
+        // ====================================================
+        // DEADLINE REACHED
+        // ====================================================
+
+        if (
+            remaining
+            <= 0
+        ) {
+
+            stopCustomerPaymentExpiryCountdown();
+
+
+            if (
+                customerPaymentConfirmArea
+            ) {
+
+                customerPaymentConfirmArea.hidden =
+                    true;
+
+            }
+
+
+            if (
+                customerPaymentExpiryText
+            ) {
+
+                customerPaymentExpiryText.textContent =
+                    (
+                        "Waktu pembayaran telah habis. "
+                        +
+                        "Status sedang diperbarui."
+                    );
+
+            }
+
+
+            // Backend tetap sumber kebenaran.
+            // GET live-status akan menjalankan processor
+            // expiration dari PHASE 20I.4C.
+            if (
+                !customerPaymentExpiryRefreshRequested
+            ) {
+
+                customerPaymentExpiryRefreshRequested =
+                    true;
+
+
+                window.setTimeout(
+                    function () {
+
+                        fetchOrderStatus();
+
+                    },
+                    250
+                );
+
+            }
+
+        }
+
+    }
+
+
+    renderCountdown();
+
+
+    if (
+        safeSeconds
+        > 0
+    ) {
+
+        customerPaymentExpiryInterval =
+            window.setInterval(
+                renderCountdown,
+                1000
+            );
+
+    }
+
+}
+
+function renderCustomerPaymentExpiry(
+    payment
+) {
+
+    if (
+        !customerPaymentExpiry
+        ||
+        !payment
+    ) {
+
+        return;
+
+    }
+
+
+    const method =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const expiry =
+        payment.expiry
+        || {};
+
+
+    const digital =
+        (
+            method
+            === "QRIS"
+
+            ||
+
+            method
+            === "TRANSFER_BANK"
+        );
+
+
+    const transient =
+        (
+            status
+            === "MENUNGGU_PEMBAYARAN"
+
+            ||
+
+            status
+            === "MENUNGGU_KONFIRMASI"
+        );
+
+
+    // ========================================================
+    // HIDE FOR CASH / FINAL STATE / WINDOW NOT STARTED
+    // ========================================================
+
+    if (
+        !digital
+        ||
+        !transient
+        ||
+        !expiry.active
+    ) {
+
+        customerPaymentExpiry.hidden =
+            true;
+
+
+        stopCustomerPaymentExpiryCountdown();
+
+
+        customerPaymentExpiryRefreshRequested =
+            false;
+
+
+        return;
+
+    }
+
+
+    customerPaymentExpiry.hidden =
+        false;
+
+
+    customerPaymentExpiry.classList.remove(
+        "is-warning",
+        "is-critical"
+    );
+
+
+    const secondsRemaining =
+        Math.max(
+            0,
+            Number(
+                expiry.seconds_remaining
+                || 0
+            )
+        );
+
+
+    // ========================================================
+    // VISUAL URGENCY
+    // ========================================================
+
+    if (
+        secondsRemaining
+        <= 60
+    ) {
+
+        customerPaymentExpiry.classList.add(
+            "is-critical"
+        );
+
+    }
+
+    else if (
+        secondsRemaining
+        <= 300
+    ) {
+
+        customerPaymentExpiry.classList.add(
+            "is-warning"
+        );
+
+    }
+
+
+    if (
+        customerPaymentExpiryText
+    ) {
+
+        if (
+            status
+            === "MENUNGGU_KONFIRMASI"
+        ) {
+
+            customerPaymentExpiryText.textContent =
+                (
+                    "Konfirmasi sudah dikirim. "
+                    +
+                    "Tunggu driver memverifikasi "
+                    +
+                    "sebelum batas waktu berakhir."
+                );
+
+        }
+
+        else {
+
+            customerPaymentExpiryText.textContent =
+                (
+                    "Selesaikan pembayaran dan kirim "
+                    +
+                    "konfirmasi sebelum waktu habis."
+                );
+
+        }
+
+    }
+
+
+    // Jangan membuka ulang immediate-refresh guard jika
+    // backend masih mengembalikan 00:00 pada request yang sama.
+    if (
+        secondsRemaining
+        > 0
+    ) {
+
+        customerPaymentExpiryRefreshRequested =
+            false;
+
+    }
+
+
+    startCustomerPaymentExpiryCountdown(
+        secondsRemaining
+    );
+
+}
+
+function renderCustomerPaymentFailure(
+    payment
+) {
+
+    if (
+        !customerPaymentFailure
+        ||
+        !payment
+    ) {
+
+        return;
+
+    }
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        status
+        !== "GAGAL"
+    ) {
+
+        customerPaymentFailure.hidden =
+            true;
+
+
+        return;
+
+    }
+
+
+    customerPaymentFailure.hidden =
+        false;
+
+
+    const failureReason =
+        String(
+            payment.failure_reason
+            || ""
+        ).trim();
+
+
+    const failedAt =
+        String(
+            payment.failed_at
+            || ""
+        ).trim();
+
+
+    if (
+        customerPaymentFailureReasonBlock
+    ) {
+
+        customerPaymentFailureReasonBlock.hidden =
+            !failureReason;
+
+    }
+
+
+    if (
+        customerPaymentFailureReason
+    ) {
+
+        // Gunakan textContent.
+        // Jangan innerHTML karena alasan berasal dari input.
+        customerPaymentFailureReason.textContent =
+            failureReason
+            || "-";
+
+    }
+
+
+    if (
+        customerPaymentFailureTimeBlock
+    ) {
+
+        customerPaymentFailureTimeBlock.hidden =
+            !failedAt;
+
+    }
+
+
+    if (
+        customerPaymentFailureTime
+    ) {
+
+        customerPaymentFailureTime.textContent =
+            formatCustomerPaymentTimestamp(
+                failedAt
+            );
+
+    }
+
+}
+
+// ============================================================
+// PHASE 20I.4E
+// CUSTOMER PAYMENT LIFECYCLE OVERRIDE
+// ============================================================
+
+function renderCustomerPaymentLifecycle(
+    payment
+) {
+
+    if (!payment) {
+
+        return;
+
+    }
+
+
+    const status =
+        String(
+            payment.status
+            || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const method =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    // ========================================================
+    // BADGE
+    // ========================================================
+
+    if (
+        customerPaymentStatusBadge
+    ) {
+
+        customerPaymentStatusBadge.textContent =
+            getCustomerPaymentStatusLabel(
+                status
+            );
+
+
+        customerPaymentStatusBadge.classList.remove(
+            "is-paid",
+            "is-review",
+            "is-pending",
+            "is-refunded",
+            "is-failed",
+            "is-expired"
+        );
+
+
+        switch (
+            status
+        ) {
+
+            case "DIBAYAR":
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-paid"
+                );
+
+                break;
+
+
+            case "DIKEMBALIKAN":
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-refunded"
+                );
+
+                break;
+
+
+            case "MENUNGGU_KONFIRMASI":
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-review"
+                );
+
+                break;
+
+
+            case "GAGAL":
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-failed"
+                );
+
+                break;
+
+
+            case "KEDALUWARSA":
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-expired"
+                );
+
+                break;
+
+
+            default:
+
+                customerPaymentStatusBadge.classList.add(
+                    "is-pending"
+                );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // LIVE STATUS CLASSES
+    // ========================================================
+
+    if (
+        customerPaymentLiveStatus
+    ) {
+
+        customerPaymentLiveStatus.classList.remove(
+            "is-paid",
+            "is-review",
+            "is-failed",
+            "is-expired",
+            "is-refunded"
+        );
+
+
+        // ====================================================
+        // FAILED
+        // ====================================================
+
+        if (
+            status
+            === "GAGAL"
+        ) {
+
+            customerPaymentLiveStatus.classList.add(
+                "is-failed"
+            );
+
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        ×
+                    </span>
+
+                    <div>
+                        <strong>
+                            Pembayaran gagal
+                        </strong>
+
+                        <p>
+                            Pembayaran tidak berhasil
+                            diverifikasi oleh driver.
+                            Lihat informasi di bawah.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+
+        // ====================================================
+        // EXPIRED
+        // ====================================================
+
+        else if (
+            status
+            === "KEDALUWARSA"
+        ) {
+
+            customerPaymentLiveStatus.classList.add(
+                "is-expired"
+            );
+
+
+            customerPaymentLiveStatus.innerHTML =
+                `
+                    <span class="customer-payment-live-icon">
+                        ◷
+                    </span>
+
+                    <div>
+                        <strong>
+                            Waktu pembayaran berakhir
+                        </strong>
+
+                        <p>
+                            Batas waktu pembayaran digital
+                            telah habis. Pembayaran ini
+                            tidak dapat dikonfirmasi lagi.
+                        </p>
+                    </div>
+                `;
+
+        }
+
+
+        // ====================================================
+        // AWAITING DRIVER
+        // ====================================================
+
+        else if (
+            status
+            === "MENUNGGU_KONFIRMASI"
+        ) {
+
+            customerPaymentLiveStatus.classList.add(
+                "is-review"
+            );
+
+        }
+
+
+        // ====================================================
+        // PAID
+        // ====================================================
+
+        else if (
+            status
+            === "DIBAYAR"
+        ) {
+
+            customerPaymentLiveStatus.classList.add(
+                "is-paid"
+            );
+
+        }
+
+
+        // ====================================================
+        // REFUNDED
+        // ====================================================
+
+        else if (
+            status
+            === "DIKEMBALIKAN"
+        ) {
+
+            customerPaymentLiveStatus.classList.add(
+                "is-refunded"
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // FINAL STATES MUST NEVER SHOW CUSTOMER CONFIRM BUTTON
+    // ========================================================
+
+    if (
+        customerPaymentConfirmArea
+        &&
+        (
+            status
+            === "GAGAL"
+
+            ||
+
+            status
+            === "KEDALUWARSA"
+
+            ||
+
+            status
+            === "DIBAYAR"
+
+            ||
+
+            status
+            === "DIKEMBALIKAN"
+        )
+    ) {
+
+        customerPaymentConfirmArea.hidden =
+            true;
+
+    }
+
+
+    // ========================================================
+    // CUSTOMER MESSAGE
+    // ========================================================
+
+    if (
+        customerPaymentConfirmMessage
+    ) {
+
+        if (
+            status
+            === "GAGAL"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    "Pembayaran ditandai GAGAL "
+                    +
+                    "setelah pemeriksaan driver."
+                );
+
+        }
+
+
+        else if (
+            status
+            === "KEDALUWARSA"
+        ) {
+
+            customerPaymentConfirmMessage.hidden =
+                false;
+
+
+            customerPaymentConfirmMessage.textContent =
+                (
+                    "Batas waktu pembayaran telah "
+                    +
+                    "berakhir."
+                );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // EXPIRY
+    // ========================================================
+
+    renderCustomerPaymentExpiry(
+        payment
+    );
+
+
+    // ========================================================
+    // FAILED DETAIL
+    // ========================================================
+
+    renderCustomerPaymentFailure(
+        payment
+    );
+
+}
+
+// ============================================================
 // PHASE 20I.3F
 // LIVE CUSTOMER REFUND STATUS
 // ============================================================
@@ -2046,7 +3040,9 @@ function renderCustomerPaymentExperience(
             "is-paid",
             "is-review",
             "is-pending",
-            "is-refunded"
+            "is-refunded",
+            "is-failed",
+            "is-expired"
         );
 
 
@@ -2079,6 +3075,28 @@ function renderCustomerPaymentExperience(
 
             customerPaymentStatusBadge.classList.add(
                 "is-review"
+            );
+
+        }
+
+        else if (
+            status
+            === "GAGAL"
+        ) {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-failed"
+            );
+
+        }
+
+        else if (
+            status
+            === "KEDALUWARSA"
+        ) {
+
+            customerPaymentStatusBadge.classList.add(
+                "is-expired"
             );
 
         }
@@ -2873,6 +3891,68 @@ function updateCustomerPaymentStatus(
 
         customerPaymentConfirmMessage.textContent =
             "✓ Pembayaran sudah dikonfirmasi.";
+
+
+        return;
+
+    }
+
+
+    if (
+        status
+        === "GAGAL"
+    ) {
+
+        if (
+            customerPaymentConfirmArea
+        ) {
+
+            customerPaymentConfirmArea.hidden =
+                true;
+
+        }
+
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            (
+                "Pembayaran ditandai GAGAL "
+                +
+                "setelah pemeriksaan driver."
+            );
+
+
+        return;
+
+    }
+
+
+    if (
+        status
+        === "KEDALUWARSA"
+    ) {
+
+        if (
+            customerPaymentConfirmArea
+        ) {
+
+            customerPaymentConfirmArea.hidden =
+                true;
+
+        }
+
+
+        customerPaymentConfirmMessage.hidden =
+            false;
+
+
+        customerPaymentConfirmMessage.textContent =
+            (
+                "Batas waktu pembayaran telah berakhir."
+            );
 
 
         return;
@@ -6517,11 +7597,9 @@ function updateStatusUI(
 
 }
 
-
-
 // ============================================================
-// PHASE 20I.3F
-// REFUND-AWARE POLLING DECISION
+// PHASE 20I.4E
+// CUSTOMER POLLING DECISION
 // ============================================================
 
 function shouldContinueCustomerPolling(
@@ -6530,10 +7608,7 @@ function shouldContinueCustomerPolling(
 
     if (!order) {
 
-        return (
-            initialStatus
-            !== "DITOLAK"
-        );
+        return true;
 
     }
 
@@ -6561,7 +7636,16 @@ function shouldContinueCustomerPolling(
             .toUpperCase();
 
 
-    const refundRequestStatus =
+    const paymentMethod =
+        String(
+            payment.method
+            || "TUNAI"
+        )
+            .trim()
+            .toUpperCase();
+
+
+    const refundStatus =
         String(
             (
                 payment.refund_request
@@ -6575,7 +7659,10 @@ function shouldContinueCustomerPolling(
             .toUpperCase();
 
 
-    // Perjalanan ditolak adalah final.
+    // ========================================================
+    // REJECTED TRIP
+    // ========================================================
+
     if (
         orderStatus
         === "DITOLAK"
@@ -6586,60 +7673,80 @@ function shouldContinueCustomerPolling(
     }
 
 
-    // Customer sedang menunggu keputusan driver.
-    // Tetap polling walaupun perjalanan sudah SELESAI
-    // dan payment masih DIBAYAR.
+    // ========================================================
+    // REFUND IS STILL BEING REVIEWED
+    // ========================================================
+
     if (
-        refundRequestStatus
+        refundStatus
         === "PENDING"
     ) {
 
         return true;
 
-            }
+    }
 
 
-    // SELESAI + state payment/refund final.
+    // ========================================================
+    // JOURNEY STILL RUNNING
+    // ========================================================
+
     if (
         orderStatus
-        === "SELESAI"
-
-        &&
-
-        (
-            paymentStatus
-            === "DIBAYAR"
-
-            ||
-
-            paymentStatus
-            === "DIKEMBALIKAN"
-        )
-
-        &&
-
-        (
-            refundRequestStatus
-            === "NONE"
-
-            ||
-
-            refundRequestStatus
-            === "APPROVED"
-
-            ||
-
-            refundRequestStatus
-            === "REJECTED"
-        )
+        !== "SELESAI"
     ) {
 
-        return false;
+        return true;
 
     }
 
 
-    return true;
+    // ========================================================
+    // COMPLETED CASH BUT DRIVER HAS NOT CONFIRMED CASH
+    // ========================================================
+
+    if (
+        paymentMethod
+        === "TUNAI"
+        &&
+        paymentStatus
+        === "BELUM_DIBAYAR"
+    ) {
+
+        return true;
+
+    }
+
+
+    // ========================================================
+    // DIGITAL PAYMENT STILL TRANSIENT
+    // ========================================================
+
+    if (
+        paymentStatus
+        === "MENUNGGU_PEMBAYARAN"
+
+        ||
+
+        paymentStatus
+        === "MENUNGGU_KONFIRMASI"
+    ) {
+
+        return true;
+
+    }
+
+
+    // ========================================================
+    // FINAL
+    //
+    // DIBAYAR
+    // GAGAL
+    // KEDALUWARSA
+    // DIKEMBALIKAN
+    // ========================================================
+
+    return false;
 
 }
 
@@ -6755,6 +7862,11 @@ async function fetchOrderStatus() {
             || null
         );
 
+        renderCustomerPaymentLifecycle(
+            data.order.payment
+            || null
+        );
+
 
         updateCustomerReceiptAvailability(
             data.order
@@ -6833,7 +7945,6 @@ function startPolling() {
     console.log(
         "[ORDER STATUS] Live polling dimulai."
     );
-
 
     statusInterval =
         window.setInterval(
@@ -6971,6 +8082,9 @@ window.addEventListener(
     function () {
 
         stopPolling();
+
+
+        stopCustomerPaymentExpiryCountdown();
 
     }
 );
@@ -7175,5 +8289,9 @@ if (
 // ============================================================
 
 console.log(
-    "[ORDER STATUS] Live tracking + refund status + secure receipt aktif."
+    (
+        "[ORDER STATUS] Live tracking + payment expiry + "
+        +
+        "failed payment + refund + secure receipt aktif."
+    )
 );

@@ -1078,9 +1078,21 @@ Status {{ order.order_code }}
 
                     is-paid
 
+                {% elif payment.status == 'DIKEMBALIKAN' %}
+
+                    is-refunded
+
                 {% elif payment.status == 'MENUNGGU_KONFIRMASI' %}
 
                     is-review
+
+                {% elif payment.status == 'GAGAL' %}
+
+                    is-failed
+
+                {% elif payment.status == 'KEDALUWARSA' %}
+
+                    is-expired
 
                 {% else %}
 
@@ -1092,21 +1104,33 @@ Status {{ order.order_code }}
 
             {% if payment.status == "DIBAYAR" %}
 
-                DIBAYAR
+                    DIBAYAR
 
-            {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
+                {% elif payment.status == "DIKEMBALIKAN" %}
 
-                MENUNGGU KONFIRMASI
+                    DIKEMBALIKAN
 
-            {% elif payment.status == "MENUNGGU_PEMBAYARAN" %}
+                {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
 
-                MENUNGGU PEMBAYARAN
+                    MENUNGGU KONFIRMASI
 
-            {% else %}
+                {% elif payment.status == "MENUNGGU_PEMBAYARAN" %}
 
-                BELUM DIBAYAR
+                    MENUNGGU PEMBAYARAN
 
-            {% endif %}
+                {% elif payment.status == "GAGAL" %}
+
+                    GAGAL
+
+                {% elif payment.status == "KEDALUWARSA" %}
+
+                    KEDALUWARSA
+
+                {% else %}
+
+                    BELUM DIBAYAR
+
+                {% endif %}
 
         </span>
 
@@ -1192,6 +1216,107 @@ Status {{ order.order_code }}
 
             </div>
 
+<!-- =========================================================
+     PHASE 20I.4E
+     CUSTOMER PAYMENT EXPIRY
+========================================================== -->
+
+        <div
+            class="customer-payment-expiry"
+            id="customerPaymentExpiry"
+            hidden
+        >
+
+            <div class="customer-payment-expiry-icon">
+                ◷
+            </div>
+
+
+            <div class="customer-payment-expiry-content">
+
+                <span>
+                    BATAS WAKTU PEMBAYARAN
+                </span>
+
+                <strong id="customerPaymentExpiryCountdown">
+                    --:--
+                </strong>
+
+                <small id="customerPaymentExpiryText">
+                    Selesaikan pembayaran sebelum waktu habis.
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================================
+            PHASE 20I.4E
+            CUSTOMER PAYMENT FAILURE DETAIL
+        ========================================================== -->
+
+        <div
+            class="customer-payment-failure"
+            id="customerPaymentFailure"
+            hidden
+        >
+
+            <div class="customer-payment-failure-head">
+
+                <span class="customer-payment-failure-icon">
+                    !
+                </span>
+
+                <div>
+
+                    <span>
+                        INFORMASI PEMBAYARAN
+                    </span>
+
+                    <strong>
+                        Pembayaran tidak berhasil
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+        <div
+            class="customer-payment-failure-reason"
+            id="customerPaymentFailureReasonBlock"
+            hidden
+        >
+
+            <span>
+                ALASAN
+            </span>
+
+            <p id="customerPaymentFailureReason">
+                -
+            </p>
+
+        </div>
+
+
+        <div
+            class="customer-payment-failure-time"
+            id="customerPaymentFailureTimeBlock"
+            hidden
+        >
+
+            <span>
+                DIPROSES
+            </span>
+
+            <strong id="customerPaymentFailureTime">
+                -
+            </strong>
+
+        </div>
+
+    </div>
 
         {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
 
@@ -1212,6 +1337,47 @@ Status {{ order.order_code }}
 
             </div>
 
+            {% elif payment.status == "GAGAL" %}
+
+    <span class="customer-payment-live-icon">
+        ×
+    </span>
+
+    <div>
+
+        <strong>
+            Pembayaran gagal
+        </strong>
+
+        <p>
+            Pembayaran tidak berhasil
+            diverifikasi oleh driver.
+            Lihat informasi kegagalan
+            di bawah.
+        </p>
+
+    </div>
+
+
+{% elif payment.status == "KEDALUWARSA" %}
+
+    <span class="customer-payment-live-icon">
+        ◷
+    </span>
+
+    <div>
+
+        <strong>
+            Waktu pembayaran berakhir
+        </strong>
+
+        <p>
+            Batas waktu pembayaran digital
+            telah habis. Pembayaran ini
+            tidak dapat dikonfirmasi lagi.
+        </p>
+
+    </div>
 
         {% elif payment.method == "TUNAI" %}
 
@@ -1255,6 +1421,116 @@ Status {{ order.order_code }}
         {% endif %}
 
     </div>
+
+    <!-- =========================================================
+     PHASE 20I.4E
+     PAYMENT EXPIRY
+========================================================== -->
+
+<div
+    class="customer-payment-expiry"
+    id="customerPaymentExpiry"
+    hidden
+>
+
+    <div class="customer-payment-expiry-icon">
+        ◷
+    </div>
+
+    <div class="customer-payment-expiry-content">
+
+        <span>
+            BATAS WAKTU PEMBAYARAN
+        </span>
+
+        <strong id="customerPaymentExpiryCountdown">
+            --:--
+        </strong>
+
+        <small id="customerPaymentExpiryText">
+            Selesaikan pembayaran sebelum waktu habis.
+        </small>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PHASE 20I.4E
+     PAYMENT FAILURE
+========================================================== -->
+
+<div
+    class="customer-payment-failure"
+    id="customerPaymentFailure"
+
+    {% if payment.status != "GAGAL" %}
+        hidden
+    {% endif %}
+>
+
+    <div class="customer-payment-failure-head">
+
+        <span class="customer-payment-failure-icon">
+            !
+        </span>
+
+        <div>
+
+            <span>
+                INFORMASI PEMBAYARAN
+            </span>
+
+            <strong>
+                Pembayaran tidak berhasil
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="customer-payment-failure-reason"
+        id="customerPaymentFailureReasonBlock"
+
+        {% if not payment.failure_reason %}
+            hidden
+        {% endif %}
+    >
+
+        <span>
+            ALASAN
+        </span>
+
+        <p id="customerPaymentFailureReason">
+            {{ payment.failure_reason or "-" }}
+        </p>
+
+    </div>
+
+
+    <div
+        class="customer-payment-failure-time"
+        id="customerPaymentFailureTimeBlock"
+
+        {% if not payment.failed_at %}
+            hidden
+        {% endif %}
+    >
+
+        <span>
+            DIPROSES
+        </span>
+
+        <strong id="customerPaymentFailureTime">
+            {{ payment.failed_at or "-" }}
+        </strong>
+
+    </div>
+
+</div>
 
 
     <!-- =====================================
@@ -1511,7 +1787,7 @@ Status {{ order.order_code }}
     {% if
         payment.method == "TRANSFER_BANK"
         and
-        payment.status != "DIBAYAR"
+        payment.status == "MENUNGGU_PEMBAYARAN"
     %}
 
         <div
@@ -1707,21 +1983,37 @@ Status {{ order.order_code }}
             payment.status
             not in (
                 "MENUNGGU_KONFIRMASI",
-                "DIBAYAR"
-            )
-        %}
-            hidden
-        {% endif %}
+                "DIBAYAR",
+                "DIKEMBALIKAN",
+                "GAGAL",
+                "KEDALUWARSA"
+                )
+            %}
+                hidden
+            {% endif %}
     >
 
         {% if payment.status == "DIBAYAR" %}
 
             ✓ Pembayaran sudah dikonfirmasi.
 
+        {% elif payment.status == "DIKEMBALIKAN" %}
+
+            ↩ Dana sudah dikembalikan.
+
         {% elif payment.status == "MENUNGGU_KONFIRMASI" %}
 
             Konfirmasi sudah dikirim.
             Menunggu verifikasi driver.
+
+        {% elif payment.status == "GAGAL" %}
+
+            Pembayaran ditandai GAGAL
+            setelah pemeriksaan driver.
+
+        {% elif payment.status == "KEDALUWARSA" %}
+
+            Batas waktu pembayaran telah berakhir.
 
         {% endif %}
 
@@ -2688,7 +2980,6 @@ Status {{ order.order_code }}
         aria-labelledby="customerReceiptTitle"
         aria-describedby="customerReceiptError"
     >
-
         <div class="receipt-modal__header">
 
             <div class="premium-customer-receipt-heading">
@@ -2935,11 +3226,13 @@ Status {{ order.order_code }}
 {% block scripts %}
 
 <script
-    src="{{ url_for(
-        'static',
-        filename='js/order_status.js',
-        v='phase20i3f-refund-status-1'
-    ) }}"
+    src="{{
+        url_for(
+            'static',
+            filename='js/order_status.js',
+            v='phase20i4e-2'
+        )
+    }}"
 ></script>
 
 {% endblock %}
