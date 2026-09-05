@@ -355,6 +355,38 @@ PAYMENT_QRIS_IMAGE = os.getenv(
 ).strip()
 
 # ============================================================
+# PHASE 20I.4
+# FAILED & EXPIRED PAYMENT CONFIGURATION
+# ============================================================
+
+try:
+
+    PAYMENT_EXPIRY_MINUTES = int(
+        os.getenv(
+            "PAYMENT_EXPIRY_MINUTES",
+            "30"
+        )
+    )
+
+except (
+    TypeError,
+    ValueError
+):
+
+    PAYMENT_EXPIRY_MINUTES = 30
+
+
+# Hindari konfigurasi yang terlalu pendek
+# atau tidak masuk akal di production.
+PAYMENT_EXPIRY_MINUTES = max(
+    5,
+    min(
+        PAYMENT_EXPIRY_MINUTES,
+        24 * 60
+    )
+)
+
+# ============================================================
 # APP
 # ============================================================
 
@@ -2372,6 +2404,31 @@ def init_database():
             idx_orders_paid_at
 
             ON orders(paid_at)
+            """
+        )
+        
+        # ====================================================
+        # PHASE 20I.4A
+        # ACTIVE PAYMENT EXPIRY INDEX
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_orders_payment_expiry_active
+
+            ON orders(
+                payment_expires_at,
+                id
+            )
+
+            WHERE
+                payment_expires_at IS NOT NULL
+
+                AND payment_status IN (
+                    'MENUNGGU_PEMBAYARAN',
+                    'MENUNGGU_KONFIRMASI'
+                )
             """
         )
 
@@ -8532,6 +8589,287 @@ def payment_method_is_available(
     return False
 
 # ============================================================
+# PHASE 20I.4A
+# DIGITAL PAYMENT HELPERS
+# ============================================================
+
+def payment_method_is_digital(
+    payment_method
+):
+
+    payment_method = str(
+        payment_method
+        or ""
+    ).strip().upper()
+
+
+    return (
+        payment_method
+        in (
+            PAYMENT_METHOD_QRIS,
+            PAYMENT_METHOD_BANK_TRANSFER,
+        )
+    )
+    
+def parse_payment_timestamp(
+    value
+):
+
+    if not value:
+
+        return None
+
+
+    try:
+
+        parsed = datetime.strptime(
+            str(
+                value
+            ).strip(),
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+
+        return parsed.replace(
+            tzinfo=APP_TZ
+        )
+
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
+    
+def build_payment_expiry_timestamp(
+    minutes=None
+):
+
+    if minutes is None:
+
+        minutes = (
+            PAYMENT_EXPIRY_MINUTES
+        )
+
+
+    try:
+
+        minutes = int(
+            minutes
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        minutes = (
+            PAYMENT_EXPIRY_MINUTES
+        )
+
+
+    minutes = max(
+        1,
+        minutes
+    )
+
+
+    expires_at = (
+        datetime.now(
+            APP_TZ
+        )
+        +
+        timedelta(
+            minutes=minutes
+        )
+    )
+
+
+    return expires_at.strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    
+def get_payment_expiry_state(
+    order
+):
+
+    if not order:
+
+        return {
+            "enabled":
+                False,
+
+            "active":
+                False,
+
+            "expired":
+                False,
+
+            "expires_at":
+                None,
+
+            "seconds_remaining":
+                None,
+        }
+
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    expires_at_raw = (
+        order.get(
+            "payment_expires_at"
+        )
+    )
+
+
+    # ========================================================
+    # CASH NEVER USES DIGITAL EXPIRATION
+    # ========================================================
+
+    if not payment_method_is_digital(
+        payment_method
+    ):
+
+        return {
+            "enabled":
+                False,
+
+            "active":
+                False,
+
+            "expired":
+                False,
+
+            "expires_at":
+                None,
+
+            "seconds_remaining":
+                None,
+        }
+
+
+    # ========================================================
+    # ONLY TRANSIENT DIGITAL STATES USE EXPIRY
+    # ========================================================
+
+    if (
+        payment_status
+        not in (
+            PAYMENT_STATUS_PENDING,
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+        )
+    ):
+
+        return {
+            "enabled":
+                True,
+
+            "active":
+                False,
+
+            "expired":
+                (
+                    payment_status
+                    ==
+                    PAYMENT_STATUS_EXPIRED
+                ),
+
+            "expires_at":
+                expires_at_raw,
+
+            "seconds_remaining":
+                0
+                if (
+                    payment_status
+                    ==
+                    PAYMENT_STATUS_EXPIRED
+                )
+                else None,
+        }
+
+
+    expires_at = (
+        parse_payment_timestamp(
+            expires_at_raw
+        )
+    )
+
+
+    # Window belum dimulai.
+    if expires_at is None:
+
+        return {
+            "enabled":
+                True,
+
+            "active":
+                False,
+
+            "expired":
+                False,
+
+            "expires_at":
+                None,
+
+            "seconds_remaining":
+                None,
+        }
+
+
+    now = datetime.now(
+        APP_TZ
+    )
+
+
+    seconds_remaining = int(
+        (
+            expires_at
+            - now
+        ).total_seconds()
+    )
+
+
+    expired = (
+        seconds_remaining
+        <= 0
+    )
+
+
+    return {
+        "enabled":
+            True,
+
+        "active":
+            True,
+
+        "expired":
+            expired,
+
+        "expires_at":
+            expires_at_raw,
+
+        "seconds_remaining":
+            max(
+                0,
+                seconds_remaining
+            ),
+    }    
+
+# ============================================================
 # PHASE 20A
 # PAYMENT METHOD NORMALIZER
 # ============================================================
@@ -9132,6 +9470,16 @@ def order_payment_payload(
         "updated_at":
             order.get(
                 "payment_updated_at"
+            ),
+            
+        "expires_at":
+            order.get(
+                "payment_expires_at"
+            ),
+
+        "expiry":
+            get_payment_expiry_state(
+                order
             ),
 
         "can_customer_confirm":
