@@ -8,6 +8,321 @@ Ojek Control
 
 {% block content %}
 
+<style id="driver-dashboard-render-fix">
+
+/* ==========================================================
+   DRIVER DASHBOARD — RENDER HARD LAYOUT FIX
+========================================================== */
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+}
+
+
+.driver-page {
+    position: relative !important;
+
+    display: block !important;
+
+    width: calc(100% - 32px) !important;
+    max-width: 560px !important;
+    min-width: 0 !important;
+
+    min-height: 100vh;
+
+    margin:
+        16px
+        auto !important;
+
+    padding:
+        24px
+        20px
+        60px !important;
+
+    left: auto !important;
+    right: auto !important;
+
+    float: none !important;
+
+    transform: none !important;
+
+    overflow-x: hidden !important;
+
+    box-sizing: border-box !important;
+
+    background: #09110f;
+
+    color: #ffffff;
+}
+
+
+.driver-page,
+.driver-page * {
+    box-sizing: border-box;
+}
+
+
+.driver-page section,
+.driver-page article,
+.driver-page header {
+    max-width: 100%;
+}
+
+
+/* ==========================================================
+   BACKGROUND
+========================================================== */
+
+.driver-background {
+    position: absolute !important;
+
+    inset: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+/* ==========================================================
+   CONTENT LAYER
+========================================================== */
+
+.driver-header,
+.driver-intro,
+.driver-service-control,
+.driver-notification-control,
+.driver-stats,
+.driver-income,
+.driver-reputation,
+.driver-dashboard-payment-control,
+.driver-orders {
+    position: relative;
+
+    z-index: 2;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    min-width: 0;
+}
+
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.driver-header {
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: space-between !important;
+
+    flex-wrap: wrap !important;
+
+    gap: 12px !important;
+}
+
+
+.driver-header > div:first-child {
+    min-width: 100px;
+}
+
+
+.driver-header-links {
+    display: flex !important;
+
+    align-items: center !important;
+
+    flex-wrap: wrap !important;
+
+    gap: 7px !important;
+
+    min-width: 0 !important;
+}
+
+
+.driver-header-actions {
+    display: flex !important;
+
+    align-items: center !important;
+
+    gap: 8px !important;
+
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   PREMIUM HEADER LINK
+========================================================== */
+
+.driver-header-premium-link,
+.driver-header-premium-link:visited,
+.driver-header-premium-link:hover,
+.driver-header-premium-link:focus,
+.driver-header-premium-link:active {
+    text-decoration: none !important;
+}
+
+
+.driver-header-premium-link,
+.driver-header-premium-link:visited {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    min-height: 34px;
+
+    padding:
+        0
+        10px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .18);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(52, 211, 153, .055);
+
+    color:
+        #34d399 !important;
+
+    white-space: nowrap;
+
+    font-size: 8px;
+
+    font-weight: 800;
+}
+
+
+.driver-header-premium-link:hover {
+    border-color:
+        rgba(52, 211, 153, .38);
+
+    background:
+        rgba(52, 211, 153, .11);
+
+    color:
+        #8fffd5 !important;
+}
+
+
+/* ==========================================================
+   GRID / CARD WIDTH SAFETY
+========================================================== */
+
+.driver-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+}
+
+
+.driver-stat,
+.driver-income,
+.driver-review-card,
+.driver-dashboard-payment-control,
+.driver-order-card {
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 600px) {
+
+    .driver-page {
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        margin: 0 auto !important;
+
+        padding:
+            20px
+            16px
+            55px !important;
+
+        border-radius: 0 !important;
+    }
+
+
+    .driver-header {
+        align-items: flex-start !important;
+    }
+
+
+    .driver-header-links {
+        order: 3;
+
+        width: 100% !important;
+
+        margin-top: 4px;
+    }
+
+
+    .driver-header-premium-link,
+    .driver-header-premium-link:visited {
+        min-height: 32px;
+
+        padding:
+            0
+            9px;
+
+        font-size: 7px;
+    }
+
+}
+
+
+/* ==========================================================
+   DESKTOP
+========================================================== */
+
+@media (min-width: 700px) {
+
+    .driver-page {
+        width: 560px !important;
+
+        max-width: 560px !important;
+
+        margin:
+            25px
+            auto !important;
+
+        border-radius:
+            32px !important;
+    }
+
+}
+
+</style>
+
 
 <div class="driver-page">
 
@@ -92,31 +407,6 @@ Ojek Control
     >
         <span>Riwayat Pembayaran</span>
         <span aria-hidden="true">→</span>
-    </a>
-
-</div>
-
-    <a
-        href="{{ url_for('driver_payment_history_page') }}"
-        class="driver-header-premium-link"
-    >
-        <span>Riwayat Pembayaran</span>
-        <span aria-hidden="true">→</span>
-    </a>
-
-</div>
-
-    <a
-        href="{{ url_for('driver_payment_history_page') }}"
-        class="driver-menu-link"
-    >
-        <span>
-            Riwayat Pembayaran
-        </span>
-
-        <span>
-            →
-        </span>
     </a>
 
 </div>
