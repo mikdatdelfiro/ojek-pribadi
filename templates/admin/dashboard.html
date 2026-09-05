@@ -60,7 +60,7 @@ Ojek Control
 
         </div>
 
-        <div class="driver-header-links">
+<div class="driver-header-links">
 
     <a
         href="{{ url_for('driver_profile') }}"
@@ -70,7 +70,6 @@ Ojek Control
         <span aria-hidden="true">→</span>
     </a>
 
-
     <a
         href="{{ url_for('driver_history') }}"
         class="driver-header-premium-link"
@@ -78,7 +77,6 @@ Ojek Control
         <span>Riwayat</span>
         <span aria-hidden="true">→</span>
     </a>
-
 
     <a
         href="{{ url_for('driver_reviews') }}"
@@ -88,6 +86,15 @@ Ojek Control
         <span aria-hidden="true">→</span>
     </a>
 
+    <a
+        href="{{ url_for('driver_payment_history_page') }}"
+        class="driver-header-premium-link"
+    >
+        <span>Riwayat Pembayaran</span>
+        <span aria-hidden="true">→</span>
+    </a>
+
+</div>
 
     <a
         href="{{ url_for('driver_payment_history_page') }}"
