@@ -393,28 +393,26 @@ PAYMENT_EXPIRY_MINUTES = max(
 app = Flask(__name__)
 
 app.config.update(
-    SECRET_KEY=os.getenv(
-        "SECRET_KEY",
-        "development-only-secret-key"
-    ),
-
+    SECRET_KEY=os.getenv("SECRET_KEY"),
     SESSION_COOKIE_HTTPONLY=True,
-
     SESSION_COOKIE_SAMESITE="Lax",
-
     SESSION_COOKIE_SECURE=COOKIE_SECURE,
-
     PERMANENT_SESSION_LIFETIME=timedelta(
         minutes=DRIVER_SESSION_MINUTES
     ),
-
     SESSION_REFRESH_EACH_REQUEST=True,
-
-    MAX_CONTENT_LENGTH=
-        5 * 1024 * 1024,
-
+    MAX_CONTENT_LENGTH=5 * 1024 * 1024,
     JSON_SORT_KEYS=False,
 )
+
+# ============================================================
+# PRODUCTION SECRET KEY VALIDATION
+# ============================================================
+
+if not app.config.get("SECRET_KEY"):
+    raise RuntimeError(
+        "SECRET_KEY environment variable belum dikonfigurasi."
+    )
 
 app.wsgi_app = ProxyFix(
     app.wsgi_app,
@@ -30425,15 +30423,12 @@ init_database()
 if __name__ == "__main__":
 
     app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=(
+        host="0.0.0.0",
+        port=int(
             os.getenv(
-                "FLASK_DEBUG",
-                "false"
+                "PORT",
+                "5000"
             )
-            .strip()
-            .lower()
-            == "true"
-        )
+        ),
+        debug=False
     )
