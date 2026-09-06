@@ -10557,9 +10557,15 @@ def geocode_location(
     location_text
 ):
 
-    location_text = (
-        location_text.strip()
-    )
+    location_text = str(
+        location_text
+        or ""
+    ).strip()
+
+
+    if not location_text:
+
+        return None
 
 
     cache_key = (
@@ -10567,90 +10573,316 @@ def geocode_location(
     )
 
 
-    if (
-        cache_key
-        in geocode_cache
+    if cache_key in geocode_cache:
+
+        return geocode_cache[
+            cache_key
+        ]
+
+
+    search_queries = []
+
+
+    def add_query(
+        query
     ):
 
-        return (
-            geocode_cache[
-                cache_key
-            ]
+        query = str(
+            query
+            or ""
+        ).strip()
+
+
+        if not query:
+
+            return
+
+
+        normalized_query = (
+            query.lower()
         )
 
 
-    wait_for_nominatim()
+        if normalized_query in {
+            item.lower()
+            for item in search_queries
+        }:
+
+            return
 
 
-    response = http.get(
-        NOMINATIM_SEARCH_URL,
+        search_queries.append(
+            query
+        )
 
-        params={
-            "q":
-                location_text,
 
-            "format":
-                "jsonv2",
-
-            "limit":
-                1,
-
-            "countrycodes":
-                "id",
-        },
-
-        timeout=20
+    location_lower = (
+        location_text.lower()
     )
 
 
-    response.raise_for_status()
-
-
-    data = (
-        response.json()
+    # 1. Teks asli customer.
+    add_query(
+        location_text
     )
 
 
-    if not data:
+    # 2. Tambahkan konteks Belitang.
+    if "belitang" not in location_lower:
 
-        return None
-
-
-    result = {
-
-        "lat":
-            float(
-                data[0][
-                    "lat"
-                ]
-            ),
-
-        "lon":
-            float(
-                data[0][
-                    "lon"
-                ]
-            ),
-
-        "display_name":
-            data[0][
-                "display_name"
-            ],
-    }
+        add_query(
+            (
+                f"{location_text}, "
+                "Belitang, "
+                "Ogan Komering Ulu Timur, "
+                "Sumatera Selatan, Indonesia"
+            )
+        )
 
 
-    geocode_cache[
-        cache_key
-    ] = result
+    # 3. Tambahkan konteks kabupaten.
+    if (
+        "ogan komering ulu timur"
+        not in location_lower
+        and
+        "oku timur"
+        not in location_lower
+    ):
+
+        add_query(
+            (
+                f"{location_text}, "
+                "Ogan Komering Ulu Timur, "
+                "Sumatera Selatan, Indonesia"
+            )
+        )
 
 
-    return result
+    # 4. Tambahkan konteks Gumawang bila belum ditulis.
+    if "gumawang" not in location_lower:
 
+        add_query(
+            (
+                f"{location_text}, "
+                "Gumawang, Belitang, "
+                "Ogan Komering Ulu Timur, "
+                "Sumatera Selatan, Indonesia"
+            )
+        )
+
+
+    # 5. Jika customer sudah menulis Gumawang,
+    #    buat versi terstruktur:
+    #    "Puncak 3, Gumawang, Belitang, ..."
+    if "gumawang" in location_lower:
+
+        gumawang_index = (
+            location_lower.rfind(
+                "gumawang"
+            )
+        )
+
+
+        place_name = (
+            location_text[
+                :gumawang_index
+            ]
+            .strip(
+                " ,"
+            )
+        )
+
+
+        if place_name:
+
+            add_query(
+                (
+                    f"{place_name}, "
+                    "Gumawang, Belitang, "
+                    "Ogan Komering Ulu Timur, "
+                    "Sumatera Selatan, Indonesia"
+                )
+            )
+
+
+    for query in search_queries:
+
+        wait_for_nominatim()
+
+
+        response = http.get(
+            NOMINATIM_SEARCH_URL,
+
+            params={
+                "q":
+                    query,
+
+                "format":
+                    "jsonv2",
+
+                "limit":
+                    5,
+
+                "countrycodes":
+                    "id",
+
+                "addressdetails":
+                    1,
+
+                "namedetails":
+                    1,
+            },
+
+            timeout=20
+        )
+
+
+        response.raise_for_status()
+
+
+        data = (
+            response.json()
+            or []
+        )
+
+
+        if not isinstance(
+            data,
+            list
+        ):
+
+            continue
+
+
+        for item in data:
+
+            try:
+
+                latitude = float(
+                    item[
+                        "lat"
+                    ]
+                )
+
+
+                longitude = float(
+                    item[
+                        "lon"
+                    ]
+                )
+
+
+            except (
+                KeyError,
+                TypeError,
+                ValueError
+            ):
+
+                continue
+
+
+            if not (
+                -90
+                <= latitude
+                <= 90
+            ):
+
+                continue
+
+
+            if not (
+                -180
+                <= longitude
+                <= 180
+            ):
+
+                continue
+
+
+            result = {
+
+                "lat":
+                    latitude,
+
+                "lon":
+                    longitude,
+
+                "display_name":
+                    str(
+                        item.get(
+                            "display_name"
+                        )
+                        or location_text
+                    ).strip(),
+
+                "search_query":
+                    query,
+            }
+
+
+            geocode_cache[
+                cache_key
+            ] = result
+
+
+            return result
+
+
+    return None
+
+
+# ============================================================
+# REVERSE GEOCODING
+# ============================================================
 
 def reverse_geocode(
     latitude,
     longitude
 ):
+
+    try:
+
+        latitude = float(
+            latitude
+        )
+
+
+        longitude = float(
+            longitude
+        )
+
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        raise ValueError(
+            "Koordinat lokasi tidak valid."
+        )
+
+
+    if not (
+        -90
+        <= latitude
+        <= 90
+    ):
+
+        raise ValueError(
+            "Latitude lokasi tidak valid."
+        )
+
+
+    if not (
+        -180
+        <= longitude
+        <= 180
+    ):
+
+        raise ValueError(
+            "Longitude lokasi tidak valid."
+        )
+
 
     wait_for_nominatim()
 
@@ -10684,34 +10916,59 @@ def reverse_geocode(
 
     data = (
         response.json()
+        or {}
     )
 
 
     return {
 
         "lat":
-            float(
-                latitude
-            ),
+            latitude,
 
         "lon":
-            float(
-                longitude
-            ),
+            longitude,
 
         "display_name":
-            data.get(
-                "display_name",
-                "Lokasi saya"
-            ),
+            str(
+                data.get(
+                    "display_name"
+                )
+                or (
+                    f"Lokasi saya "
+                    f"({latitude:.5f}, "
+                    f"{longitude:.5f})"
+                )
+            ).strip(),
     }
 
+
+# ============================================================
+# LOCATION RESOLVER
+# ============================================================
 
 def resolve_location(
     data,
     prefix,
     location_text
 ):
+
+    data = (
+        data
+        or {}
+    )
+
+
+    prefix = str(
+        prefix
+        or ""
+    ).strip()
+
+
+    location_text = str(
+        location_text
+        or ""
+    ).strip()
+
 
     latitude = data.get(
         f"{prefix}_lat"
@@ -10768,7 +11025,14 @@ def resolve_location(
                     longitude,
 
                 "display_name":
-                    location_text,
+                    (
+                        location_text
+                        or
+                        (
+                            f"{latitude:.6f}, "
+                            f"{longitude:.6f}"
+                        )
+                    ),
             }
 
 
@@ -10853,7 +11117,9 @@ def calculate_route(
 
 
     route = (
-        routes[0]
+        routes[
+            0
+        ]
     )
 
 
@@ -10918,6 +11184,10 @@ def calculate_fare(
     )
 
 
+# ============================================================
+# TRIP BUILDER
+# ============================================================
+
 def build_trip(
     data,
     pickup_text,
@@ -10936,7 +11206,11 @@ def build_trip(
     if not pickup:
 
         raise ValueError(
-            "Lokasi jemput tidak ditemukan."
+            (
+                "Lokasi jemput tidak ditemukan. "
+                "Coba gunakan lokasi saat ini "
+                "atau tulis alamat lebih lengkap."
+            )
         )
 
 
@@ -10952,7 +11226,12 @@ def build_trip(
     if not destination:
 
         raise ValueError(
-            "Lokasi tujuan tidak ditemukan."
+            (
+                "Lokasi tujuan belum ditemukan. "
+                "Coba tulis nama tempat lebih lengkap, "
+                "misalnya: Puncak 3 Gumawang, Belitang, "
+                "OKU Timur."
+            )
         )
 
 
@@ -10967,7 +11246,10 @@ def build_trip(
     if not route:
 
         raise ValueError(
-            "Rute perjalanan tidak ditemukan."
+            (
+                "Rute perjalanan tidak ditemukan "
+                "untuk lokasi yang dipilih."
+            )
         )
 
 
