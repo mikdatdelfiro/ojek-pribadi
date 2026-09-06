@@ -690,6 +690,23 @@ PAYMENT_STATUS_REFUNDED = (
     "DIKEMBALIKAN"
 )
 
+# Refund request states
+PAYMENT_REFUND_REQUEST_NONE = (
+    "TIDAK_ADA"
+)
+
+PAYMENT_REFUND_REQUEST_PENDING = (
+    "MENUNGGU_REVIEW"
+)
+
+PAYMENT_REFUND_REQUEST_APPROVED = (
+    "DISETUJUI"
+)
+
+PAYMENT_REFUND_REQUEST_REJECTED = (
+    "DITOLAK"
+)
+
 
 PAYMENT_ALLOWED_METHODS = {
 
@@ -908,6 +925,26 @@ PAYMENT_AUDIT_METHOD_LABELS = {
 
     PAYMENT_METHOD_BANK_TRANSFER:
         "Transfer Bank",
+}
+
+# ============================================================
+# PHASE 20I.6D
+# REFUND REQUEST DISPLAY LABELS
+# ============================================================
+
+PAYMENT_AUDIT_REFUND_REQUEST_LABELS = {
+
+    PAYMENT_REFUND_REQUEST_NONE:
+        "Tidak Ada",
+
+    PAYMENT_REFUND_REQUEST_PENDING:
+        "Menunggu Review",
+
+    PAYMENT_REFUND_REQUEST_APPROVED:
+        "Disetujui",
+
+    PAYMENT_REFUND_REQUEST_REJECTED:
+        "Ditolak",
 }
 
 # ============================================================
@@ -3477,6 +3514,451 @@ def get_payment_audit_method_label(
         )
     )
     
+def get_payment_audit_refund_request_label(
+    value
+):
+
+    value = str(
+        value
+        or ""
+    ).strip().upper()
+
+
+    if not value:
+
+        return None
+
+
+    return (
+        PAYMENT_AUDIT_REFUND_REQUEST_LABELS.get(
+            value,
+            value.replace(
+                "_",
+                " "
+            ).title()
+        )
+    )
+    
+def get_payment_audit_event_tone(
+    action
+):
+
+    action = str(
+        action
+        or ""
+    ).strip().upper()
+
+
+    if (
+        action
+        in (
+            PAYMENT_AUDIT_ACTION_CONFIRMED_CASH,
+            PAYMENT_AUDIT_ACTION_CONFIRMED_MANUAL,
+        )
+    ):
+
+        return "success"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_CORRECTION
+    ):
+
+        return "correction"
+
+
+    if (
+        action
+        in (
+            PAYMENT_AUDIT_ACTION_FAILED,
+            PAYMENT_AUDIT_ACTION_REFUND_REJECTED,
+        )
+    ):
+
+        return "danger"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_EXPIRED
+    ):
+
+        return "expired"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_REFUND_REQUESTED
+    ):
+
+        return "warning"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_REFUND
+    ):
+
+        return "refund"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_CUSTOMER_SUBMITTED
+    ):
+
+        return "review"
+
+
+    if (
+        action
+        == PAYMENT_AUDIT_ACTION_CREATED
+    ):
+
+        return "created"
+
+
+    return "neutral"
+
+def get_payment_audit_event_icon(
+    action
+):
+
+    action = str(
+        action
+        or ""
+    ).strip().upper()
+
+
+    icons = {
+
+        PAYMENT_AUDIT_ACTION_CREATED:
+            "+",
+
+        PAYMENT_AUDIT_ACTION_CUSTOMER_SUBMITTED:
+            "↥",
+
+        PAYMENT_AUDIT_ACTION_CONFIRMED_CASH:
+            "✓",
+
+        PAYMENT_AUDIT_ACTION_CONFIRMED_MANUAL:
+            "✓",
+
+        PAYMENT_AUDIT_ACTION_CORRECTION:
+            "✎",
+
+        PAYMENT_AUDIT_ACTION_FAILED:
+            "!",
+
+        PAYMENT_AUDIT_ACTION_EXPIRED:
+            "◷",
+
+        PAYMENT_AUDIT_ACTION_REFUND_REQUESTED:
+            "↩",
+
+        PAYMENT_AUDIT_ACTION_REFUND_REJECTED:
+            "×",
+
+        PAYMENT_AUDIT_ACTION_REFUND:
+            "↩",
+    }
+
+
+    return (
+        icons.get(
+            action,
+            "•"
+        )
+    )
+    
+    # ============================================================
+# PHASE 20I.6D
+# AUDIT SNAPSHOT PRESENTATION
+# ============================================================
+
+def build_payment_audit_display_snapshot(
+    event,
+    prefix
+):
+
+    if not event:
+
+        return []
+
+
+    prefix = str(
+        prefix
+        or ""
+    ).strip().lower()
+
+
+    if (
+        prefix
+        not in (
+            "old",
+            "new",
+        )
+    ):
+
+        raise ValueError(
+            "Prefix snapshot audit tidak valid."
+        )
+
+
+    snapshot = []
+
+
+    # ========================================================
+    # PAYMENT STATUS
+    # ========================================================
+
+    payment_status = (
+        event.get(
+            f"{prefix}_payment_status"
+        )
+    )
+
+
+    if payment_status:
+
+        snapshot.append(
+            {
+                "field":
+                    "Status",
+
+                "type":
+                    "text",
+
+                "value":
+                    get_payment_audit_status_label(
+                        payment_status
+                    ),
+            }
+        )
+
+
+    # ========================================================
+    # METHOD
+    # ========================================================
+
+    payment_method = (
+        event.get(
+            f"{prefix}_payment_method"
+        )
+    )
+
+
+    if payment_method:
+
+        snapshot.append(
+            {
+                "field":
+                    "Metode",
+
+                "type":
+                    "text",
+
+                "value":
+                    get_payment_audit_method_label(
+                        payment_method
+                    ),
+            }
+        )
+
+
+    # ========================================================
+    # AMOUNT
+    # ========================================================
+
+    payment_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                f"{prefix}_payment_amount"
+            )
+        )
+    )
+
+
+    if payment_amount is not None:
+
+        snapshot.append(
+            {
+                "field":
+                    "Nominal",
+
+                "type":
+                    "amount",
+
+                "value":
+                    payment_amount,
+            }
+        )
+
+
+    # ========================================================
+    # PAYMENT REFERENCE
+    # ========================================================
+
+    payment_reference = str(
+        event.get(
+            f"{prefix}_payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    if payment_reference:
+
+        snapshot.append(
+            {
+                "field":
+                    "Referensi",
+
+                "type":
+                    "text",
+
+                "value":
+                    payment_reference,
+            }
+        )
+
+
+    # ========================================================
+    # REFUND REQUEST
+    # ========================================================
+
+    refund_request_status = (
+        event.get(
+            f"{prefix}_refund_request_status"
+        )
+    )
+
+
+    if refund_request_status:
+
+        snapshot.append(
+            {
+                "field":
+                    "Permintaan Refund",
+
+                "type":
+                    "text",
+
+                "value":
+                    get_payment_audit_refund_request_label(
+                        refund_request_status
+                    ),
+            }
+        )
+
+
+    # ========================================================
+    # REFUND AMOUNT
+    # ========================================================
+
+    refund_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                f"{prefix}_refund_amount"
+            )
+        )
+    )
+
+
+    if refund_amount is not None:
+
+        snapshot.append(
+            {
+                "field":
+                    "Nominal Refund",
+
+                "type":
+                    "amount",
+
+                "value":
+                    refund_amount,
+            }
+        )
+
+
+    # ========================================================
+    # REFUND REFERENCE
+    # ========================================================
+
+    refund_reference = str(
+        event.get(
+            f"{prefix}_refund_reference"
+        )
+        or ""
+    ).strip()
+
+
+    if refund_reference:
+
+        snapshot.append(
+            {
+                "field":
+                    "Referensi Refund",
+
+                "type":
+                    "text",
+
+                "value":
+                    refund_reference,
+            }
+        )
+
+
+    return snapshot
+
+def build_payment_audit_change_summary(
+    changes
+):
+
+    changes = (
+        changes
+        or []
+    )
+
+
+    count = len(
+        changes
+    )
+
+
+    if count <= 0:
+
+        return {
+            "count":
+                0,
+
+            "label":
+                "Tidak ada perubahan field",
+        }
+
+
+    if count == 1:
+
+        label = (
+            "1 data berubah"
+        )
+
+    else:
+
+        label = (
+            f"{count} data berubah"
+        )
+
+
+    return {
+        "count":
+            count,
+
+        "label":
+            label,
+    }
+    
 def build_payment_audit_changes(
     event
 ):
@@ -3705,14 +4187,14 @@ def build_payment_audit_changes(
                     "text",
 
                 "old":
-                    old_refund_status
-                    or
-                    None,
+                    get_payment_audit_refund_request_label(
+                        old_refund_status
+                    ),
 
                 "new":
-                    new_refund_status
-                    or
-                    None,
+                    get_payment_audit_refund_request_label(
+                        new_refund_status
+                    ),
             }
         )
 
@@ -3834,6 +4316,13 @@ def build_driver_payment_audit_item(
     ).strip().upper()
 
 
+    changes = (
+        build_payment_audit_changes(
+            event
+        )
+    )
+
+
     return {
 
         "id":
@@ -3851,6 +4340,16 @@ def build_driver_payment_audit_item(
 
         "action_label":
             get_payment_audit_action_label(
+                action
+            ),
+
+        "tone":
+            get_payment_audit_event_tone(
+                action
+            ),
+
+        "icon":
+            get_payment_audit_event_icon(
                 action
             ),
 
@@ -3878,8 +4377,23 @@ def build_driver_payment_audit_item(
             ),
 
         "changes":
-            build_payment_audit_changes(
-                event
+            changes,
+
+        "change_summary":
+            build_payment_audit_change_summary(
+                changes
+            ),
+
+        "old_snapshot":
+            build_payment_audit_display_snapshot(
+                event,
+                "old"
+            ),
+
+        "new_snapshot":
+            build_payment_audit_display_snapshot(
+                event,
+                "new"
             ),
     }
     
@@ -4001,6 +4515,426 @@ def build_driver_payment_audit_summary(
 
 
     return summary
+
+# ============================================================
+# PHASE 20I.6C
+# PAYMENT CONTROL AUDIT SUMMARY
+#
+# Batch loader agar /driver/payments tidak membuat
+# query audit satu per satu untuk setiap order.
+# ============================================================
+
+def get_driver_payment_audit_control_map(
+    connection,
+    order_ids
+):
+
+    normalized_ids = []
+
+
+    for order_id in (
+        order_ids
+        or []
+    ):
+
+        try:
+
+            order_id = int(
+                order_id
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            continue
+
+
+        if (
+            order_id > 0
+            and
+            order_id not in normalized_ids
+        ):
+
+            normalized_ids.append(
+                order_id
+            )
+
+
+    if not normalized_ids:
+
+        return {}
+
+
+    placeholders = ", ".join(
+        [
+            "?"
+            for _ in normalized_ids
+        ]
+    )
+
+
+    rows = (
+        connection.execute(
+            f"""
+            WITH audit_ranked AS (
+
+                SELECT
+
+                    pal.order_id,
+
+                    pal.action,
+
+                    pal.actor_type,
+
+                    pal.created_at,
+
+
+                    COUNT(*) OVER (
+                        PARTITION BY pal.order_id
+                    ) AS total_events,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            pal.action = ?
+                    ) OVER (
+                        PARTITION BY pal.order_id
+                    ) AS corrections,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            pal.action = ?
+                    ) OVER (
+                        PARTITION BY pal.order_id
+                    ) AS failures,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            pal.action = ?
+                    ) OVER (
+                        PARTITION BY pal.order_id
+                    ) AS expirations,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            pal.action = ?
+                    ) OVER (
+                        PARTITION BY pal.order_id
+                    ) AS refunds,
+
+
+                    ROW_NUMBER() OVER (
+                        PARTITION BY pal.order_id
+
+                        ORDER BY
+                            pal.id DESC
+                    ) AS row_number
+
+                FROM payment_audit_logs pal
+
+                WHERE
+                    pal.order_id IN (
+                        {placeholders}
+                    )
+            )
+
+            SELECT
+
+                order_id,
+
+                total_events,
+
+                corrections,
+
+                failures,
+
+                expirations,
+
+                refunds,
+
+                action AS latest_action,
+
+                actor_type AS latest_actor_type,
+
+                created_at AS latest_created_at
+
+            FROM audit_ranked
+
+            WHERE
+                row_number = 1
+            """,
+            tuple(
+                [
+                    PAYMENT_AUDIT_ACTION_CORRECTION,
+
+                    PAYMENT_AUDIT_ACTION_FAILED,
+
+                    PAYMENT_AUDIT_ACTION_EXPIRED,
+
+                    PAYMENT_AUDIT_ACTION_REFUND,
+
+                    *normalized_ids,
+                ]
+            )
+        )
+        .fetchall()
+    )
+
+
+    result = {}
+
+
+    for row in rows:
+
+        item = dict(
+            row
+        )
+
+
+        order_id = int(
+            item[
+                "order_id"
+            ]
+        )
+
+
+        latest_action = str(
+            item.get(
+                "latest_action"
+            )
+            or ""
+        ).strip().upper()
+
+
+        latest_actor_type = str(
+            item.get(
+                "latest_actor_type"
+            )
+            or ""
+        ).strip().upper()
+
+
+        result[
+            order_id
+        ] = {
+
+            "total":
+                int(
+                    item.get(
+                        "total_events"
+                    )
+                    or 0
+                ),
+
+            "corrections":
+                int(
+                    item.get(
+                        "corrections"
+                    )
+                    or 0
+                ),
+
+            "failures":
+                int(
+                    item.get(
+                        "failures"
+                    )
+                    or 0
+                ),
+
+            "expirations":
+                int(
+                    item.get(
+                        "expirations"
+                    )
+                    or 0
+                ),
+
+            "refunds":
+                int(
+                    item.get(
+                        "refunds"
+                    )
+                    or 0
+                ),
+
+            "latest_action":
+                latest_action
+                or
+                None,
+
+            "latest_action_label":
+                (
+                    get_payment_audit_action_label(
+                        latest_action
+                    )
+                    if latest_action
+                    else None
+                ),
+
+            "latest_actor_type":
+                latest_actor_type
+                or
+                None,
+
+            "latest_actor_label":
+                (
+                    get_payment_audit_actor_label(
+                        latest_actor_type
+                    )
+                    if latest_actor_type
+                    else None
+                ),
+
+            "latest_created_at":
+                item.get(
+                    "latest_created_at"
+                ),
+        }
+
+
+    return result
+
+# ============================================================
+# PHASE 20I.6B
+# DRIVER PAYMENT AUDIT CONTEXT
+# ============================================================
+
+def get_driver_payment_audit_context(
+    order_id,
+    limit=50
+):
+
+    connection = None
+
+
+    empty_summary = {
+
+        "total":
+            0,
+
+        "corrections":
+            0,
+
+        "failures":
+            0,
+
+        "expirations":
+            0,
+
+        "refunds":
+            0,
+    }
+
+
+    try:
+
+        order_id = int(
+            order_id
+        )
+
+
+        if order_id <= 0:
+
+            raise ValueError(
+                "Order ID tidak valid."
+            )
+
+
+        connection = (
+            get_db()
+        )
+
+
+        timeline = (
+            get_driver_payment_audit_timeline(
+                connection,
+                order_id,
+                limit=limit
+            )
+        )
+
+
+        summary = (
+            build_driver_payment_audit_summary(
+                timeline
+            )
+        )
+
+
+        return {
+
+            "loaded":
+                True,
+
+            "timeline":
+                timeline,
+
+            "summary":
+                summary,
+        }
+
+
+    except Exception:
+
+        app.logger.exception(
+            (
+                "[DRIVER PAYMENT AUDIT CONTEXT ERROR] "
+                f"order_id={order_id}"
+            )
+        )
+        
+        # ====================================================
+        # PHASE 20I.6E
+        # AUDIT READ LIMIT SAFETY
+        # ====================================================
+
+        try:
+
+            limit = int(
+                limit
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            limit = 50
+
+
+        limit = max(
+            1,
+            min(
+                limit,
+                100
+            )
+        )
+
+
+        return {
+
+            "loaded":
+                False,
+
+            "timeline":
+                [],
+
+            "summary":
+                empty_summary,
+        }
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()
 # ============================================================
 # PHASE 20I.5E
 # PAYMENT CORRECTION AUDIT LOADER
@@ -16722,6 +17656,32 @@ def get_driver_payment_orders(
             )
             .fetchall()
         )
+        
+        # ====================================================
+        # PHASE 20I.6C
+        # PAYMENT AUDIT ACCESS
+        # ====================================================
+
+        order_ids = [
+
+            row[
+                "id"
+            ]
+
+            for row in rows
+
+            if row.get(
+                "id"
+            )
+        ]
+
+
+        payment_audit_map = (
+            get_driver_payment_audit_control_map(
+                connection,
+                order_ids
+            )
+        )
 
 
         payment_orders = []
@@ -16844,7 +17804,54 @@ def get_driver_payment_orders(
                     payment_order
                 )
             )
+            
+                        # =================================================
+            # PHASE 20I.6C
+            # PAYMENT AUDIT SUMMARY
+            # =================================================
 
+            payment_order[
+                "payment_audit"
+            ] = (
+                payment_audit_map.get(
+                    int(
+                        payment_order[
+                            "id"
+                        ]
+                    ),
+                    {
+                        "total":
+                            0,
+
+                        "corrections":
+                            0,
+
+                        "failures":
+                            0,
+
+                        "expirations":
+                            0,
+
+                        "refunds":
+                            0,
+
+                        "latest_action":
+                            None,
+
+                        "latest_action_label":
+                            None,
+
+                        "latest_actor_type":
+                            None,
+
+                        "latest_actor_label":
+                            None,
+
+                        "latest_created_at":
+                            None,
+                    }
+                )
+            )
 
             payment_orders.append(
                 payment_order
@@ -26352,6 +27359,20 @@ def driver_order_detail(
     )
     
     # ========================================================
+    # PHASE 20I.6B
+    # PAYMENT AUDIT TRAIL
+    # ========================================================
+
+    payment_audit = (
+        get_driver_payment_audit_context(
+            order[
+                "id"
+            ],
+            limit=50
+        )
+    )
+    
+    # ========================================================
     # PHASE 20I.5C
     # DRIVER PAYMENT CORRECTION CAPABILITY
     # ========================================================
@@ -26380,6 +27401,9 @@ def driver_order_detail(
             
         payment_correction=
             payment_correction,
+            
+        payment_audit=
+            payment_audit,
     )    
     
 # ============================================================

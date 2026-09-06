@@ -2,7 +2,9 @@
 
 
 {% block title %}
+
 Detail {{ order.order_code }}
+
 {% endblock %}
 
 
@@ -21,28 +23,40 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              HEADER
+
         ====================================== -->
 
         <header class="order-detail-header">
 
             <a
+
                 href="{{ url_for('driver_history') }}"
+
                 class="history-back"
+
                 aria-label="Kembali ke riwayat"
+
             >
+
                 ←
+
             </a>
 
 
             <div>
 
                 <span>
+
                     DRIVER CONTROL
+
                 </span>
 
                 <h1>
+
                     Detail Perjalanan
+
                 </h1>
 
             </div>
@@ -51,7 +65,9 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              HERO
+
         ====================================== -->
 
         <section class="order-detail-hero">
@@ -59,28 +75,42 @@ Detail {{ order.order_code }}
             <div class="order-detail-code">
 
                 <small>
+
                     KODE PESANAN
+
                 </small>
 
                 <strong>
+
                     {{ order.order_code }}
+
                 </strong>
 
             </div>
 
 
             <span
+
                 class="
+
                     order-detail-status
 
                     {% if order.status == 'SELESAI' %}
+
                         is-completed
+
                     {% elif order.status == 'DITOLAK' %}
+
                         is-rejected
+
                     {% else %}
+
                         is-active
+
                     {% endif %}
+
                 "
+
             >
 
                 <span></span>
@@ -121,7 +151,9 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              FARE HERO
+
         ====================================== -->
 
         <section class="order-detail-fare">
@@ -129,11 +161,15 @@ Detail {{ order.order_code }}
             <div>
 
                 <small>
+
                     NILAI PERJALANAN
+
                 </small>
 
                 <strong>
+
                     {{ order.fare | rupiah }}
+
                 </strong>
 
                 <p>
@@ -141,11 +177,13 @@ Detail {{ order.order_code }}
                     {% if order.status == "SELESAI" %}
 
                         Perjalanan selesai dan
+
                         tercatat sebagai pendapatan.
 
                     {% elif order.status == "DITOLAK" %}
 
                         Pesanan ditolak dan tidak
+
                         dihitung sebagai pendapatan.
 
                     {% else %}
@@ -160,13 +198,17 @@ Detail {{ order.order_code }}
 
 
             <span class="order-detail-fare-icon">
+
                 ↗
+
             </span>
 
         </section>
 
                 <!-- =====================================
+
              CUSTOMER
+
         ====================================== -->
 
         <section class="order-detail-card">
@@ -174,11 +216,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-section-title">
 
                 <span>
+
                     PELANGGAN
+
                 </span>
 
                 <h2>
+
                     Informasi pemesan
+
                 </h2>
 
             </div>
@@ -189,8 +235,11 @@ Detail {{ order.order_code }}
                 <span class="order-detail-avatar">
 
                     {{
+
                         order.customer_name[0]
+
                         | upper
+
                     }}
 
                 </span>
@@ -199,15 +248,21 @@ Detail {{ order.order_code }}
                 <div>
 
                     <small>
+
                         NAMA
+
                     </small>
 
                     <strong>
+
                         {{ order.customer_name }}
+
                     </strong>
 
                     <span>
+
                         {{ order.whatsapp }}
+
                     </span>
 
                 </div>
@@ -218,7 +273,9 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              ROUTE
+
         ====================================== -->
 
         <section class="order-detail-card">
@@ -226,11 +283,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-section-title">
 
                 <span>
+
                     RUTE
+
                 </span>
 
                 <h2>
+
                     Detail perjalanan
+
                 </h2>
 
             </div>
@@ -255,23 +316,34 @@ Detail {{ order.order_code }}
                     <div class="order-detail-route-content">
 
                         <small>
+
                             LOKASI JEMPUT
+
                         </small>
 
                         <strong>
+
                             {{ order.pickup }}
+
                         </strong>
 
 
                         {% if pickup_map_url %}
 
                         <a
+
                             href="{{ pickup_map_url }}"
+
                             target="_blank"
+
                             rel="noopener noreferrer"
+
                         >
+
                             Buka di Google Maps
+
                             <span>↗</span>
+
                         </a>
 
                         {% endif %}
@@ -295,23 +367,34 @@ Detail {{ order.order_code }}
                     <div class="order-detail-route-content">
 
                         <small>
+
                             TUJUAN
+
                         </small>
 
                         <strong>
+
                             {{ order.destination }}
+
                         </strong>
 
 
                         {% if destination_map_url %}
 
                         <a
+
                             href="{{ destination_map_url }}"
+
                             target="_blank"
+
                             rel="noopener noreferrer"
+
                         >
+
                             Buka di Google Maps
+
                             <span>↗</span>
+
                         </a>
 
                         {% endif %}
@@ -326,7 +409,9 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              TRIP INFORMATION
+
         ====================================== -->
 
         <section class="order-detail-card">
@@ -334,11 +419,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-section-title">
 
                 <span>
+
                     PERJALANAN
+
                 </span>
 
                 <h2>
+
                     Ringkasan perjalanan
+
                 </h2>
 
             </div>
@@ -349,11 +438,15 @@ Detail {{ order.order_code }}
                 <article>
 
                     <small>
+
                         JARAK
+
                     </small>
 
                     <strong>
+
                         {{ order.distance_km }} km
+
                     </strong>
 
                 </article>
@@ -362,12 +455,17 @@ Detail {{ order.order_code }}
                 <article>
 
                     <small>
+
                         ESTIMASI
+
                     </small>
 
                     <strong>
+
                         {{ order.duration_minutes }}
+
                         menit
+
                     </strong>
 
                 </article>
@@ -376,11 +474,15 @@ Detail {{ order.order_code }}
                 <article class="fare">
 
                     <small>
+
                         TARIF
+
                     </small>
 
                     <strong>
+
                         {{ order.fare | rupiah }}
+
                     </strong>
 
                 </article>
@@ -390,18 +492,25 @@ Detail {{ order.order_code }}
         </section>
 
     <!-- =========================================================
+
      PHASE 20G.8
+
      DRIVER PAYMENT CONFIRMATION
+
      MANUAL CASH / QRIS / TRANSFER
+
 ========================================================= -->
 
 {% set payment_method = order.payment_method or "TUNAI" %}
+
 {% set payment_status = order.payment_status or "BELUM_DIBAYAR" %}
 
 <section class="driver-payment-card">
 
     <!-- =====================================
+
          HEADING
+
     ====================================== -->
 
     <div class="driver-payment-heading">
@@ -409,33 +518,46 @@ Detail {{ order.order_code }}
         <div>
 
             <span class="driver-payment-eyebrow">
+
                 PEMBAYARAN
+
             </span>
 
             <h2>
+
                 Status Pembayaran
+
             </h2>
 
         </div>
 
 
         <span
+
             class="
+
                 driver-payment-status
 
                 {% if payment_status == 'DIBAYAR' %}
+
                     is-paid
 
                 {% elif payment_status == 'MENUNGGU_KONFIRMASI' %}
+
                     is-review
 
                 {% elif payment_status == 'DIKEMBALIKAN' %}
+
                     is-unpaid is-refunded
 
                 {% else %}
+
                     is-unpaid
+
                 {% endif %}
+
             "
+
         >
 
             {% if payment_status == "DIBAYAR" %}
@@ -474,7 +596,9 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================
+
          PAYMENT SUMMARY
+
     ====================================== -->
 
     <div class="driver-payment-grid">
@@ -482,7 +606,9 @@ Detail {{ order.order_code }}
         <article>
 
             <span>
+
                 METODE
+
             </span>
 
             <strong>
@@ -509,23 +635,39 @@ Detail {{ order.order_code }}
         <article>
 
             <span>
+
                 NOMINAL
+
             </span>
 
             <strong>
+
                 Rp{{
+
                     "{:,.0f}".format(
+
                         order.payment_amount
+
                         or
+
                         order.fare
+
                         or
+
                         0
+
                     )
+
                     .replace(
+
                         ",",
+
                         "."
+
                     )
+
                 }}
+
             </strong>
 
         </article>
@@ -534,7 +676,9 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================================
+
          PAYMENT ALREADY PAID
+
     ====================================================== -->
 
     {% if payment_status == "DIKEMBALIKAN" %}
@@ -542,31 +686,47 @@ Detail {{ order.order_code }}
         <div class="driver-payment-refunded">
 
             <div class="driver-payment-refunded-icon">
+
                 ↩
+
             </div>
 
             <div class="driver-payment-refunded-content">
 
                 <span class="driver-payment-refunded-label">
+
                     PEMBAYARAN DIKEMBALIKAN
+
                 </span>
 
                 <strong>
+
                     {{
+
                         (
+
                             order.payment_refund_amount
+
                             or order.payment_amount
+
                             or 0
+
                         )
+
                         | rupiah
+
                     }}
+
                 </strong>
 
                 {% if order.payment_refunded_at %}
 
                     <small>
+
                         Dikembalikan pada
+
                         {{ order.payment_refunded_at }}
+
                     </small>
 
                 {% endif %}
@@ -574,8 +734,11 @@ Detail {{ order.order_code }}
                 {% if order.payment_refund_reason %}
 
                     <p>
+
                         <b>Alasan:</b>
+
                         {{ order.payment_refund_reason }}
+
                     </p>
 
                 {% endif %}
@@ -590,14 +753,18 @@ Detail {{ order.order_code }}
         <div class="driver-payment-success">
 
             <span class="driver-payment-success-icon">
+
                 ✓
+
             </span>
 
 
             <div>
 
                 <strong>
+
                     Pembayaran telah diterima
+
                 </strong>
 
                 <p>
@@ -605,6 +772,7 @@ Detail {{ order.order_code }}
                     {% if order.paid_at %}
 
                         Dikonfirmasi pada
+
                         {{ order.paid_at }}
 
                     {% else %}
@@ -621,15 +789,21 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================================
+
          CASH PAYMENT
+
     ====================================================== -->
 
     {% elif payment_method == "TUNAI" %}
 
         {% if
+
             order.status == "SELESAI"
+
             and
+
             payment_status == "BELUM_DIBAYAR"
+
         %}
 
             <div class="driver-payment-action">
@@ -637,42 +811,66 @@ Detail {{ order.order_code }}
                 <div>
 
                     <span class="driver-payment-review-badge">
+
                         KONFIRMASI MANUAL
+
                     </span>
 
                     <strong>
+
                         Sudah menerima uang tunai?
+
                     </strong>
 
                     <p>
+
                         Pastikan uang tunai benar-benar sudah
+
                         diterima sebelum mengonfirmasi pembayaran.
+
                     </p>
 
                 </div>
 
 
                 <form
+
                     method="POST"
+
                     action="{{
+
                         url_for(
+
                             'driver_confirm_cash_payment',
+
                             order_code=order.order_code
+
                         )
+
                     }}"
+
                 >
 
                     <input
+
                         type="hidden"
+
                         name="_csrf_token"
+
                         value="{{ driver_csrf_token() }}"
+
                     >
 
                     <button
+
                         type="submit"
+
                         class="driver-payment-confirm-button"
+
                     >
+
                         ✓ Konfirmasi Pembayaran Tunai
+
                     </button>
 
                 </form>
@@ -685,12 +883,17 @@ Detail {{ order.order_code }}
             <div class="driver-payment-waiting">
 
                 <span>
+
                     ⏳
+
                 </span>
 
                 <p>
+
                     Konfirmasi pembayaran tunai akan tersedia
+
                     setelah perjalanan selesai.
+
                 </p>
 
             </div>
@@ -701,13 +904,19 @@ Detail {{ order.order_code }}
             <div class="driver-payment-waiting">
 
                 <span>
+
                     !
+
                 </span>
 
                 <p>
+
                     Status pembayaran tunai saat ini
+
                     {{ payment_status }} dan belum dapat
+
                     dikonfirmasi melalui aksi tunai.
+
                 </p>
 
             </div>
@@ -716,7 +925,9 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================================
+
          QRIS / TRANSFER BANK
+
     ====================================================== -->
 
     {% elif payment_method in ["QRIS", "TRANSFER_BANK"] %}
@@ -728,11 +939,15 @@ Detail {{ order.order_code }}
                 <div>
 
                     <span class="driver-payment-review-badge">
+
                         PERLU DIPERIKSA
+
                     </span>
 
                     <strong>
+
                         Pelanggan menyatakan sudah membayar
+
                     </strong>
 
                     <p>
@@ -740,13 +955,17 @@ Detail {{ order.order_code }}
                         {% if payment_method == "QRIS" %}
 
                             Periksa transaksi QRIS Anda.
+
                             Konfirmasi hanya jika pembayaran
+
                             benar-benar sudah masuk.
 
                         {% else %}
 
                             Periksa rekening bank Anda.
+
                             Konfirmasi hanya jika transfer
+
                             benar-benar sudah masuk.
 
                         {% endif %}
@@ -757,8 +976,11 @@ Detail {{ order.order_code }}
                     {% if order.payment_customer_confirmed_at %}
 
                         <small>
+
                             Konfirmasi pelanggan:
+
                             {{ order.payment_customer_confirmed_at }}
+
                         </small>
 
                     {% endif %}
@@ -767,70 +989,110 @@ Detail {{ order.order_code }}
 
 
                 <form
+
                     method="POST"
+
                     action="{{
+
                         url_for(
+
                             'driver_confirm_manual_payment',
+
                             order_code=order.order_code
+
                         )
+
                     }}"
+
                 >
 
                     <input
+
                         type="hidden"
+
                         name="_csrf_token"
+
                         value="{{ driver_csrf_token() }}"
+
                     >
 
                     <button
+
                         type="submit"
+
                         class="driver-payment-confirm-button"
+
                     >
+
                         ✓ Konfirmasi Pembayaran Masuk
+
                     </button>
 
                 </form>
 
                 <div class="driver-payment-failure-divider">
+
                     <span>ATAU</span>
+
                 </div>
 
 
                 <form
+
                     method="POST"
 
                     action="{{
+
                         url_for(
+
                             'driver_fail_manual_payment',
+
                             order_code=order.order_code
+
                         )
+
                     }}"
 
                     class="driver-payment-failure-form"
 
                     onsubmit="
+
                         return confirm(
+
                             'Yakin pembayaran ini gagal atau tidak valid?'
+
                         );
+
                     "
+
                 >
 
                     <input
+
                         type="hidden"
+
                         name="_csrf_token"
+
                         value="{{ driver_csrf_token() }}"
+
                     >
 
 
                     <label
+
                         for="paymentFailureReason"
+
                         class="driver-payment-failure-label"
+
                     >
+
                         Alasan pembayaran gagal
+
                     </label>
 
 
                     <textarea
+
                         id="paymentFailureReason"
 
                         name="failure_reason"
@@ -846,14 +1108,20 @@ Detail {{ order.order_code }}
                         required
 
                         placeholder="Contoh: Dana tidak masuk setelah transaksi diperiksa."
+
                     ></textarea>
 
 
                     <button
+
                         type="submit"
+
                         class="driver-payment-failure-button"
+
                     >
+
                         × Tandai Pembayaran Gagal
+
                     </button>
 
                 </form>
@@ -862,19 +1130,27 @@ Detail {{ order.order_code }}
 
 
         {% elif payment_status in [
+
             "MENUNGGU_PEMBAYARAN",
+
             "BELUM_DIBAYAR"
+
         ] %}
 
             <div class="driver-payment-waiting">
 
                 <span>
+
                     ⏳
+
                 </span>
 
                 <p>
+
                     Menunggu pelanggan melakukan pembayaran
+
                     dan menekan "Saya Sudah Membayar".
+
                 </p>
 
             </div>
@@ -885,13 +1161,19 @@ Detail {{ order.order_code }}
             <div class="driver-payment-waiting">
 
                 <span>
+
                     !
+
                 </span>
 
                 <p>
+
                     Pembayaran digital berstatus gagal.
+
                     Jangan konfirmasi sebelum pembayaran
+
                     dilakukan kembali.
+
                 </p>
 
             </div>
@@ -902,11 +1184,15 @@ Detail {{ order.order_code }}
             <div class="driver-payment-waiting">
 
                 <span>
+
                     !
+
                 </span>
 
                 <p>
+
                     Pembayaran digital sudah kedaluwarsa.
+
                 </p>
 
             </div>
@@ -917,11 +1203,15 @@ Detail {{ order.order_code }}
             <div class="driver-payment-waiting">
 
                 <span>
+
                     ⏳
+
                 </span>
 
                 <p>
+
                     Menunggu pembaruan status pembayaran.
+
                 </p>
 
             </div>
@@ -934,12 +1224,17 @@ Detail {{ order.order_code }}
         <div class="driver-payment-waiting">
 
             <span>
+
                 !
+
             </span>
 
             <p>
+
                 Metode pembayaran tidak dikenali:
+
                 {{ payment_method }}
+
             </p>
 
         </div>
@@ -949,45 +1244,66 @@ Detail {{ order.order_code }}
 </section>
 
 <!-- =========================================================
+
      PHASE 20I.5C
+
      DRIVER PAYMENT CORRECTION UI
+
 ========================================================= -->
 
 {% if
+
     payment_correction
+
     and
+
     payment_correction.allowed
+
 %}
 
 <section
+
     class="driver-payment-correction"
+
     id="payment-correction"
+
 >
 
     <!-- =====================================================
+
          HEADER
+
     ====================================================== -->
 
     <div class="driver-payment-correction-head">
 
         <div class="driver-payment-correction-icon">
+
             ✎
+
         </div>
 
 
         <div>
 
             <span class="driver-payment-correction-eyebrow">
+
                 PAYMENT CORRECTION
+
             </span>
 
             <h3>
+
                 Koreksi Data Pembayaran
+
             </h3>
 
             <p>
+
                 Gunakan hanya jika metode atau referensi
+
                 pembayaran sebelumnya salah dicatat.
+
             </p>
 
         </div>
@@ -996,7 +1312,9 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================================
+
          CURRENT PAYMENT
+
     ====================================================== -->
 
     <div class="driver-payment-correction-current">
@@ -1004,11 +1322,15 @@ Detail {{ order.order_code }}
         <div>
 
             <span>
+
                 STATUS
+
             </span>
 
             <strong class="is-locked">
+
                 DIBAYAR
+
             </strong>
 
         </div>
@@ -1017,17 +1339,27 @@ Detail {{ order.order_code }}
         <div>
 
             <span>
+
                 NOMINAL
+
             </span>
 
             <strong>
+
                 {{
+
                     (
+
                         order.payment_amount
+
                         or 0
+
                     )
+
                     | rupiah
+
                 }}
+
             </strong>
 
         </div>
@@ -1036,7 +1368,9 @@ Detail {{ order.order_code }}
         <div>
 
             <span>
+
                 METODE SAAT INI
+
             </span>
 
             <strong>
@@ -1063,14 +1397,21 @@ Detail {{ order.order_code }}
         <div>
 
             <span>
+
                 REFERENSI SAAT INI
+
             </span>
 
             <strong>
+
                 {{
+
                     order.payment_reference
+
                     or "-"
+
                 }}
+
             </strong>
 
         </div>
@@ -1079,138 +1420,207 @@ Detail {{ order.order_code }}
 
 
     <!-- =====================================================
+
          SECURITY NOTICE
+
     ====================================================== -->
 
     <div class="driver-payment-correction-notice">
 
         <span>
+
             🔒
+
         </span>
 
         <p>
+
             Koreksi tidak dapat mengubah nominal,
+
             status pembayaran, atau waktu pembayaran.
+
             Semua perubahan dicatat pada audit pembayaran.
+
         </p>
 
     </div>
 
 
     <!-- =====================================================
+
          CORRECTION FORM
+
     ====================================================== -->
 
     <form
+
         method="POST"
 
         action="{{
+
             url_for(
+
                 'driver_correct_payment',
+
                 order_code=order.order_code
+
             )
+
         }}"
 
         class="driver-payment-correction-form"
+
     >
 
         <!-- =================================================
+
              DRIVER CSRF
+
         ================================================== -->
 
         <input
+
             type="hidden"
+
             name="_csrf_token"
+
             value="{{ driver_csrf_token() }}"
+
         >
 
 
         <!-- =================================================
+
              PAYMENT METHOD
+
         ================================================== -->
 
         <div class="driver-payment-correction-field">
 
             <label for="paymentCorrectionMethod">
+
                 Metode Pembayaran
+
             </label>
 
 
             <select
+
                 id="paymentCorrectionMethod"
+
                 name="payment_method"
+
                 required
+
             >
 
                 <option
+
                     value="TUNAI"
 
                     {% if
+
                         order.payment_method == "TUNAI"
+
                     %}
+
                         selected
+
                     {% endif %}
+
                 >
+
                     Tunai
+
                 </option>
 
 
                 <option
+
                     value="QRIS"
 
                     {% if
+
                         order.payment_method == "QRIS"
+
                     %}
+
                         selected
+
                     {% endif %}
+
                 >
+
                     QRIS
+
                 </option>
 
 
                 <option
+
                     value="TRANSFER_BANK"
 
                     {% if
+
                         order.payment_method
+
                         == "TRANSFER_BANK"
+
                     %}
+
                         selected
+
                     {% endif %}
+
                 >
+
                     Transfer Bank
+
                 </option>
 
             </select>
 
 
             <small>
+
                 Pilih metode yang benar-benar digunakan
+
                 pada transaksi tersebut.
+
             </small>
 
         </div>
 
 
         <!-- =================================================
+
              PAYMENT REFERENCE
+
         ================================================== -->
 
         <div class="driver-payment-correction-field">
 
             <label for="paymentCorrectionReference">
+
                 Referensi Pembayaran
+
             </label>
 
 
             <input
+
                 id="paymentCorrectionReference"
+
                 type="text"
+
                 name="payment_reference"
 
                 value="{{
+
                     order.payment_reference
+
                     or ''
+
                 }}"
 
                 maxlength="100"
@@ -1218,29 +1628,38 @@ Detail {{ order.order_code }}
                 autocomplete="off"
 
                 placeholder="Contoh: TRX-BCA-778899"
+
             >
 
 
             <small>
+
                 Opsional untuk tunai. Untuk QRIS atau
+
                 transfer, isi referensi transaksi jika ada.
+
             </small>
 
         </div>
 
 
         <!-- =================================================
+
              CORRECTION REASON
+
         ================================================== -->
 
         <div class="driver-payment-correction-field">
 
             <label for="paymentCorrectionReason">
+
                 Alasan Koreksi
+
             </label>
 
 
             <textarea
+
                 id="paymentCorrectionReason"
 
                 name="correction_reason"
@@ -1256,19 +1675,25 @@ Detail {{ order.order_code }}
                 autocomplete="off"
 
                 placeholder="Jelaskan mengapa data pembayaran perlu dikoreksi."
+
             ></textarea>
 
 
             <small>
+
                 Wajib diisi. Alasan akan disimpan
+
                 di audit pembayaran.
+
             </small>
 
         </div>
 
 
         <!-- =================================================
+
              IMMUTABLE DATA
+
         ================================================== -->
 
         <div class="driver-payment-correction-locked">
@@ -1276,17 +1701,27 @@ Detail {{ order.order_code }}
             <div>
 
                 <span>
+
                     NOMINAL TERKUNCI
+
                 </span>
 
                 <strong>
+
                     {{
+
                         (
+
                             order.payment_amount
+
                             or 0
+
                         )
+
                         | rupiah
+
                     }}
+
                 </strong>
 
             </div>
@@ -1295,11 +1730,15 @@ Detail {{ order.order_code }}
             <div>
 
                 <span>
+
                     STATUS TERKUNCI
+
                 </span>
 
                 <strong>
+
                     DIBAYAR
+
                 </strong>
 
             </div>
@@ -1310,11 +1749,15 @@ Detail {{ order.order_code }}
                 <div>
 
                     <span>
+
                         WAKTU PEMBAYARAN
+
                     </span>
 
                     <strong>
+
                         {{ order.paid_at }}
+
                     </strong>
 
                 </div>
@@ -1325,29 +1768,43 @@ Detail {{ order.order_code }}
 
 
         <!-- =================================================
+
              SUBMIT
+
         ================================================== -->
 
         <button
+
             type="submit"
 
             class="driver-payment-correction-submit"
 
             onclick="
+
                 return confirm(
+
                     'Simpan koreksi data pembayaran ini? '
+
                     +
+
                     'Perubahan akan dicatat ke audit pembayaran.'
+
                 );
+
             "
+
         >
 
             <span>
+
                 Simpan Koreksi
+
             </span>
 
             <span aria-hidden="true">
+
                 →
+
             </span>
 
         </button>
@@ -1359,34 +1816,52 @@ Detail {{ order.order_code }}
 {% endif %}
 
 {% if
+
     order.status == "SELESAI"
+
     and
+
     order.payment_status == "DIBAYAR"
+
     and
+
     payment_correction
+
     and
+
     not payment_correction.allowed
+
 %}
 
 <div class="driver-payment-correction-unavailable">
 
     <span class="driver-payment-correction-unavailable-icon">
+
         🔒
+
     </span>
 
 
     <div>
 
         <strong>
+
             Koreksi Pembayaran Dikunci
+
         </strong>
 
         <p>
+
             {{
+
                 payment_correction.reason
+
                 or
+
                 "Pembayaran ini tidak dapat dikoreksi."
+
             }}
+
         </p>
 
     </div>
@@ -1396,20 +1871,33 @@ Detail {{ order.order_code }}
 {% endif %}
 
 <!-- =========================================================
+
      PHASE 20I.3
+
      DRIVER PAYMENT REFUND
+
 ========================================================= -->
 
 {% if
+
     order.status == "SELESAI"
+
     and
+
     order.payment_status == "DIBAYAR"
+
     and
+
     (
+
         order.payment_refund_request_status
+
         or "NONE"
+
     )
+
     == "NONE"
+
 %}
 
 <div class="driver-payment-action">
@@ -1417,49 +1905,79 @@ Detail {{ order.order_code }}
     <div>
 
         <strong>
+
             Pengembalian Pembayaran
+
         </strong>
 
         <p>
+
             Gunakan hanya jika uang benar-benar
+
             sudah dikembalikan kepada pelanggan.
+
         </p>
 
     </div>
 
 
     <form
+
         method="POST"
+
         action="{{
+
             url_for(
+
                 'driver_refund_payment',
+
                 order_code=order.order_code
+
             )
+
         }}"
+
     >
 
         <input
+
             type="hidden"
+
             name="_csrf_token"
+
             value="{{ driver_csrf_token() }}"
+
         >
 
 
         <div style="margin-bottom: 10px;">
 
             <input
+
                 type="text"
+
                 name="refund_reason"
+
                 placeholder="Alasan pengembalian"
+
                 minlength="3"
+
                 maxlength="300"
+
                 required
+
                 style="
+
                     width: 100%;
+
                     padding: 12px;
+
                     border-radius: 10px;
+
                     box-sizing: border-box;
+
                 "
+
             >
 
         </div>
@@ -1468,31 +1986,52 @@ Detail {{ order.order_code }}
         <div style="margin-bottom: 10px;">
 
             <input
+
                 type="text"
+
                 name="refund_reference"
+
                 placeholder="Referensi refund (opsional)"
+
                 maxlength="100"
+
                 style="
+
                     width: 100%;
+
                     padding: 12px;
+
                     border-radius: 10px;
+
                     box-sizing: border-box;
+
                 "
+
             >
 
         </div>
 
 
         <button
+
             type="submit"
+
             class="driver-payment-confirm-button"
+
             onclick="
+
                 return confirm(
+
                     'Yakin uang sudah benar-benar dikembalikan?'
+
                 );
+
             "
+
         >
+
             ↩ Tandai Pembayaran Dikembalikan
+
         </button>
 
     </form>
@@ -1502,14 +2041,21 @@ Detail {{ order.order_code }}
 {% endif %}
 
 <!-- =========================================================
+
      PHASE 20I.3C
+
      CUSTOMER REFUND REQUEST REVIEW
+
 ========================================================= -->
 
 {% if
+
     refund_request
+
     and
+
     refund_request.status == "PENDING"
+
 %}
 
 <section class="driver-refund-review-card">
@@ -1520,23 +2066,32 @@ Detail {{ order.order_code }}
         <div>
 
             <span class="driver-refund-review-eyebrow">
+
                 PERMINTAAN PENGEMBALIAN DANA
+
             </span>
 
             <h3>
+
                 Pelanggan meminta refund
+
             </h3>
 
             <p>
+
                 Periksa pembayaran dan alasan pelanggan
+
                 sebelum mengambil tindakan.
+
             </p>
 
         </div>
 
 
         <span class="driver-refund-review-status">
+
             PENDING
+
         </span>
 
     </div>
@@ -1545,20 +2100,33 @@ Detail {{ order.order_code }}
     <div class="driver-refund-review-amount">
 
         <span>
+
             NOMINAL PEMBAYARAN
+
         </span>
 
         <strong>
+
             {{
+
                 (
+
                     order.payment_amount
+
                     or
+
                     order.fare
+
                     or
+
                     0
+
                 )
+
                 | rupiah
+
             }}
+
         </strong>
 
     </div>
@@ -1567,14 +2135,21 @@ Detail {{ order.order_code }}
     <div class="driver-refund-review-reason">
 
         <span>
+
             ALASAN PELANGGAN
+
         </span>
 
         <p>
+
             {{
+
                 refund_request.request_reason
+
                 or "-"
+
             }}
+
         </p>
 
     </div>
@@ -1585,13 +2160,19 @@ Detail {{ order.order_code }}
         <div class="driver-refund-review-time">
 
             <span>
+
                 DIAJUKAN
+
             </span>
 
             <strong>
+
                 {{
+
                     refund_request.requested_at
+
                 }}
+
             </strong>
 
         </div>
@@ -1602,14 +2183,21 @@ Detail {{ order.order_code }}
     <div class="driver-refund-review-warning">
 
         <span>
+
             !
+
         </span>
 
         <p>
+
             Payment masih berstatus
+
             <strong>DIBAYAR</strong>.
+
             Jangan menganggap dana sudah dikembalikan
+
             sebelum proses refund benar-benar dilakukan.
+
         </p>
 
     </div>
@@ -1618,135 +2206,223 @@ Detail {{ order.order_code }}
     <div class="driver-refund-review-next">
 
     <small>
+
         TINDAKAN DRIVER
+
     </small>
 
     <p>
+
         Konfirmasi hanya setelah uang benar-benar
+
         sudah dikembalikan kepada pelanggan.
+
     </p>
 
 
     <!-- =====================================================
+
          PHASE 20I.3D
+
          DRIVER CONFIRM REFUND
+
     ====================================================== -->
 
     <form
+
         method="POST"
+
         action="{{
+
             url_for(
+
                 'driver_confirm_customer_refund',
+
                 order_code=order.order_code
+
             )
+
         }}"
+
         class="driver-refund-confirm-form"
+
         onsubmit="
+
             return confirm(
+
                 'Pastikan dana benar-benar sudah dikembalikan. Lanjutkan konfirmasi refund?'
+
             );
+
         "
+
     >
 
         <input
+
             type="hidden"
+
             name="_csrf_token"
+
             value="{{ driver_csrf_token() }}"
+
         >
 
 
         <label
+
             for="customerRefundReference"
+
             class="driver-refund-confirm-label"
+
         >
+
             Referensi pengembalian
+
             <span>
+
                 Opsional
+
             </span>
+
         </label>
 
 
         <input
+
             id="customerRefundReference"
+
             type="text"
+
             name="refund_reference"
+
             maxlength="100"
+
             class="driver-refund-confirm-input"
+
             placeholder="Contoh: TRX-REFUND-12345"
+
         >
 
 
         <button
+
             type="submit"
+
             class="driver-refund-confirm-button"
+
         >
+
             ✓ Konfirmasi Dana Dikembalikan
+
         </button>
 
     </form>
 
     <!-- =====================================================
+
      PHASE 20I.3E
+
      DRIVER REJECT REFUND REQUEST
+
 ====================================================== -->
 
 <div class="driver-refund-reject-divider">
 
     <span>
+
         ATAU
+
     </span>
 
 </div>
 
 
 <form
+
     method="POST"
+
     action="{{
+
         url_for(
+
             'driver_reject_customer_refund',
+
             order_code=order.order_code
+
         )
+
     }}"
+
     class="driver-refund-reject-form"
+
     onsubmit="
+
         return confirm(
+
             'Yakin ingin menolak permintaan pengembalian dana ini?'
+
         );
+
     "
+
 >
 
     <input
+
         type="hidden"
+
         name="_csrf_token"
+
         value="{{ driver_csrf_token() }}"
+
     >
 
 
     <label
+
         for="customerRefundRejectionReason"
+
         class="driver-refund-reject-label"
+
     >
+
         Alasan penolakan
+
     </label>
 
 
     <textarea
+
         id="customerRefundRejectionReason"
+
         name="rejection_reason"
+
         class="driver-refund-reject-reason"
+
         rows="3"
+
         minlength="3"
+
         maxlength="300"
+
         required
+
         placeholder="Contoh: Pembayaran sudah sesuai dan tidak ditemukan transaksi ganda."
+
     ></textarea>
 
 
     <button
+
         type="submit"
+
         class="driver-refund-reject-button"
+
     >
+
         Tolak Permintaan Refund
+
     </button>
 
 </form>
@@ -1758,42 +2434,657 @@ Detail {{ order.order_code }}
 {% endif %}
 
 <!-- =========================================================
+
      PHASE 20G.4
+
      DRIVER DIGITAL RECEIPT
+
 ========================================================= -->
 
 {% if
+
     order.status == "SELESAI"
+
     and
+
     order.payment_status == "DIBAYAR"
+
 %}
 
 <div class="driver-receipt-action">
 
     <a
+
         href="{{ url_for(
+
             'driver_order_receipt',
+
             order_id=order.id
+
         ) }}"
+
         class="driver-receipt-button"
+
         target="_blank"
+
         rel="noopener"
+
     >
+
         <span>
+
             Lihat Struk Pembayaran
+
         </span>
 
         <span aria-hidden="true">
+
             →
+
         </span>
+
     </a>
 
 </div>
 
 {% endif %}
 
+<!-- =========================================================
+     PHASE 20I.6D
+     DRIVER PAYMENT AUDIT DETAIL & CHANGE VISUALIZATION
+========================================================= -->
+
+<section
+    class="driver-payment-audit"
+    id="payment-audit"
+>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="driver-payment-audit-head">
+
+        <div>
+
+            <span class="driver-payment-audit-eyebrow">
+                PAYMENT AUDIT TRAIL
+            </span>
+
+            <h3>
+                Riwayat Perubahan Pembayaran
+            </h3>
+
+            <p>
+                Catatan kronologis aktivitas, perubahan status,
+                koreksi, kegagalan, kedaluwarsa, dan refund
+                pembayaran.
+            </p>
+
+        </div>
+
+
+        {% if payment_audit.loaded %}
+
+            <span class="driver-payment-audit-state is-ready">
+                READ ONLY
+            </span>
+
+        {% else %}
+
+            <span class="driver-payment-audit-state is-error">
+                GAGAL DIMUAT
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY
+    ====================================================== -->
+
+    {% if payment_audit.loaded %}
+
+        <div class="driver-payment-audit-summary">
+
+            <div>
+                <span>TOTAL EVENT</span>
+                <strong>{{ payment_audit.summary.total }}</strong>
+            </div>
+
+            <div>
+                <span>KOREKSI</span>
+                <strong>{{ payment_audit.summary.corrections }}</strong>
+            </div>
+
+            <div>
+                <span>GAGAL</span>
+                <strong>{{ payment_audit.summary.failures }}</strong>
+            </div>
+
+            <div>
+                <span>KEDALUWARSA</span>
+                <strong>{{ payment_audit.summary.expirations }}</strong>
+            </div>
+
+            <div>
+                <span>REFUND</span>
+                <strong>{{ payment_audit.summary.refunds }}</strong>
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         TIMELINE
+    ====================================================== -->
+
+    {% if
+        payment_audit.loaded
+        and
+        payment_audit.timeline
+    %}
+
+        <div class="driver-payment-audit-timeline">
+
+            {% for event in payment_audit.timeline %}
+
+                <article
+                    class="
+                        driver-payment-audit-event
+                        is-{{ event.tone }}
+                    "
+                >
+
+                    <!-- =========================================
+                         TIMELINE MARKER
+                    ========================================== -->
+
+                    <div class="driver-payment-audit-rail">
+
+                        <span class="driver-payment-audit-dot">
+                            {{ event.icon }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         EVENT BODY
+                    ========================================== -->
+
+                    <div class="driver-payment-audit-event-body">
+
+                        <!-- =====================================
+                             EVENT HEADER
+                        ====================================== -->
+
+                        <div class="driver-payment-audit-event-head">
+
+                            <div>
+
+                                <span class="driver-payment-audit-action">
+                                    {{ event.action_label }}
+                                </span>
+
+                                <div class="driver-payment-audit-meta">
+
+                                    <span>
+                                        {{ event.actor_label }}
+                                    </span>
+
+                                    {% if event.change_summary.count > 0 %}
+
+                                        <span aria-hidden="true">
+                                            ·
+                                        </span>
+
+                                        <strong>
+                                            {{ event.change_summary.label }}
+                                        </strong>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <time>
+                                {{ event.created_at or "-" }}
+                            </time>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             ACTOR
+                        ====================================== -->
+
+                        <div
+                            class="
+                                driver-payment-audit-actor
+
+                                {% if event.actor_type == 'DRIVER' %}
+                                    is-driver
+                                {% elif event.actor_type == 'CUSTOMER' %}
+                                    is-customer
+                                {% elif event.actor_type == 'SYSTEM' %}
+                                    is-system
+                                {% endif %}
+                            "
+                        >
+
+                            <span>
+                                AKTOR
+                            </span>
+
+                            <strong>
+                                {{ event.actor_label }}
+                            </strong>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             OLD / NEW SNAPSHOT
+                        ====================================== -->
+
+                        {% if
+                            event.old_snapshot
+                            or
+                            event.new_snapshot
+                        %}
+
+                            <details class="driver-payment-audit-snapshot">
+
+                                <summary>
+
+                                    <span>
+                                        Lihat Snapshot Perubahan
+                                    </span>
+
+                                    <span aria-hidden="true">
+                                        +
+                                    </span>
+
+                                </summary>
+
+
+                                <div class="driver-payment-audit-snapshot-grid">
+
+                                    <!-- =========================
+                                         BEFORE
+                                    ========================== -->
+
+                                    <div
+                                        class="
+                                            driver-payment-audit-snapshot-card
+                                            is-before
+                                        "
+                                    >
+
+                                        <span class="driver-payment-audit-snapshot-title">
+                                            SEBELUM
+                                        </span>
+
+
+                                        {% if event.old_snapshot %}
+
+                                            <div class="driver-payment-audit-snapshot-values">
+
+                                                {% for field in event.old_snapshot %}
+
+                                                    <div>
+
+                                                        <span>
+                                                            {{ field.field }}
+                                                        </span>
+
+                                                        <strong>
+
+                                                            {% if field.type == "amount" %}
+
+                                                                {{
+                                                                    field.value
+                                                                    | rupiah
+                                                                }}
+
+                                                            {% else %}
+
+                                                                {{
+                                                                    field.value
+                                                                    or
+                                                                    "-"
+                                                                }}
+
+                                                            {% endif %}
+
+                                                        </strong>
+
+                                                    </div>
+
+                                                {% endfor %}
+
+                                            </div>
+
+                                        {% else %}
+
+                                            <p>
+                                                Belum ada snapshot sebelumnya.
+                                            </p>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <!-- =========================
+                                         ARROW
+                                    ========================== -->
+
+                                    <div class="driver-payment-audit-snapshot-arrow">
+                                        →
+                                    </div>
+
+
+                                    <!-- =========================
+                                         AFTER
+                                    ========================== -->
+
+                                    <div
+                                        class="
+                                            driver-payment-audit-snapshot-card
+                                            is-after
+                                        "
+                                    >
+
+                                        <span class="driver-payment-audit-snapshot-title">
+                                            SESUDAH
+                                        </span>
+
+
+                                        {% if event.new_snapshot %}
+
+                                            <div class="driver-payment-audit-snapshot-values">
+
+                                                {% for field in event.new_snapshot %}
+
+                                                    <div>
+
+                                                        <span>
+                                                            {{ field.field }}
+                                                        </span>
+
+                                                        <strong>
+
+                                                            {% if field.type == "amount" %}
+
+                                                                {{
+                                                                    field.value
+                                                                    | rupiah
+                                                                }}
+
+                                                            {% else %}
+
+                                                                {{
+                                                                    field.value
+                                                                    or
+                                                                    "-"
+                                                                }}
+
+                                                            {% endif %}
+
+                                                        </strong>
+
+                                                    </div>
+
+                                                {% endfor %}
+
+                                            </div>
+
+                                        {% else %}
+
+                                            <p>
+                                                Tidak ada snapshot terbaru.
+                                            </p>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </details>
+
+                        {% endif %}
+
+
+                        <!-- =====================================
+                             CHANGES
+                        ====================================== -->
+
+                        {% if event.changes %}
+
+                            <div class="driver-payment-audit-change-heading">
+
+                                <span>
+                                    PERUBAHAN
+                                </span>
+
+                                <strong>
+                                    {{ event.change_summary.label }}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="driver-payment-audit-changes">
+
+                                {% for change in event.changes %}
+
+                                    <div class="driver-payment-audit-change">
+
+                                        <span>
+                                            {{ change.field }}
+                                        </span>
+
+
+                                        <div class="driver-payment-audit-change-values">
+
+                                            <strong>
+
+                                                {% if change.type == "amount" %}
+
+                                                    {% if change.old is not none %}
+
+                                                        {{
+                                                            change.old
+                                                            | rupiah
+                                                        }}
+
+                                                    {% else %}
+
+                                                        -
+
+                                                    {% endif %}
+
+                                                {% else %}
+
+                                                    {{
+                                                        change.old
+                                                        or
+                                                        "-"
+                                                    }}
+
+                                                {% endif %}
+
+                                            </strong>
+
+
+                                            <span aria-hidden="true">
+                                                →
+                                            </span>
+
+
+                                            <strong>
+
+                                                {% if change.type == "amount" %}
+
+                                                    {% if change.new is not none %}
+
+                                                        {{
+                                                            change.new
+                                                            | rupiah
+                                                        }}
+
+                                                    {% else %}
+
+                                                        -
+
+                                                    {% endif %}
+
+                                                {% else %}
+
+                                                    {{
+                                                        change.new
+                                                        or
+                                                        "-"
+                                                    }}
+
+                                                {% endif %}
+
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- =====================================
+                             REASON
+                        ====================================== -->
+
+                        {% if event.reason %}
+
+                            <div class="driver-payment-audit-reason">
+
+                                <span>
+                                    CATATAN / ALASAN
+                                </span>
+
+                                <p>
+                                    {{ event.reason }}
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- =====================================
+                             EVENT CODE
+                        ====================================== -->
+
+                        {% if event.event_code %}
+
+                            <div class="driver-payment-audit-event-code">
+
+                                <span>
+                                    EVENT
+                                </span>
+
+                                <code>
+                                    {{ event.event_code }}
+                                </code>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% elif payment_audit.loaded %}
+
+        <!-- =================================================
+             EMPTY
+        ================================================== -->
+
+        <div class="driver-payment-audit-empty">
+
+            <span>
+                ◌
+            </span>
+
+            <div>
+
+                <strong>
+                    Belum ada audit pembayaran
+                </strong>
+
+                <p>
+                    Aktivitas pembayaran untuk pesanan ini
+                    belum menghasilkan audit event.
+                </p>
+
+            </div>
+
+        </div>
+
+
+    {% else %}
+
+        <!-- =================================================
+             LOAD ERROR
+        ================================================== -->
+
+        <div class="driver-payment-audit-error">
+
+            <span>
+                !
+            </span>
+
+            <div>
+
+                <strong>
+                    Audit pembayaran belum dapat dimuat
+                </strong>
+
+                <p>
+                    Detail pesanan tetap dapat digunakan,
+                    tetapi riwayat audit tidak tersedia
+                    saat ini.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
         <!-- =====================================
+
              NOTE
+
         ====================================== -->
 
         {% if order.note %}
@@ -1803,11 +3094,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-section-title">
 
                 <span>
+
                     CATATAN
+
                 </span>
 
                 <h2>
+
                     Catatan pelanggan
+
                 </h2>
 
             </div>
@@ -1816,11 +3111,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-note">
 
                 <span>
+
                     ✦
+
                 </span>
 
                 <p>
+
                     {{ order.note }}
+
                 </p>
 
             </div>
@@ -1831,7 +3130,9 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              TIMELINE
+
         ====================================== -->
 
         <section class="order-detail-card">
@@ -1839,11 +3140,15 @@ Detail {{ order.order_code }}
             <div class="order-detail-section-title">
 
                 <span>
+
                     TIMELINE
+
                 </span>
 
                 <h2>
+
                     Perjalanan pesanan
+
                 </h2>
 
             </div>
@@ -1857,23 +3162,32 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-done">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                         <i></i>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             PESANAN DIBUAT
+
                         </small>
 
                         <strong>
+
                             Pesanan diterima sistem
+
                         </strong>
 
                         <span>
+
                             {{ order.created_at }}
+
                         </span>
 
                     </div>
@@ -1888,23 +3202,32 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-done">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                         <i></i>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             DITERIMA
+
                         </small>
 
                         <strong>
+
                             Pesanan diterima driver
+
                         </strong>
 
                         <span>
+
                             {{ order.accepted_at }}
+
                         </span>
 
                     </div>
@@ -1921,23 +3244,32 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-done">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                         <i></i>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             MENUJU JEMPUT
+
                         </small>
 
                         <strong>
+
                             Driver menuju pelanggan
+
                         </strong>
 
                         <span>
+
                             {{ order.to_pickup_at }}
+
                         </span>
 
                     </div>
@@ -1954,23 +3286,32 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-done">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                         <i></i>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             DIJEMPUT
+
                         </small>
 
                         <strong>
+
                             Perjalanan dimulai
+
                         </strong>
 
                         <span>
+
                             {{ order.picked_up_at }}
+
                         </span>
 
                     </div>
@@ -1987,22 +3328,30 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-final">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             SELESAI
+
                         </small>
 
                         <strong>
+
                             Perjalanan selesai
+
                         </strong>
 
                         <span>
+
                             {{ order.completed_at }}
+
                         </span>
 
                     </div>
@@ -2019,22 +3368,30 @@ Detail {{ order.order_code }}
                 <div class="order-timeline-item is-rejected">
 
                     <div class="order-timeline-marker">
+
                         <span></span>
+
                     </div>
 
 
                     <div>
 
                         <small>
+
                             DITOLAK
+
                         </small>
 
                         <strong>
+
                             Pesanan tidak dilanjutkan
+
                         </strong>
 
                         <span>
+
                             {{ order.rejected_at }}
+
                         </span>
 
                     </div>
@@ -2049,18 +3406,25 @@ Detail {{ order.order_code }}
 
 
         <!-- =====================================
+
              BOTTOM ACTION
+
         ====================================== -->
 
         <div class="order-detail-bottom">
 
             <a
+
                 href="{{ url_for('driver_history') }}"
+
                 class="order-detail-back-button"
+
             >
 
                 <span>
+
                     ←
+
                 </span>
 
                 Kembali ke Riwayat

@@ -439,19 +439,20 @@ Pembayaran Driver | Ojek Pribadi
 
         </div>
 
+
+        <div>
+
+            <span>
+                AUDIT KOREKSI
+            </span>
+
+            <strong>
+                {{ payment_reconciliation.correction_events }}
+            </strong>
+
+        </div>
+
     </div>
-
-    <div>
-
-    <span>
-        AUDIT KOREKSI
-    </span>
-
-    <strong>
-        {{ payment_reconciliation.correction_events }}
-    </strong>
-
-</div>
 
 
     {% if payment_reconciliation["items"] %}
@@ -829,6 +830,136 @@ Pembayaran Driver | Ojek Pribadi
 
 {% endif %}
 
+                    <!-- =====================================================
+                         PHASE 20I.6C
+                         PAYMENT AUDIT ACCESS
+                    ====================================================== -->
+
+                    <div
+                        class="
+                            driver-payment-audit-access
+
+                            {% if order.payment_audit.total > 0 %}
+                                has-events
+                            {% else %}
+                                is-empty
+                            {% endif %}
+                        "
+                    >
+
+                        <div class="driver-payment-audit-access-icon">
+                            ◎
+                        </div>
+
+
+                        <div class="driver-payment-audit-access-content">
+
+                            <span>
+                                PAYMENT AUDIT
+                            </span>
+
+
+                            {% if order.payment_audit.total > 0 %}
+
+                                <strong>
+                                    {{ order.payment_audit.total }}
+                                    event tercatat
+                                </strong>
+
+
+                                {% if order.payment_audit.latest_action_label %}
+
+                                    <small>
+
+                                        Terbaru:
+                                        {{ order.payment_audit.latest_action_label }}
+
+                                        {% if order.payment_audit.latest_actor_label %}
+
+                                            ·
+                                            {{ order.payment_audit.latest_actor_label }}
+
+                                        {% endif %}
+
+                                    </small>
+
+                                {% endif %}
+
+
+                                {% if order.payment_audit.latest_created_at %}
+
+                                    <small class="driver-payment-audit-access-time">
+                                        {{ order.payment_audit.latest_created_at }}
+                                    </small>
+
+                                {% endif %}
+
+
+                            {% else %}
+
+                                <strong>
+                                    Belum ada audit
+                                </strong>
+
+                                <small>
+                                    Belum ada aktivitas pembayaran
+                                    yang tercatat pada audit trail.
+                                </small>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    {% if order.payment_audit.total > 0 %}
+
+                        <div class="driver-payment-audit-mini-stats">
+
+                            {% if order.payment_audit.corrections > 0 %}
+
+                                <span>
+                                    ✎ {{ order.payment_audit.corrections }}
+                                    koreksi
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if order.payment_audit.failures > 0 %}
+
+                                <span class="is-danger">
+                                    ! {{ order.payment_audit.failures }}
+                                    gagal
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if order.payment_audit.expirations > 0 %}
+
+                                <span class="is-expired">
+                                    ◷ {{ order.payment_audit.expirations }}
+                                    expired
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if order.payment_audit.refunds > 0 %}
+
+                                <span class="is-refund">
+                                    ↩ {{ order.payment_audit.refunds }}
+                                    refund
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
                     <!-- PAYMENT INFO -->
 
                     <div class="driver-payment-order-info">
@@ -1132,34 +1263,60 @@ Pembayaran Driver | Ojek Pribadi
 
                     {% endif %}
 
+
+                    <!-- =====================================
+                         PHASE 20I.6C
+                         AUDIT DETAIL BUTTON
+                    ====================================== -->
+
+                    <a
+                        href="{{
+                            url_for(
+                                'driver_order_detail',
+                                order_id=order.id
+                            )
+                        }}#payment-audit"
+                        class="driver-payment-control-audit-button"
+                    >
+
+                        <span>
+                            ◎ Lihat Audit Pembayaran
+                        </span>
+
+                        <span aria-hidden="true">
+                            →
+                        </span>
+
+                    </a>
+
+
                     {% if
-    order.payment_correction
-    and
-    order.payment_correction.allowed
-%}
+                        order.payment_correction
+                        and
+                        order.payment_correction.allowed
+                    %}
 
-    <a
-        href="{{
-            url_for(
-                'driver_order_detail',
-                order_id=order.id
-            )
-        }}#payment-correction"
+                        <a
+                            href="{{
+                                url_for(
+                                    'driver_order_detail',
+                                    order_id=order.id
+                                )
+                            }}#payment-correction"
+                            class="driver-payment-control-correction-button"
+                        >
 
-        class="driver-payment-control-correction-button"
-    >
+                            <span>
+                                ✎ Koreksi Pembayaran
+                            </span>
 
-        <span>
-            ✎ Koreksi Pembayaran
-        </span>
+                            <span aria-hidden="true">
+                                →
+                            </span>
 
-        <span aria-hidden="true">
-            →
-        </span>
+                        </a>
 
-    </a>
-
-{% endif %}
+                    {% endif %}
 
                 </article>
 

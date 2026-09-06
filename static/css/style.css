@@ -39604,3 +39604,1294 @@ CORRECTION AUDIT BADGE
 
     font-weight: 800;
 }
+
+/* ==========================================================
+PHASE 20I.6B
+DRIVER PAYMENT AUDIT TRAIL
+========================================================== */
+
+.driver-payment-audit {
+    margin-top: 16px;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .1);
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(52, 211, 153, .025),
+            rgba(255, 255, 255, .012)
+        );
+
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+HEADER
+========================================================== */
+
+.driver-payment-audit-head {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+
+.driver-payment-audit-eyebrow {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color:
+        rgba(52, 211, 153, .7);
+
+    font-size: 6px;
+
+    font-weight: 900;
+
+    letter-spacing: .1em;
+}
+
+
+.driver-payment-audit-head h3 {
+    margin: 0;
+
+    color:
+        rgba(255, 255, 255, .9);
+
+    font-size: 13px;
+}
+
+
+.driver-payment-audit-head p {
+    max-width: 390px;
+
+    margin:
+        5px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .36);
+
+    font-size: 7px;
+
+    line-height: 1.55;
+}
+
+
+.driver-payment-audit-state {
+    flex-shrink: 0;
+
+    padding:
+        6px
+        8px;
+
+    border-radius: 999px;
+
+    font-size: 5px;
+
+    font-weight: 900;
+
+    letter-spacing: .08em;
+}
+
+
+.driver-payment-audit-state.is-ready {
+    background:
+        rgba(52, 211, 153, .07);
+
+    color:
+        #34d399;
+}
+
+
+.driver-payment-audit-state.is-error {
+    background:
+        rgba(248, 113, 113, .08);
+
+    color:
+        #fca5a5;
+}
+
+/* ==========================================================
+AUDIT SUMMARY
+========================================================== */
+
+.driver-payment-audit-summary {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            5,
+            minmax(0, 1fr)
+        );
+
+    gap: 7px;
+
+    margin-top: 15px;
+}
+
+
+.driver-payment-audit-summary > div {
+    min-width: 0;
+
+    padding: 10px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .045);
+
+    border-radius: 11px;
+
+    background:
+        rgba(0, 0, 0, .12);
+}
+
+
+.driver-payment-audit-summary span {
+    display: block;
+
+    color:
+        rgba(255, 255, 255, .24);
+
+    font-size: 5px;
+
+    font-weight: 800;
+
+    letter-spacing: .05em;
+}
+
+
+.driver-payment-audit-summary strong {
+    display: block;
+
+    margin-top: 5px;
+
+    color:
+        rgba(255, 255, 255, .82);
+
+    font-size: 14px;
+}
+
+/* ==========================================================
+TIMELINE
+========================================================== */
+
+.driver-payment-audit-timeline {
+    display: grid;
+
+    margin-top: 16px;
+}
+
+
+.driver-payment-audit-event {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns:
+        22px
+        minmax(0, 1fr);
+
+    gap: 8px;
+}
+
+
+.driver-payment-audit-rail {
+    position: relative;
+
+    display: flex;
+
+    justify-content: center;
+}
+
+
+.driver-payment-audit-rail::after {
+    content: "";
+
+    position: absolute;
+
+    top: 22px;
+
+    bottom: 0;
+
+    width: 1px;
+
+    background:
+        rgba(255, 255, 255, .06);
+}
+
+
+.driver-payment-audit-event:last-child
+.driver-payment-audit-rail::after {
+    display: none;
+}
+
+
+.driver-payment-audit-dot {
+    position: relative;
+
+    z-index: 2;
+
+    width: 22px;
+    height: 22px;
+
+    display: grid;
+
+    place-items: center;
+
+    border:
+        2px solid
+        #0b0f0e;
+
+    border-radius: 8px;
+
+    background:
+        rgba(148, 163, 184, .12);
+
+    color:
+        rgba(255, 255, 255, .7);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(148, 163, 184, .05);
+}
+
+
+.driver-payment-audit-event-body {
+    min-width: 0;
+
+    margin-bottom: 11px;
+
+    padding: 12px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .045);
+
+    border-radius: 12px;
+
+    background:
+        rgba(0, 0, 0, .12);
+}
+
+/* ==========================================================
+AUDIT EVENT TONES
+========================================================== */
+
+.driver-payment-audit-event.is-success
+.driver-payment-audit-dot {
+    background: #34d399;
+}
+
+
+.driver-payment-audit-event.is-correction
+.driver-payment-audit-dot {
+    background: #93c5fd;
+}
+
+
+.driver-payment-audit-event.is-danger
+.driver-payment-audit-dot {
+    background: #f87171;
+}
+
+
+.driver-payment-audit-event.is-expired
+.driver-payment-audit-dot {
+    background: #fb923c;
+}
+
+
+.driver-payment-audit-event.is-warning
+.driver-payment-audit-dot {
+    background: #fbbf24;
+}
+
+
+.driver-payment-audit-event.is-refund
+.driver-payment-audit-dot {
+    background: #c084fc;
+}
+
+
+.driver-payment-audit-event.is-review
+.driver-payment-audit-dot {
+    background: #67e8f9;
+}
+
+/* ==========================================================
+EVENT HEADER
+========================================================== */
+
+.driver-payment-audit-event-head {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+
+.driver-payment-audit-action {
+    display: block;
+
+    color:
+        rgba(255, 255, 255, .35);
+
+    font-size: 5px;
+
+    font-weight: 900;
+
+    letter-spacing: .07em;
+}
+
+
+.driver-payment-audit-event-head strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color:
+        rgba(255, 255, 255, .82);
+
+    font-size: 8px;
+}
+
+
+.driver-payment-audit-event-head time {
+    flex-shrink: 0;
+
+    color:
+        rgba(255, 255, 255, .25);
+
+    font-size: 6px;
+
+    text-align: right;
+}
+
+/* ==========================================================
+AUDIT CHANGES
+========================================================== */
+
+.driver-payment-audit-changes {
+    display: grid;
+
+    gap: 7px;
+
+    margin-top: 10px;
+}
+
+
+.driver-payment-audit-change {
+    padding: 9px;
+
+    border-radius: 9px;
+
+    background:
+        rgba(255, 255, 255, .022);
+}
+
+
+.driver-payment-audit-change > span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color:
+        rgba(255, 255, 255, .27);
+
+    font-size: 5px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-audit-change-values {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    min-width: 0;
+}
+
+
+.driver-payment-audit-change-values strong {
+    min-width: 0;
+
+    color:
+        rgba(255, 255, 255, .65);
+
+    font-size: 7px;
+
+    overflow-wrap: anywhere;
+}
+
+
+.driver-payment-audit-change-values > span {
+    flex-shrink: 0;
+
+    color:
+        #34d399;
+
+    font-size: 8px;
+}
+
+/* ==========================================================
+AUDIT REASON
+========================================================== */
+
+.driver-payment-audit-reason {
+    margin-top: 9px;
+
+    padding: 9px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .04);
+
+    border-radius: 9px;
+
+    background:
+        rgba(255, 255, 255, .018);
+}
+
+
+.driver-payment-audit-reason span,
+.driver-payment-audit-event-code > span {
+    display: block;
+
+    color:
+        rgba(255, 255, 255, .24);
+
+    font-size: 5px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-audit-reason p {
+    margin:
+        4px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .47);
+
+    font-size: 7px;
+
+    line-height: 1.55;
+
+    overflow-wrap: anywhere;
+}
+
+
+.driver-payment-audit-event-code {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-top: 9px;
+}
+
+
+.driver-payment-audit-event-code code {
+    color:
+        rgba(52, 211, 153, .48);
+
+    font-size: 5px;
+
+    overflow-wrap: anywhere;
+}
+
+/* ==========================================================
+AUDIT EMPTY / ERROR
+========================================================== */
+
+.driver-payment-audit-empty,
+.driver-payment-audit-error {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-top: 15px;
+
+    padding: 12px;
+
+    border-radius: 12px;
+}
+
+
+.driver-payment-audit-empty {
+    border:
+        1px solid
+        rgba(52, 211, 153, .08);
+
+    background:
+        rgba(52, 211, 153, .025);
+}
+
+
+.driver-payment-audit-error {
+    border:
+        1px solid
+        rgba(248, 113, 113, .09);
+
+    background:
+        rgba(248, 113, 113, .03);
+}
+
+
+.driver-payment-audit-empty > span {
+    color: #34d399;
+}
+
+
+.driver-payment-audit-error > span {
+    color: #f87171;
+}
+
+
+.driver-payment-audit-empty strong,
+.driver-payment-audit-error strong {
+    color:
+        rgba(255, 255, 255, .7);
+
+    font-size: 8px;
+}
+
+
+.driver-payment-audit-empty p,
+.driver-payment-audit-error p {
+    margin:
+        3px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size: 7px;
+
+    line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+
+    .driver-payment-audit {
+        padding: 14px;
+    }
+
+
+    .driver-payment-audit-head {
+        flex-direction: column;
+    }
+
+
+    .driver-payment-audit-summary {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+
+    .driver-payment-audit-event-head {
+        flex-direction: column;
+    }
+
+
+    .driver-payment-audit-event-head time {
+        text-align: left;
+    }
+
+
+    .driver-payment-audit-change-values {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
+    }
+
+}
+
+/* ==========================================================
+PHASE 20I.6C
+PAYMENT CONTROL — AUDIT ACCESS
+========================================================== */
+
+.driver-payment-audit-access {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 9px;
+
+    margin-top: 10px;
+
+    padding: 10px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .08);
+
+    border-radius: 11px;
+
+    background:
+        rgba(52, 211, 153, .025);
+}
+
+
+.driver-payment-audit-access.is-empty {
+    border-color:
+        rgba(148, 163, 184, .07);
+
+    background:
+        rgba(148, 163, 184, .02);
+}
+
+
+.driver-payment-audit-access-icon {
+    flex:
+        0 0 28px;
+
+    width: 28px;
+    height: 28px;
+
+    display: grid;
+
+    place-items: center;
+
+    border-radius: 9px;
+
+    background:
+        rgba(52, 211, 153, .06);
+
+    color:
+        #34d399;
+
+    font-size: 10px;
+}
+
+
+.driver-payment-audit-access.is-empty
+.driver-payment-audit-access-icon {
+    background:
+        rgba(148, 163, 184, .05);
+
+    color:
+        rgba(148, 163, 184, .55);
+}
+
+
+.driver-payment-audit-access-content {
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+.driver-payment-audit-access-content > span {
+    display: block;
+
+    color:
+        rgba(52, 211, 153, .58);
+
+    font-size: 5px;
+
+    font-weight: 900;
+
+    letter-spacing: .08em;
+}
+
+
+.driver-payment-audit-access-content strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color:
+        rgba(255, 255, 255, .7);
+
+    font-size: 8px;
+}
+
+
+.driver-payment-audit-access-content small {
+    display: block;
+
+    margin-top: 3px;
+
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size: 6px;
+
+    line-height: 1.45;
+}
+
+
+.driver-payment-audit-access-time {
+    color:
+        rgba(255, 255, 255, .2)
+        !important;
+}
+
+.driver-payment-audit-mini-stats {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 5px;
+
+    margin-top: 7px;
+}
+
+
+.driver-payment-audit-mini-stats span {
+    padding:
+        4px
+        6px;
+
+    border:
+        1px solid
+        rgba(96, 165, 250, .08);
+
+    border-radius: 999px;
+
+    background:
+        rgba(96, 165, 250, .025);
+
+    color:
+        #93c5fd;
+
+    font-size: 5px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-audit-mini-stats
+span.is-danger {
+    border-color:
+        rgba(248, 113, 113, .09);
+
+    background:
+        rgba(248, 113, 113, .03);
+
+    color:
+        #fca5a5;
+}
+
+
+.driver-payment-audit-mini-stats
+span.is-expired {
+    border-color:
+        rgba(251, 146, 60, .09);
+
+    background:
+        rgba(251, 146, 60, .03);
+
+    color:
+        #fdba74;
+}
+
+
+.driver-payment-audit-mini-stats
+span.is-refund {
+    border-color:
+        rgba(192, 132, 252, .09);
+
+    background:
+        rgba(192, 132, 252, .03);
+
+    color:
+        #d8b4fe;
+}
+
+.driver-payment-control-audit-button {
+    width: 100%;
+
+    min-height: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-top: 8px;
+
+    padding:
+        0
+        12px;
+
+    box-sizing: border-box;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .11);
+
+    border-radius: 11px;
+
+    background:
+        rgba(52, 211, 153, .035);
+
+    color:
+        #6ee7b7;
+
+    text-decoration: none;
+
+    font-size: 7px;
+
+    font-weight: 900;
+}
+
+
+.driver-payment-control-audit-button:hover {
+    border-color:
+        rgba(52, 211, 153, .22);
+
+    background:
+        rgba(52, 211, 153, .07);
+}
+
+@media (max-width: 480px) {
+
+    .driver-payment-audit-access {
+        gap: 8px;
+    }
+
+
+    .driver-payment-audit-mini-stats {
+        gap: 4px;
+    }
+
+}
+
+.driver-payment-audit-event.is-success
+.driver-payment-audit-dot {
+    background:
+        rgba(52, 211, 153, .1);
+
+    color:
+        #34d399;
+}
+
+
+.driver-payment-audit-event.is-correction
+.driver-payment-audit-dot {
+    background:
+        rgba(96, 165, 250, .1);
+
+    color:
+        #93c5fd;
+}
+
+
+.driver-payment-audit-event.is-danger
+.driver-payment-audit-dot {
+    background:
+        rgba(248, 113, 113, .1);
+
+    color:
+        #fca5a5;
+}
+
+
+.driver-payment-audit-event.is-expired
+.driver-payment-audit-dot {
+    background:
+        rgba(251, 146, 60, .1);
+
+    color:
+        #fdba74;
+}
+
+
+.driver-payment-audit-event.is-warning
+.driver-payment-audit-dot {
+    background:
+        rgba(251, 191, 36, .1);
+
+    color:
+        #fbbf24;
+}
+
+
+.driver-payment-audit-event.is-refund
+.driver-payment-audit-dot {
+    background:
+        rgba(192, 132, 252, .1);
+
+    color:
+        #d8b4fe;
+}
+
+
+.driver-payment-audit-event.is-review
+.driver-payment-audit-dot {
+    background:
+        rgba(103, 232, 249, .09);
+
+    color:
+        #67e8f9;
+}
+
+
+.driver-payment-audit-event.is-created
+.driver-payment-audit-dot {
+    background:
+        rgba(148, 163, 184, .08);
+
+    color:
+        #cbd5e1;
+}
+
+/* ==========================================================
+AUDIT EVENT META
+========================================================== */
+
+.driver-payment-audit-meta {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 4px;
+
+    margin-top: 4px;
+}
+
+
+.driver-payment-audit-meta span {
+    color:
+        rgba(255, 255, 255, .4);
+
+    font-size: 6px;
+}
+
+
+.driver-payment-audit-meta strong {
+    margin: 0;
+
+    color:
+        rgba(52, 211, 153, .6);
+
+    font-size: 6px;
+}
+
+.driver-payment-audit-actor {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    margin-top: 9px;
+
+    padding:
+        5px
+        7px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 255, 255, .025);
+}
+
+
+.driver-payment-audit-actor span {
+    color:
+        rgba(255, 255, 255, .22);
+
+    font-size: 5px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-audit-actor strong {
+    color:
+        rgba(255, 255, 255, .55);
+
+    font-size: 6px;
+}
+
+
+.driver-payment-audit-actor.is-driver strong {
+    color: #93c5fd;
+}
+
+
+.driver-payment-audit-actor.is-customer strong {
+    color: #67e8f9;
+}
+
+
+.driver-payment-audit-actor.is-system strong {
+    color: #cbd5e1;
+}
+
+/* ==========================================================
+PHASE 20I.6D
+AUDIT SNAPSHOT
+========================================================== */
+
+.driver-payment-audit-snapshot {
+    margin-top: 10px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .045);
+
+    border-radius: 10px;
+
+    background:
+        rgba(0, 0, 0, .08);
+
+    overflow: hidden;
+}
+
+
+.driver-payment-audit-snapshot summary {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 9px;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 6px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-audit-snapshot summary::-webkit-details-marker {
+    display: none;
+}
+
+
+.driver-payment-audit-snapshot[open] summary {
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, .04);
+}
+
+
+.driver-payment-audit-snapshot[open]
+summary > span:last-child {
+    transform:
+        rotate(45deg);
+}
+
+
+.driver-payment-audit-snapshot-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        20px
+        minmax(0, 1fr);
+
+    align-items: stretch;
+
+    gap: 7px;
+
+    padding: 9px;
+}
+
+
+.driver-payment-audit-snapshot-card {
+    min-width: 0;
+
+    padding: 9px;
+
+    border-radius: 9px;
+}
+
+
+.driver-payment-audit-snapshot-card.is-before {
+    background:
+        rgba(248, 113, 113, .025);
+}
+
+
+.driver-payment-audit-snapshot-card.is-after {
+    background:
+        rgba(52, 211, 153, .025);
+}
+
+
+.driver-payment-audit-snapshot-title {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 5px;
+
+    font-weight: 900;
+
+    letter-spacing: .08em;
+}
+
+
+.driver-payment-audit-snapshot-card.is-before
+.driver-payment-audit-snapshot-title {
+    color:
+        rgba(252, 165, 165, .65);
+}
+
+
+.driver-payment-audit-snapshot-card.is-after
+.driver-payment-audit-snapshot-title {
+    color:
+        rgba(110, 231, 183, .65);
+}
+
+.driver-payment-audit-snapshot-values {
+    display: grid;
+
+    gap: 6px;
+}
+
+
+.driver-payment-audit-snapshot-values > div {
+    min-width: 0;
+}
+
+
+.driver-payment-audit-snapshot-values span {
+    display: block;
+
+    color:
+        rgba(255, 255, 255, .22);
+
+    font-size: 5px;
+}
+
+
+.driver-payment-audit-snapshot-values strong {
+    display: block;
+
+    margin-top: 2px;
+
+    color:
+        rgba(255, 255, 255, .62);
+
+    font-size: 6px;
+
+    overflow-wrap: anywhere;
+}
+
+
+.driver-payment-audit-snapshot-card p {
+    margin: 0;
+
+    color:
+        rgba(255, 255, 255, .27);
+
+    font-size: 6px;
+
+    line-height: 1.5;
+}
+
+
+.driver-payment-audit-snapshot-arrow {
+    display: grid;
+
+    place-items: center;
+
+    color:
+        #34d399;
+
+    font-size: 9px;
+}
+
+.driver-payment-audit-change-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    margin-top: 11px;
+}
+
+
+.driver-payment-audit-change-heading span {
+    color:
+        rgba(255, 255, 255, .26);
+
+    font-size: 5px;
+
+    font-weight: 900;
+}
+
+
+.driver-payment-audit-change-heading strong {
+    color:
+        rgba(52, 211, 153, .57);
+
+    font-size: 6px;
+}
+
+@media (max-width: 480px) {
+
+    .driver-payment-audit-snapshot-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .driver-payment-audit-snapshot-arrow {
+        min-height: 18px;
+
+        transform:
+            rotate(90deg);
+    }
+
+}
