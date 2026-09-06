@@ -2,173 +2,61 @@
 
 
 // ============================================================
-// PHASE 20H.7
-// OJEK PRIBADI SERVICE WORKER
+// OJEK PRIBADI
+// SERVICE WORKER
+//
+// STRATEGY:
+//
+// HTML / NAVIGATION
+// → NETWORK ONLY
+// → NO OFFLINE FALLBACK
+// → NEVER SERVE STALE CUSTOMER PAGE
+//
+// API / PRIVATE ROUTES
+// → NETWORK ONLY
+// → NO CACHE
+//
+// STATIC ASSETS
+// → STALE WHILE REVALIDATE
+// → CSS / JS / IMAGES / FONTS tetap cepat
+// ============================================================
+
+
+// ============================================================
+// CACHE CONFIGURATION
 // ============================================================
 
 const CACHE_PREFIX =
-    "ojek-pribadi-public";
-
-const CACHE_VERSION =
-    "20h7-v1";
-
-const CACHE_NAME =
-    `${CACHE_PREFIX}-${CACHE_VERSION}`;
+    "ojek-pribadi-";
 
 
-//
-// Hanya shell publik.
-//
-// JANGAN masukkan:
-// - /driver/...
-// - /admin/...
-// - /api/...
-// - receipt
-// - payment history
-// - data transaksi
-//
+const STATIC_CACHE_NAME =
+    "ojek-pribadi-static-v20i5-1";
 
-const PUBLIC_PRECACHE = [
 
-    "/",
+// ============================================================
+// STATIC FILE EXTENSIONS
+// ============================================================
 
-    "/manifest.webmanifest"
+const STATIC_FILE_EXTENSIONS = [
+
+    ".css",
+    ".js",
+
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+    ".svg",
+    ".ico",
+
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".otf"
 
 ];
-
-
-// ============================================================
-// PRIVATE / SENSITIVE PATH
-// ============================================================
-
-function isPrivatePath(
-    pathname
-) {
-
-    const path =
-        String(
-            pathname
-            || ""
-        )
-        .toLowerCase();
-
-
-    return (
-        path === "/driver"
-        ||
-        path.startsWith(
-            "/driver/"
-        )
-        ||
-        path === "/admin"
-        ||
-        path.startsWith(
-            "/admin/"
-        )
-        ||
-        path === "/api"
-        ||
-        path.startsWith(
-            "/api/"
-        )
-    );
-
-}
-
-
-// ============================================================
-// SENSITIVE STATIC ASSET
-// ============================================================
-
-function isSensitiveStaticPath(
-    pathname
-) {
-
-    const path =
-        String(
-            pathname
-            || ""
-        )
-        .toLowerCase();
-
-
-    return (
-        path.includes(
-            "payment-proof"
-        )
-        ||
-        path.includes(
-            "payment_proof"
-        )
-        ||
-        path.includes(
-            "receipt"
-        )
-        ||
-        path.includes(
-            "qris"
-        )
-    );
-
-}
-
-
-// ============================================================
-// SAFE CACHE RESPONSE
-// ============================================================
-
-function responseCanBeCached(
-    response
-) {
-
-    if (!response) {
-
-        return false;
-
-    }
-
-
-    if (!response.ok) {
-
-        return false;
-
-    }
-
-
-    if (
-        response.type
-        !== "basic"
-    ) {
-
-        return false;
-
-    }
-
-
-    const cacheControl =
-        (
-            response.headers.get(
-                "Cache-Control"
-            )
-            || ""
-        )
-        .toLowerCase();
-
-
-    if (
-        cacheControl.includes(
-            "no-store"
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
 
 
 // ============================================================
@@ -177,44 +65,15 @@ function responseCanBeCached(
 
 self.addEventListener(
     "install",
-    function (
-        event
-    ) {
+    () => {
 
-        event.waitUntil(
-
-            (
-                async function () {
-
-                    const cache =
-                        await caches.open(
-                            CACHE_NAME
-                        );
-
-
-                    try {
-
-                        await cache.addAll(
-                            PUBLIC_PRECACHE
-                        );
-
-                    }
-                    catch (error) {
-
-                        console.warn(
-                            "[SW] Precache tidak lengkap:",
-                            error
-                        );
-
-                    }
-
-
-                    await self.skipWaiting();
-
-                }
-            )()
-
+        console.log(
+            "[SERVICE WORKER] Installing..."
         );
+
+
+        // Aktifkan versi baru secepat mungkin.
+        self.skipWaiting();
 
     }
 );
@@ -222,58 +81,95 @@ self.addEventListener(
 
 // ============================================================
 // ACTIVATE
+//
+// Hapus cache lama.
+// Ini sangat penting agar HTML lama dari service worker
+// sebelumnya tidak terus tersedia.
 // ============================================================
 
 self.addEventListener(
     "activate",
-    function (
-        event
-    ) {
+    (event) => {
+
+        console.log(
+            "[SERVICE WORKER] Activating..."
+        );
+
 
         event.waitUntil(
 
-            (
-                async function () {
+            Promise.all([
 
-                    const cacheNames =
-                        await caches.keys();
+                // =================================================
+                // DELETE OLD OJEK PRIBADI CACHES
+                // =================================================
 
+                caches.keys()
+                    .then(
+                        (cacheNames) => {
 
-                    await Promise.all(
+                            return Promise.all(
 
-                        cacheNames.map(
-                            function (
-                                cacheName
-                            ) {
+                                cacheNames.map(
+                                    (cacheName) => {
 
-                                if (
-                                    cacheName.startsWith(
-                                        CACHE_PREFIX
-                                    )
-                                    &&
-                                    cacheName
-                                    !== CACHE_NAME
-                                ) {
-
-                                    return caches.delete(
-                                        cacheName
-                                    );
-
-                                }
+                                        const isOjekCache =
+                                            cacheName.startsWith(
+                                                CACHE_PREFIX
+                                            );
 
 
-                                return Promise.resolve();
+                                        const isCurrentCache =
+                                            (
+                                                cacheName
+                                                ===
+                                                STATIC_CACHE_NAME
+                                            );
 
-                            }
-                        )
 
-                    );
+                                        if (
+                                            isOjekCache
+                                            &&
+                                            !isCurrentCache
+                                        ) {
+
+                                            console.log(
+                                                (
+                                                    "[SERVICE WORKER] "
+                                                    +
+                                                    "Deleting old cache:"
+                                                ),
+                                                cacheName
+                                            );
 
 
-                    await self.clients.claim();
+                                            return caches.delete(
+                                                cacheName
+                                            );
 
-                }
-            )()
+                                        }
+
+
+                                        return Promise.resolve(
+                                            false
+                                        );
+
+                                    }
+                                )
+
+                            );
+
+                        }
+                    ),
+
+
+                // =================================================
+                // CONTROL OPEN CLIENTS
+                // =================================================
+
+                self.clients.claim()
+
+            ])
 
         );
 
@@ -282,311 +178,183 @@ self.addEventListener(
 
 
 // ============================================================
-// PRIVATE OFFLINE RESPONSE
+// HELPERS
 // ============================================================
 
-function privateOfflineResponse(
+function isSameOrigin(
+    url
+) {
+
+    return (
+        url.origin
+        ===
+        self.location.origin
+    );
+
+}
+
+
+// ============================================================
+// NAVIGATION / HTML REQUEST
+//
+// Semua dokumen HTML wajib ke server.
+// Tidak pernah dibaca dari CacheStorage.
+// ============================================================
+
+function isNavigationRequest(
     request
 ) {
 
     if (
         request.mode
-        === "navigate"
+        ===
+        "navigate"
     ) {
 
-        return new Response(
-            `
-            <!doctype html>
-            <html lang="id">
-
-            <head>
-
-                <meta charset="utf-8">
-
-                <meta
-                    name="viewport"
-                    content="
-                        width=device-width,
-                        initial-scale=1,
-                        viewport-fit=cover
-                    "
-                >
-
-                <meta
-                    name="theme-color"
-                    content="#07110d"
-                >
-
-                <title>
-                    Koneksi Diperlukan
-                </title>
-
-                <style>
-
-                    * {
-                        box-sizing:
-                            border-box;
-                    }
-
-                    html,
-                    body {
-                        margin:
-                            0;
-
-                        min-height:
-                            100%;
-
-                        min-height:
-                            100dvh;
-                    }
-
-                    body {
-                        display:
-                            grid;
-
-                        place-items:
-                            center;
-
-                        padding:
-                            24px;
-
-                        background:
-                            #07110d;
-
-                        color:
-                            rgba(
-                                255,
-                                255,
-                                255,
-                                .9
-                            );
-
-                        font-family:
-                            system-ui,
-                            -apple-system,
-                            BlinkMacSystemFont,
-                            "Segoe UI",
-                            sans-serif;
-                    }
-
-                    main {
-                        width:
-                            min(
-                                100%,
-                                420px
-                            );
-
-                        padding:
-                            28px;
-
-                        border:
-                            1px solid
-                            rgba(
-                                255,
-                                255,
-                                255,
-                                .07
-                            );
-
-                        border-radius:
-                            24px;
-
-                        background:
-                            rgba(
-                                255,
-                                255,
-                                255,
-                                .025
-                            );
-
-                        text-align:
-                            center;
-                    }
-
-                    .icon {
-                        display:
-                            grid;
-
-                        place-items:
-                            center;
-
-                        width:
-                            52px;
-
-                        height:
-                            52px;
-
-                        margin:
-                            0 auto 18px;
-
-                        border-radius:
-                            16px;
-
-                        background:
-                            rgba(
-                                251,
-                                191,
-                                36,
-                                .08
-                            );
-
-                        color:
-                            #fbbf24;
-
-                        font-size:
-                            22px;
-                    }
-
-                    h1 {
-                        margin:
-                            0;
-
-                        font-size:
-                            22px;
-                    }
-
-                    p {
-                        margin:
-                            12px 0 22px;
-
-                        color:
-                            rgba(
-                                255,
-                                255,
-                                255,
-                                .42
-                            );
-
-                        font-size:
-                            13px;
-
-                        line-height:
-                            1.65;
-                    }
-
-                    button {
-                        width:
-                            100%;
-
-                        min-height:
-                            48px;
-
-                        border:
-                            1px solid
-                            rgba(
-                                52,
-                                211,
-                                153,
-                                .16
-                            );
-
-                        border-radius:
-                            14px;
-
-                        background:
-                            rgba(
-                                52,
-                                211,
-                                153,
-                                .08
-                            );
-
-                        color:
-                            #6ee7b7;
-
-                        font-size:
-                            13px;
-
-                        font-weight:
-                            800;
-
-                        cursor:
-                            pointer;
-                    }
-
-                </style>
-
-            </head>
-
-            <body>
-
-                <main>
-
-                    <div class="icon">
-                        !
-                    </div>
-
-                    <h1>
-                        Koneksi internet diperlukan
-                    </h1>
-
-                    <p>
-                        Data pembayaran driver tidak disimpan
-                        untuk penggunaan offline demi menjaga
-                        keamanan dan memastikan informasi yang
-                        ditampilkan selalu terbaru.
-                    </p>
-
-                    <button
-                        type="button"
-                        onclick="window.location.reload()"
-                    >
-                        Coba Muat Ulang
-                    </button>
-
-                </main>
-
-            </body>
-
-            </html>
-            `,
-            {
-                status:
-                    503,
-
-                headers: {
-
-                    "Content-Type":
-                        "text/html; charset=utf-8",
-
-                    "Cache-Control":
-                        "no-store"
-                }
-            }
-        );
+        return true;
 
     }
 
 
-    return new Response(
-        JSON.stringify(
-            {
-                success:
-                    false,
+    const acceptHeader =
+        request.headers.get(
+            "accept"
+        )
+        ||
+        "";
 
-                offline:
-                    true,
 
-                message:
-                    (
-                        "Koneksi internet "
-                        +
-                        "diperlukan."
-                    )
-            }
-        ),
-        {
-            status:
-                503,
+    return (
+        acceptHeader.includes(
+            "text/html"
+        )
+    );
 
-            headers: {
+}
 
-                "Content-Type":
-                    "application/json",
 
-                "Cache-Control":
-                    "no-store"
-            }
+// ============================================================
+// PRIVATE / DYNAMIC ROUTES
+// ============================================================
+
+function isDynamicRoute(
+    url
+) {
+
+    const pathname =
+        url.pathname.toLowerCase();
+
+
+    return (
+
+        // API
+        pathname.startsWith(
+            "/api/"
+        )
+
+        ||
+
+        // DRIVER / ADMIN
+        pathname.startsWith(
+            "/driver"
+        )
+
+        ||
+
+        pathname.startsWith(
+            "/admin"
+        )
+
+        ||
+
+        // CUSTOMER ORDER
+        pathname.startsWith(
+            "/order"
+        )
+
+        ||
+
+        pathname.includes(
+            "/receipt"
+        )
+
+        ||
+
+        pathname.includes(
+            "/refund"
+        )
+
+        ||
+
+        pathname.includes(
+            "/review"
+        )
+
+        ||
+
+        pathname.includes(
+            "/payment"
+        )
+
+    );
+
+}
+
+
+// ============================================================
+// STATIC ASSET
+// ============================================================
+
+function isStaticAsset(
+    url
+) {
+
+    const pathname =
+        url.pathname.toLowerCase();
+
+
+    // ========================================================
+    // /static/*
+    // ========================================================
+
+    if (
+        pathname.startsWith(
+            "/static/"
+        )
+    ) {
+
+        return true;
+
+    }
+
+
+    // ========================================================
+    // Manifest boleh dicache.
+    // ========================================================
+
+    if (
+        pathname
+        ===
+        "/manifest.webmanifest"
+    ) {
+
+        return true;
+
+    }
+
+
+    // ========================================================
+    // Root-level image/font/static file
+    // jika suatu saat logo/icon tidak berada di /static/.
+    // ========================================================
+
+    return STATIC_FILE_EXTENSIONS.some(
+        (extension) => {
+
+            return pathname.endsWith(
+                extension
+            );
+
         }
     );
 
@@ -594,24 +362,267 @@ function privateOfflineResponse(
 
 
 // ============================================================
-// PRIVATE NETWORK ONLY
+// NETWORK ONLY
+//
+// Dipakai untuk:
+// - HTML
+// - customer pages
+// - API
+// - driver
+// - payment
+// - refund
+// - receipt
+//
+// cache:"no-store" juga meminta browser tidak memakai
+// HTTP cache lama untuk request tersebut.
 // ============================================================
 
-async function privateNetworkOnly(
+async function networkOnly(
     request
 ) {
+
+    const networkRequest =
+        new Request(
+            request,
+            {
+                cache:
+                    "no-store"
+            }
+        );
+
 
     try {
 
         return await fetch(
-            request
+            networkRequest
         );
 
     }
     catch (error) {
 
-        return privateOfflineResponse(
-            request
+        console.warn(
+            (
+                "[SERVICE WORKER] "
+                +
+                "Network unavailable:"
+            ),
+            request.url
+        );
+
+
+        // ====================================================
+        // JANGAN return caches.match(request)
+        //
+        // Customer tidak boleh melihat halaman stale.
+        // ====================================================
+
+        if (
+            isNavigationRequest(
+                request
+            )
+        ) {
+
+            return new Response(
+                `
+                <!doctype html>
+
+                <html lang="id">
+
+                <head>
+
+                    <meta charset="utf-8">
+
+                    <meta
+                        name="viewport"
+                        content="width=device-width, initial-scale=1"
+                    >
+
+                    <title>
+                        OJEK PRIBADI — Server Tidak Tersedia
+                    </title>
+
+                    <style>
+
+                        * {
+                            box-sizing: border-box;
+                        }
+
+
+                        body {
+                            margin: 0;
+
+                            min-height: 100vh;
+
+                            display: grid;
+
+                            place-items: center;
+
+                            padding: 24px;
+
+                            background:
+                                #050807;
+
+                            color:
+                                #ffffff;
+
+                            font-family:
+                                Arial,
+                                sans-serif;
+                        }
+
+
+                        main {
+                            width: 100%;
+
+                            max-width: 420px;
+
+                            padding: 24px;
+
+                            border:
+                                1px solid
+                                rgba(
+                                    255,
+                                    255,
+                                    255,
+                                    .08
+                                );
+
+                            border-radius:
+                                18px;
+
+                            background:
+                                rgba(
+                                    255,
+                                    255,
+                                    255,
+                                    .025
+                                );
+                        }
+
+
+                        span {
+                            color:
+                                #34d399;
+
+                            font-size:
+                                11px;
+
+                            font-weight:
+                                800;
+
+                            letter-spacing:
+                                .08em;
+                        }
+
+
+                        h1 {
+                            margin:
+                                10px
+                                0
+                                8px;
+
+                            font-size:
+                                22px;
+                        }
+
+
+                        p {
+                            margin: 0;
+
+                            color:
+                                rgba(
+                                    255,
+                                    255,
+                                    255,
+                                    .55
+                                );
+
+                            font-size:
+                                14px;
+
+                            line-height:
+                                1.6;
+                        }
+
+                    </style>
+
+                </head>
+
+                <body>
+
+                    <main>
+
+                        <span>
+                            OJEK PRIBADI
+                        </span>
+
+                        <h1>
+                            Server sedang tidak tersedia
+                        </h1>
+
+                        <p>
+                            Halaman ini membutuhkan koneksi
+                            langsung ke server.
+                            Silakan coba kembali setelah
+                            layanan aktif.
+                        </p>
+
+                    </main>
+
+                </body>
+
+                </html>
+                `,
+                {
+                    status:
+                        503,
+
+                    statusText:
+                        "Service Unavailable",
+
+                    headers: {
+
+                        "Content-Type":
+                            "text/html; charset=utf-8",
+
+                        "Cache-Control":
+                            "no-store, no-cache, must-revalidate"
+
+                    }
+                }
+            );
+
+        }
+
+
+        // API / dynamic non-navigation.
+        return new Response(
+            JSON.stringify(
+                {
+                    ok:
+                        false,
+
+                    error:
+                        "SERVER_UNAVAILABLE"
+                }
+            ),
+            {
+                status:
+                    503,
+
+                statusText:
+                    "Service Unavailable",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json; charset=utf-8",
+
+                    "Cache-Control":
+                        "no-store, no-cache, must-revalidate"
+
+                }
+            }
         );
 
     }
@@ -620,16 +631,20 @@ async function privateNetworkOnly(
 
 
 // ============================================================
-// STATIC CACHE
+// STATIC ASSET
+// STALE WHILE REVALIDATE
+//
+// Aset cached langsung digunakan agar cepat,
+// sementara browser mengambil versi terbaru di background.
 // ============================================================
 
-async function staticCacheFirst(
+async function staleWhileRevalidate(
     request
 ) {
 
     const cache =
         await caches.open(
-            CACHE_NAME
+            STATIC_CACHE_NAME
         );
 
 
@@ -639,108 +654,105 @@ async function staticCacheFirst(
         );
 
 
-    if (cachedResponse) {
+    const networkPromise =
+        fetch(
+            request
+        )
+        .then(
+            async (response) => {
+
+                // =================================================
+                // Hanya cache response valid.
+                // =================================================
+
+                if (
+                    response
+                    &&
+                    response.ok
+                    &&
+                    response.type
+                    !==
+                    "opaque"
+                ) {
+
+                    await cache.put(
+                        request,
+                        response.clone()
+                    );
+
+                }
+
+
+                return response;
+
+            }
+        )
+        .catch(
+            (error) => {
+
+                console.warn(
+                    (
+                        "[SERVICE WORKER] "
+                        +
+                        "Static asset update failed:"
+                    ),
+                    request.url,
+                    error
+                );
+
+
+                return null;
+
+            }
+        );
+
+
+    // ========================================================
+    // Cached asset tersedia → langsung gunakan.
+    // ========================================================
+
+    if (
+        cachedResponse
+    ) {
+
+        // Background refresh.
+        networkPromise.catch(
+            () => {}
+        );
+
 
         return cachedResponse;
 
     }
 
 
-    const response =
-        await fetch(
-            request
-        );
+    // ========================================================
+    // Belum ada cache → tunggu network.
+    // ========================================================
+
+    const networkResponse =
+        await networkPromise;
 
 
     if (
-        responseCanBeCached(
-            response
-        )
+        networkResponse
     ) {
 
-        await cache.put(
-            request,
-            response.clone()
-        );
+        return networkResponse;
 
     }
 
 
-    return response;
+    return new Response(
+        "",
+        {
+            status:
+                503,
 
-}
-
-
-// ============================================================
-// PUBLIC NAVIGATION
-// ============================================================
-
-async function publicNetworkFirst(
-    request
-) {
-
-    const cache =
-        await caches.open(
-            CACHE_NAME
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                request
-            );
-
-
-        if (
-            responseCanBeCached(
-                response
-            )
-        ) {
-
-            await cache.put(
-                request,
-                response.clone()
-            );
-
+            statusText:
+                "Static Asset Unavailable"
         }
-
-
-        return response;
-
-    }
-    catch (error) {
-
-        const cachedPage =
-            await cache.match(
-                request
-            );
-
-
-        if (cachedPage) {
-
-            return cachedPage;
-
-        }
-
-
-        const home =
-            await cache.match(
-                "/"
-            );
-
-
-        if (home) {
-
-            return home;
-
-        }
-
-
-        throw error;
-
-    }
+    );
 
 }
 
@@ -751,21 +763,23 @@ async function publicNetworkFirst(
 
 self.addEventListener(
     "fetch",
-    function (
-        event
-    ) {
+    (event) => {
 
         const request =
             event.request;
 
 
-        // ----------------------------------------------------
-        // GET ONLY
-        // ----------------------------------------------------
+        // ====================================================
+        // NON-GET
+        //
+        // POST payment/refund/order/etc
+        // tidak boleh dicache.
+        // ====================================================
 
         if (
             request.method
-            !== "GET"
+            !==
+            "GET"
         ) {
 
             return;
@@ -779,103 +793,116 @@ self.addEventListener(
             );
 
 
-        // ----------------------------------------------------
-        // SAME ORIGIN ONLY
-        // ----------------------------------------------------
-
-        if (
-            url.origin
-            !== self.location.origin
-        ) {
-
-            return;
-
-        }
-
-
-        // ----------------------------------------------------
-        // DRIVER / ADMIN / API
+        // ====================================================
+        // CROSS ORIGIN
         //
-        // NEVER CACHE.
-        // ----------------------------------------------------
+        // Jangan masukkan Cloudinary / external API
+        // ke CacheStorage aplikasi.
+        // ====================================================
 
         if (
-            isPrivatePath(
-                url.pathname
+            !isSameOrigin(
+                url
             )
         ) {
-
-            event.respondWith(
-                privateNetworkOnly(
-                    request
-                )
-            );
 
             return;
 
         }
 
 
-        // ----------------------------------------------------
-        // PAYMENT / RECEIPT STATIC
+        // ====================================================
+        // RULE 1
         //
-        // NEVER CACHE.
-        // ----------------------------------------------------
+        // SEMUA HTML / NAVIGATION = NETWORK ONLY.
+        //
+        // Ini rule terpenting.
+        // Bahkan kalau route customer baru ditambahkan
+        // di masa depan, halaman HTML tetap tidak dicache.
+        // ====================================================
 
         if (
-            isSensitiveStaticPath(
-                url.pathname
+            isNavigationRequest(
+                request
             )
         ) {
 
             event.respondWith(
-                privateNetworkOnly(
+                networkOnly(
                     request
                 )
             );
+
 
             return;
 
         }
 
 
-        // ----------------------------------------------------
-        // SAFE STATIC ASSETS
-        // ----------------------------------------------------
+        // ====================================================
+        // RULE 2
+        //
+        // API / DRIVER / PAYMENT / REFUND / RECEIPT
+        // = NETWORK ONLY.
+        // ====================================================
 
         if (
-            url.pathname.startsWith(
-                "/static/"
+            isDynamicRoute(
+                url
             )
         ) {
 
             event.respondWith(
-                staticCacheFirst(
+                networkOnly(
                     request
                 )
             );
+
 
             return;
 
         }
 
 
-        // ----------------------------------------------------
-        // PUBLIC DOCUMENT NAVIGATION
-        // ----------------------------------------------------
+        // ====================================================
+        // RULE 3
+        //
+        // CSS / JS / LOGO / ICON / FONT
+        // = CACHE.
+        // ====================================================
 
         if (
-            request.mode
-            === "navigate"
+            isStaticAsset(
+                url
+            )
         ) {
 
             event.respondWith(
-                publicNetworkFirst(
+                staleWhileRevalidate(
                     request
                 )
             );
 
+
+            return;
+
         }
+
+
+        // ====================================================
+        // RULE 4
+        //
+        // Request lain yang tidak dikenal:
+        // network saja.
+        //
+        // Jangan cache secara otomatis.
+        // ====================================================
+
+        event.respondWith(
+            networkOnly(
+                request
+            )
+        );
 
     }
 );

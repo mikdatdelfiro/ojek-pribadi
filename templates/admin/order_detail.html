@@ -947,6 +947,454 @@ Detail {{ order.order_code }}
     {% endif %}
 
 </section>
+
+<!-- =========================================================
+     PHASE 20I.5C
+     DRIVER PAYMENT CORRECTION UI
+========================================================= -->
+
+{% if
+    payment_correction
+    and
+    payment_correction.allowed
+%}
+
+<section
+    class="driver-payment-correction"
+    id="payment-correction"
+>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="driver-payment-correction-head">
+
+        <div class="driver-payment-correction-icon">
+            ✎
+        </div>
+
+
+        <div>
+
+            <span class="driver-payment-correction-eyebrow">
+                PAYMENT CORRECTION
+            </span>
+
+            <h3>
+                Koreksi Data Pembayaran
+            </h3>
+
+            <p>
+                Gunakan hanya jika metode atau referensi
+                pembayaran sebelumnya salah dicatat.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CURRENT PAYMENT
+    ====================================================== -->
+
+    <div class="driver-payment-correction-current">
+
+        <div>
+
+            <span>
+                STATUS
+            </span>
+
+            <strong class="is-locked">
+                DIBAYAR
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                NOMINAL
+            </span>
+
+            <strong>
+                {{
+                    (
+                        order.payment_amount
+                        or 0
+                    )
+                    | rupiah
+                }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                METODE SAAT INI
+            </span>
+
+            <strong>
+
+                {% if order.payment_method == "QRIS" %}
+
+                    QRIS
+
+                {% elif order.payment_method == "TRANSFER_BANK" %}
+
+                    Transfer Bank
+
+                {% else %}
+
+                    Tunai
+
+                {% endif %}
+
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                REFERENSI SAAT INI
+            </span>
+
+            <strong>
+                {{
+                    order.payment_reference
+                    or "-"
+                }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SECURITY NOTICE
+    ====================================================== -->
+
+    <div class="driver-payment-correction-notice">
+
+        <span>
+            🔒
+        </span>
+
+        <p>
+            Koreksi tidak dapat mengubah nominal,
+            status pembayaran, atau waktu pembayaran.
+            Semua perubahan dicatat pada audit pembayaran.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         CORRECTION FORM
+    ====================================================== -->
+
+    <form
+        method="POST"
+
+        action="{{
+            url_for(
+                'driver_correct_payment',
+                order_code=order.order_code
+            )
+        }}"
+
+        class="driver-payment-correction-form"
+    >
+
+        <!-- =================================================
+             DRIVER CSRF
+        ================================================== -->
+
+        <input
+            type="hidden"
+            name="_csrf_token"
+            value="{{ driver_csrf_token() }}"
+        >
+
+
+        <!-- =================================================
+             PAYMENT METHOD
+        ================================================== -->
+
+        <div class="driver-payment-correction-field">
+
+            <label for="paymentCorrectionMethod">
+                Metode Pembayaran
+            </label>
+
+
+            <select
+                id="paymentCorrectionMethod"
+                name="payment_method"
+                required
+            >
+
+                <option
+                    value="TUNAI"
+
+                    {% if
+                        order.payment_method == "TUNAI"
+                    %}
+                        selected
+                    {% endif %}
+                >
+                    Tunai
+                </option>
+
+
+                <option
+                    value="QRIS"
+
+                    {% if
+                        order.payment_method == "QRIS"
+                    %}
+                        selected
+                    {% endif %}
+                >
+                    QRIS
+                </option>
+
+
+                <option
+                    value="TRANSFER_BANK"
+
+                    {% if
+                        order.payment_method
+                        == "TRANSFER_BANK"
+                    %}
+                        selected
+                    {% endif %}
+                >
+                    Transfer Bank
+                </option>
+
+            </select>
+
+
+            <small>
+                Pilih metode yang benar-benar digunakan
+                pada transaksi tersebut.
+            </small>
+
+        </div>
+
+
+        <!-- =================================================
+             PAYMENT REFERENCE
+        ================================================== -->
+
+        <div class="driver-payment-correction-field">
+
+            <label for="paymentCorrectionReference">
+                Referensi Pembayaran
+            </label>
+
+
+            <input
+                id="paymentCorrectionReference"
+                type="text"
+                name="payment_reference"
+
+                value="{{
+                    order.payment_reference
+                    or ''
+                }}"
+
+                maxlength="100"
+
+                autocomplete="off"
+
+                placeholder="Contoh: TRX-BCA-778899"
+            >
+
+
+            <small>
+                Opsional untuk tunai. Untuk QRIS atau
+                transfer, isi referensi transaksi jika ada.
+            </small>
+
+        </div>
+
+
+        <!-- =================================================
+             CORRECTION REASON
+        ================================================== -->
+
+        <div class="driver-payment-correction-field">
+
+            <label for="paymentCorrectionReason">
+                Alasan Koreksi
+            </label>
+
+
+            <textarea
+                id="paymentCorrectionReason"
+
+                name="correction_reason"
+
+                minlength="5"
+
+                maxlength="300"
+
+                rows="4"
+
+                required
+
+                autocomplete="off"
+
+                placeholder="Jelaskan mengapa data pembayaran perlu dikoreksi."
+            ></textarea>
+
+
+            <small>
+                Wajib diisi. Alasan akan disimpan
+                di audit pembayaran.
+            </small>
+
+        </div>
+
+
+        <!-- =================================================
+             IMMUTABLE DATA
+        ================================================== -->
+
+        <div class="driver-payment-correction-locked">
+
+            <div>
+
+                <span>
+                    NOMINAL TERKUNCI
+                </span>
+
+                <strong>
+                    {{
+                        (
+                            order.payment_amount
+                            or 0
+                        )
+                        | rupiah
+                    }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    STATUS TERKUNCI
+                </span>
+
+                <strong>
+                    DIBAYAR
+                </strong>
+
+            </div>
+
+
+            {% if order.paid_at %}
+
+                <div>
+
+                    <span>
+                        WAKTU PEMBAYARAN
+                    </span>
+
+                    <strong>
+                        {{ order.paid_at }}
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================================
+             SUBMIT
+        ================================================== -->
+
+        <button
+            type="submit"
+
+            class="driver-payment-correction-submit"
+
+            onclick="
+                return confirm(
+                    'Simpan koreksi data pembayaran ini? '
+                    +
+                    'Perubahan akan dicatat ke audit pembayaran.'
+                );
+            "
+        >
+
+            <span>
+                Simpan Koreksi
+            </span>
+
+            <span aria-hidden="true">
+                →
+            </span>
+
+        </button>
+
+    </form>
+
+</section>
+
+{% endif %}
+
+{% if
+    order.status == "SELESAI"
+    and
+    order.payment_status == "DIBAYAR"
+    and
+    payment_correction
+    and
+    not payment_correction.allowed
+%}
+
+<div class="driver-payment-correction-unavailable">
+
+    <span class="driver-payment-correction-unavailable-icon">
+        🔒
+    </span>
+
+
+    <div>
+
+        <strong>
+            Koreksi Pembayaran Dikunci
+        </strong>
+
+        <p>
+            {{
+                payment_correction.reason
+                or
+                "Pembayaran ini tidak dapat dikoreksi."
+            }}
+        </p>
+
+    </div>
+
+</div>
+
+{% endif %}
+
 <!-- =========================================================
      PHASE 20I.3
      DRIVER PAYMENT REFUND

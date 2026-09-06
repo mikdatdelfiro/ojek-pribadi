@@ -728,6 +728,17 @@ PAYMENT_AUDIT_REASON_MAX_LENGTH = 500
 PAYMENT_AUDIT_EVENT_CODE_BYTES = 12
 
 # ============================================================
+# PHASE 20I.5
+# DRIVER PAYMENT CORRECTION
+# ============================================================
+
+PAYMENT_CORRECTION_REASON_MIN_LENGTH = 5
+
+PAYMENT_CORRECTION_REASON_MAX_LENGTH = 300
+
+PAYMENT_CORRECTION_REFERENCE_MAX_LENGTH = 100
+
+# ============================================================
 # PHASE 20I.4G
 # PAYMENT RECONCILIATION CONFIGURATION
 # ============================================================
@@ -811,6 +822,92 @@ PAYMENT_AUDIT_ALLOWED_ACTIONS = {
     PAYMENT_AUDIT_ACTION_EXPIRED,
     PAYMENT_AUDIT_ACTION_REFUND_REQUESTED,
     PAYMENT_AUDIT_ACTION_REFUND_REJECTED,
+}
+
+# ============================================================
+# PHASE 20I.6A
+# PAYMENT AUDIT DISPLAY LABELS
+# ============================================================
+
+PAYMENT_AUDIT_ACTION_LABELS = {
+
+    PAYMENT_AUDIT_ACTION_CREATED:
+        "Pembayaran Dibuat",
+
+    PAYMENT_AUDIT_ACTION_CUSTOMER_SUBMITTED:
+        "Customer Mengirim Konfirmasi",
+
+    PAYMENT_AUDIT_ACTION_CONFIRMED_CASH:
+        "Pembayaran Tunai Dikonfirmasi",
+
+    PAYMENT_AUDIT_ACTION_CONFIRMED_MANUAL:
+        "Pembayaran Digital Dikonfirmasi",
+
+    PAYMENT_AUDIT_ACTION_CORRECTION:
+        "Data Pembayaran Dikoreksi",
+
+    PAYMENT_AUDIT_ACTION_FAILED:
+        "Pembayaran Gagal",
+
+    PAYMENT_AUDIT_ACTION_EXPIRED:
+        "Pembayaran Kedaluwarsa",
+
+    PAYMENT_AUDIT_ACTION_REFUND_REQUESTED:
+        "Refund Diajukan",
+
+    PAYMENT_AUDIT_ACTION_REFUND_REJECTED:
+        "Refund Ditolak",
+
+    PAYMENT_AUDIT_ACTION_REFUND:
+        "Dana Dikembalikan",
+}
+
+PAYMENT_AUDIT_ACTOR_LABELS = {
+
+    PAYMENT_AUDIT_ACTOR_DRIVER:
+        "Driver",
+
+    PAYMENT_AUDIT_ACTOR_CUSTOMER:
+        "Customer",
+
+    PAYMENT_AUDIT_ACTOR_SYSTEM:
+        "Sistem",
+}
+
+PAYMENT_AUDIT_STATUS_LABELS = {
+
+    PAYMENT_STATUS_UNPAID:
+        "Belum Dibayar",
+
+    PAYMENT_STATUS_PENDING:
+        "Menunggu Pembayaran",
+
+    PAYMENT_STATUS_AWAITING_CONFIRMATION:
+        "Menunggu Konfirmasi",
+
+    PAYMENT_STATUS_PAID:
+        "Dibayar",
+
+    PAYMENT_STATUS_FAILED:
+        "Gagal",
+
+    PAYMENT_STATUS_EXPIRED:
+        "Kedaluwarsa",
+
+    PAYMENT_STATUS_REFUNDED:
+        "Dikembalikan",
+}
+
+PAYMENT_AUDIT_METHOD_LABELS = {
+
+    PAYMENT_METHOD_CASH:
+        "Tunai",
+
+    PAYMENT_METHOD_QRIS:
+        "QRIS",
+
+    PAYMENT_METHOD_BANK_TRANSFER:
+        "Transfer Bank",
 }
 
 # ============================================================
@@ -3285,6 +3382,1194 @@ def get_payment_audit_events(
     ]
     
     # ============================================================
+# PHASE 20I.6A
+# PAYMENT AUDIT TRAIL READ MODEL
+# ============================================================
+
+def get_payment_audit_action_label(
+    action
+):
+
+    action = str(
+        action
+        or ""
+    ).strip().upper()
+
+
+    return (
+        PAYMENT_AUDIT_ACTION_LABELS.get(
+            action,
+            action.replace(
+                "_",
+                " "
+            ).title()
+            or
+            "Aktivitas Pembayaran"
+        )
+    )
+    
+def get_payment_audit_actor_label(
+    actor_type
+):
+
+    actor_type = str(
+        actor_type
+        or ""
+    ).strip().upper()
+
+
+    return (
+        PAYMENT_AUDIT_ACTOR_LABELS.get(
+            actor_type,
+            actor_type.title()
+            or
+            "Tidak Diketahui"
+        )
+    )
+    
+def get_payment_audit_status_label(
+    payment_status
+):
+
+    payment_status = str(
+        payment_status
+        or ""
+    ).strip().upper()
+
+
+    if not payment_status:
+
+        return None
+
+
+    return (
+        PAYMENT_AUDIT_STATUS_LABELS.get(
+            payment_status,
+            payment_status.replace(
+                "_",
+                " "
+            ).title()
+        )
+    )
+    
+def get_payment_audit_method_label(
+    payment_method
+):
+
+    payment_method = str(
+        payment_method
+        or ""
+    ).strip().upper()
+
+
+    if not payment_method:
+
+        return None
+
+
+    return (
+        PAYMENT_AUDIT_METHOD_LABELS.get(
+            payment_method,
+            payment_method.replace(
+                "_",
+                " "
+            ).title()
+        )
+    )
+    
+def build_payment_audit_changes(
+    event
+):
+
+    changes = []
+
+
+    if not event:
+
+        return changes
+
+
+    # ========================================================
+    # PAYMENT STATUS
+    # ========================================================
+
+    old_status = str(
+        event.get(
+            "old_payment_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    new_status = str(
+        event.get(
+            "new_payment_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    if (
+        old_status
+        != new_status
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Status Pembayaran",
+
+                "type":
+                    "status",
+
+                "old":
+                    get_payment_audit_status_label(
+                        old_status
+                    ),
+
+                "new":
+                    get_payment_audit_status_label(
+                        new_status
+                    ),
+            }
+        )
+
+
+    # ========================================================
+    # PAYMENT METHOD
+    # ========================================================
+
+    old_method = str(
+        event.get(
+            "old_payment_method"
+        )
+        or ""
+    ).strip().upper()
+
+
+    new_method = str(
+        event.get(
+            "new_payment_method"
+        )
+        or ""
+    ).strip().upper()
+
+
+    if (
+        old_method
+        != new_method
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Metode Pembayaran",
+
+                "type":
+                    "method",
+
+                "old":
+                    get_payment_audit_method_label(
+                        old_method
+                    ),
+
+                "new":
+                    get_payment_audit_method_label(
+                        new_method
+                    ),
+            }
+        )
+
+
+    # ========================================================
+    # PAYMENT AMOUNT
+    # ========================================================
+
+    old_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                "old_payment_amount"
+            )
+        )
+    )
+
+
+    new_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                "new_payment_amount"
+            )
+        )
+    )
+
+
+    if (
+        old_amount
+        != new_amount
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Nominal Pembayaran",
+
+                "type":
+                    "amount",
+
+                "old":
+                    old_amount,
+
+                "new":
+                    new_amount,
+            }
+        )
+
+
+    # ========================================================
+    # PAYMENT REFERENCE
+    # ========================================================
+
+    old_reference = str(
+        event.get(
+            "old_payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    new_reference = str(
+        event.get(
+            "new_payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    if (
+        old_reference
+        != new_reference
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Referensi Pembayaran",
+
+                "type":
+                    "text",
+
+                "old":
+                    old_reference
+                    or
+                    None,
+
+                "new":
+                    new_reference
+                    or
+                    None,
+            }
+        )
+
+
+    # ========================================================
+    # REFUND REQUEST STATUS
+    # ========================================================
+
+    old_refund_status = str(
+        event.get(
+            "old_refund_request_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    new_refund_status = str(
+        event.get(
+            "new_refund_request_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    if (
+        old_refund_status
+        != new_refund_status
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Status Permintaan Refund",
+
+                "type":
+                    "text",
+
+                "old":
+                    old_refund_status
+                    or
+                    None,
+
+                "new":
+                    new_refund_status
+                    or
+                    None,
+            }
+        )
+
+
+    # ========================================================
+    # REFUND AMOUNT
+    # ========================================================
+
+    old_refund_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                "old_refund_amount"
+            )
+        )
+    )
+
+
+    new_refund_amount = (
+        payment_audit_safe_integer(
+            event.get(
+                "new_refund_amount"
+            )
+        )
+    )
+
+
+    if (
+        old_refund_amount
+        != new_refund_amount
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Nominal Refund",
+
+                "type":
+                    "amount",
+
+                "old":
+                    old_refund_amount,
+
+                "new":
+                    new_refund_amount,
+            }
+        )
+
+
+    # ========================================================
+    # REFUND REFERENCE
+    # ========================================================
+
+    old_refund_reference = str(
+        event.get(
+            "old_refund_reference"
+        )
+        or ""
+    ).strip()
+
+
+    new_refund_reference = str(
+        event.get(
+            "new_refund_reference"
+        )
+        or ""
+    ).strip()
+
+
+    if (
+        old_refund_reference
+        != new_refund_reference
+    ):
+
+        changes.append(
+            {
+                "field":
+                    "Referensi Refund",
+
+                "type":
+                    "text",
+
+                "old":
+                    old_refund_reference
+                    or
+                    None,
+
+                "new":
+                    new_refund_reference
+                    or
+                    None,
+            }
+        )
+
+
+    return changes
+
+def build_driver_payment_audit_item(
+    event
+):
+
+    if not event:
+
+        return None
+
+
+    action = str(
+        event.get(
+            "action"
+        )
+        or ""
+    ).strip().upper()
+
+
+    actor_type = str(
+        event.get(
+            "actor_type"
+        )
+        or ""
+    ).strip().upper()
+
+
+    return {
+
+        "id":
+            event.get(
+                "id"
+            ),
+
+        "event_code":
+            event.get(
+                "event_code"
+            ),
+
+        "action":
+            action,
+
+        "action_label":
+            get_payment_audit_action_label(
+                action
+            ),
+
+        "actor_type":
+            actor_type,
+
+        "actor_label":
+            get_payment_audit_actor_label(
+                actor_type
+            ),
+
+        "reason":
+            str(
+                event.get(
+                    "reason"
+                )
+                or ""
+            ).strip()
+            or
+            None,
+
+        "created_at":
+            event.get(
+                "created_at"
+            ),
+
+        "changes":
+            build_payment_audit_changes(
+                event
+            ),
+    }
+    
+def get_driver_payment_audit_timeline(
+    connection,
+    order_id,
+    limit=50
+):
+
+    events = (
+        get_payment_audit_events(
+            connection,
+            order_id,
+            limit=limit
+        )
+    )
+
+
+    timeline = []
+
+
+    for event in events:
+
+        item = (
+            build_driver_payment_audit_item(
+                event
+            )
+        )
+
+
+        if item:
+
+            timeline.append(
+                item
+            )
+
+
+    return timeline
+
+def build_driver_payment_audit_summary(
+    timeline
+):
+
+    timeline = (
+        timeline
+        or []
+    )
+
+
+    summary = {
+
+        "total":
+            len(
+                timeline
+            ),
+
+        "corrections":
+            0,
+
+        "failures":
+            0,
+
+        "expirations":
+            0,
+
+        "refunds":
+            0,
+    }
+
+
+    for item in timeline:
+
+        action = str(
+            item.get(
+                "action"
+            )
+            or ""
+        ).strip().upper()
+
+
+        if (
+            action
+            == PAYMENT_AUDIT_ACTION_CORRECTION
+        ):
+
+            summary[
+                "corrections"
+            ] += 1
+
+
+        elif (
+            action
+            == PAYMENT_AUDIT_ACTION_FAILED
+        ):
+
+            summary[
+                "failures"
+            ] += 1
+
+
+        elif (
+            action
+            == PAYMENT_AUDIT_ACTION_EXPIRED
+        ):
+
+            summary[
+                "expirations"
+            ] += 1
+
+
+        elif (
+            action
+            == PAYMENT_AUDIT_ACTION_REFUND
+        ):
+
+            summary[
+                "refunds"
+            ] += 1
+
+
+    return summary
+# ============================================================
+# PHASE 20I.5E
+# PAYMENT CORRECTION AUDIT LOADER
+# ============================================================
+
+def get_payment_correction_audits_by_order(
+    connection,
+    order_ids
+):
+
+    normalized_ids = []
+
+
+    for order_id in (
+        order_ids
+        or []
+    ):
+
+        try:
+
+            order_id = int(
+                order_id
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            continue
+
+
+        if (
+            order_id > 0
+            and
+            order_id not in normalized_ids
+        ):
+
+            normalized_ids.append(
+                order_id
+            )
+
+
+    if not normalized_ids:
+
+        return {}
+
+
+    placeholders = ", ".join(
+        [
+            "?"
+            for _ in normalized_ids
+        ]
+    )
+
+
+    rows = (
+        connection.execute(
+            f"""
+            SELECT
+
+                id,
+
+                order_id,
+
+                order_code,
+
+                action,
+
+                actor_type,
+
+                old_payment_method,
+
+                new_payment_method,
+
+                old_payment_status,
+
+                new_payment_status,
+
+                old_payment_amount,
+
+                new_payment_amount,
+
+                old_payment_reference,
+
+                new_payment_reference,
+
+                reason,
+
+                created_at
+
+            FROM payment_audit_logs
+
+            WHERE
+                action = ?
+
+                AND order_id IN (
+                    {placeholders}
+                )
+
+            ORDER BY
+                order_id ASC,
+                id DESC
+            """,
+            tuple(
+                [
+                    PAYMENT_AUDIT_ACTION_CORRECTION,
+                    *normalized_ids,
+                ]
+            )
+        )
+        .fetchall()
+    )
+
+
+    result = {}
+
+
+    for row in rows:
+
+        audit = dict(
+            row
+        )
+
+
+        order_id = int(
+            audit[
+                "order_id"
+            ]
+        )
+
+
+        if order_id not in result:
+
+            result[
+                order_id
+            ] = {
+                "count":
+                    0,
+
+                "latest":
+                    None,
+            }
+
+
+        result[
+            order_id
+        ][
+            "count"
+        ] += 1
+
+
+        # Query diurutkan id DESC.
+        # Audit pertama adalah koreksi terbaru.
+        if (
+            result[
+                order_id
+            ][
+                "latest"
+            ]
+            is None
+        ):
+
+            result[
+                order_id
+            ][
+                "latest"
+            ] = audit
+
+
+    return result
+
+# ============================================================
+# PHASE 20I.5E
+# CORRECTION AUDIT RECONCILIATION
+# ============================================================
+
+def get_payment_correction_audit_issues(
+    order
+):
+
+    issues = []
+
+
+    correction_count = int(
+        order.get(
+            "correction_audit_count"
+        )
+        or 0
+    )
+
+
+    if correction_count <= 0:
+
+        return issues
+
+
+    latest = (
+        order.get(
+            "latest_correction_audit"
+        )
+    )
+
+
+    def add_issue(
+        code,
+        message,
+        severity="critical"
+    ):
+
+        issues.append(
+            {
+                "code":
+                    code,
+
+                "severity":
+                    severity,
+
+                "message":
+                    message,
+            }
+        )
+
+
+    if not latest:
+
+        add_issue(
+            "CORRECTION_AUDIT_MISSING_LATEST",
+            (
+                "Audit koreksi terdeteksi tetapi "
+                "audit terbaru tidak dapat dibaca."
+            )
+        )
+
+        return issues
+
+
+    # ========================================================
+    # ACTOR
+    # ========================================================
+
+    actor_type = str(
+        latest.get(
+            "actor_type"
+        )
+        or ""
+    ).strip().upper()
+
+
+    if (
+        actor_type
+        != PAYMENT_AUDIT_ACTOR_DRIVER
+    ):
+
+        add_issue(
+            "CORRECTION_INVALID_ACTOR",
+            (
+                "PAYMENT_CORRECTED harus dilakukan "
+                "oleh actor DRIVER."
+            )
+        )
+
+
+    # ========================================================
+    # STATUS MUST REMAIN PAID
+    # ========================================================
+
+    old_status = str(
+        latest.get(
+            "old_payment_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    new_status = str(
+        latest.get(
+            "new_payment_status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    if (
+        old_status
+        != PAYMENT_STATUS_PAID
+
+        or
+
+        new_status
+        != PAYMENT_STATUS_PAID
+    ):
+
+        add_issue(
+            "CORRECTION_CHANGED_STATUS",
+            (
+                "Koreksi pembayaran tidak boleh "
+                "mengubah status pembayaran."
+            )
+        )
+
+
+    # ========================================================
+    # AMOUNT MUST NOT CHANGE
+    # ========================================================
+
+    old_amount = (
+        payment_audit_safe_integer(
+            latest.get(
+                "old_payment_amount"
+            )
+        )
+    )
+
+
+    new_amount = (
+        payment_audit_safe_integer(
+            latest.get(
+                "new_payment_amount"
+            )
+        )
+    )
+
+
+    if (
+        old_amount is None
+        or
+        new_amount is None
+        or
+        old_amount <= 0
+        or
+        new_amount <= 0
+    ):
+
+        add_issue(
+            "CORRECTION_INVALID_AMOUNT",
+            (
+                "Audit koreksi memiliki nominal "
+                "pembayaran yang tidak valid."
+            )
+        )
+
+
+    elif (
+        old_amount
+        != new_amount
+    ):
+
+        add_issue(
+            "CORRECTION_CHANGED_AMOUNT",
+            (
+                "Koreksi pembayaran tidak boleh "
+                "mengubah nominal pembayaran."
+            )
+        )
+
+
+    # ========================================================
+    # METHOD
+    # ========================================================
+
+    old_method = str(
+        latest.get(
+            "old_payment_method"
+        )
+        or ""
+    ).strip().upper()
+
+
+    new_method = str(
+        latest.get(
+            "new_payment_method"
+        )
+        or ""
+    ).strip().upper()
+
+
+    valid_methods = {
+        PAYMENT_METHOD_CASH,
+        PAYMENT_METHOD_QRIS,
+        PAYMENT_METHOD_BANK_TRANSFER,
+    }
+
+
+    if (
+        old_method not in valid_methods
+        or
+        new_method not in valid_methods
+    ):
+
+        add_issue(
+            "CORRECTION_INVALID_METHOD",
+            (
+                "Audit koreksi memiliki metode "
+                "pembayaran yang tidak valid."
+            )
+        )
+
+
+    # ========================================================
+    # REFERENCE
+    # ========================================================
+
+    old_reference = str(
+        latest.get(
+            "old_payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    new_reference = str(
+        latest.get(
+            "new_payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    # ========================================================
+    # MUST ACTUALLY CHANGE SOMETHING
+    # ========================================================
+
+    if (
+        old_method == new_method
+        and
+        old_reference == new_reference
+    ):
+
+        add_issue(
+            "CORRECTION_NO_CHANGE",
+            (
+                "PAYMENT_CORRECTED tercatat tanpa "
+                "perubahan metode atau referensi."
+            )
+        )
+
+
+    # ========================================================
+    # REASON
+    # ========================================================
+
+    reason = str(
+        latest.get(
+            "reason"
+        )
+        or ""
+    ).strip()
+
+
+    if not reason:
+
+        add_issue(
+            "CORRECTION_REASON_MISSING",
+            (
+                "Audit koreksi tidak memiliki "
+                "alasan koreksi."
+            )
+        )
+
+
+    # ========================================================
+    # CURRENT ORDER MUST MATCH LATEST CORRECTION
+    # ========================================================
+
+    current_method = str(
+        order.get(
+            "payment_method"
+        )
+        or ""
+    ).strip().upper()
+
+
+    current_reference = str(
+        order.get(
+            "payment_reference"
+        )
+        or ""
+    ).strip()
+
+
+    if (
+        current_method
+        != new_method
+    ):
+
+        add_issue(
+            "CORRECTION_METHOD_MISMATCH",
+            (
+                "Metode pembayaran saat ini tidak "
+                "sesuai audit koreksi terbaru."
+            )
+        )
+
+
+    if (
+        current_reference
+        != new_reference
+    ):
+
+        add_issue(
+            "CORRECTION_REFERENCE_MISMATCH",
+            (
+                "Referensi pembayaran saat ini tidak "
+                "sesuai audit koreksi terbaru."
+            )
+        )
+
+
+    # ========================================================
+    # CURRENT AMOUNT MUST STILL MATCH
+    # ========================================================
+
+    current_amount = (
+        payment_audit_safe_integer(
+            order.get(
+                "payment_amount"
+            )
+        )
+    )
+
+
+    if (
+        new_amount is not None
+        and
+        current_amount
+        != new_amount
+    ):
+
+        add_issue(
+            "CORRECTION_CURRENT_AMOUNT_MISMATCH",
+            (
+                "Nominal pembayaran sekarang berbeda "
+                "dari nominal audit koreksi."
+            )
+        )
+
+
+    # ========================================================
+    # AFTER CORRECTION ONLY PAID OR REFUNDED IS LOGICAL
+    # ========================================================
+
+    current_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    if (
+        current_status
+        not in (
+            PAYMENT_STATUS_PAID,
+            PAYMENT_STATUS_REFUNDED,
+        )
+    ):
+
+        add_issue(
+            "CORRECTION_CURRENT_STATUS_INVALID",
+            (
+                "Order yang pernah dikoreksi memiliki "
+                "status pembayaran yang tidak sesuai."
+            )
+        )
+
+
+    return issues
+    
+# ============================================================
 # PHASE 20I.4G
 # PAYMENT RECONCILIATION
 # ============================================================
@@ -3979,6 +5264,12 @@ def get_payment_reconciliation_report(
 
         "items":
             [],
+            
+        "corrected_orders":
+            0,
+
+        "correction_events":
+            0,
     }
 
 
@@ -4058,6 +5349,31 @@ def get_payment_reconciliation_report(
             )
             .fetchall()
         )
+        
+        # ====================================================
+        # PHASE 20I.5E
+        # LOAD CORRECTION AUDITS IN ONE BATCH
+        # ====================================================
+
+        order_ids = [
+            row[
+                "id"
+            ]
+
+            for row in rows
+
+            if row.get(
+                "id"
+            )
+        ]
+
+
+        correction_audits = (
+            get_payment_correction_audits_by_order(
+                connection,
+                order_ids
+            )
+        )
 
 
         for row in rows:
@@ -4076,6 +5392,17 @@ def get_payment_reconciliation_report(
                 get_payment_reconciliation_issues(
                     order
                 )
+            )
+            
+            correction_issues = (
+                get_payment_correction_audit_issues(
+                    order
+                )
+            )
+
+
+            issues.extend(
+                correction_issues
             )
 
 
@@ -4142,12 +5469,87 @@ def get_payment_reconciliation_report(
                         get_effective_payment_status(
                             order
                         ),
+                        
+                    "correction_audit_count":
+                        order.get(
+                            "correction_audit_count",
+                            0
+                        ),
+
+                    "latest_correction_at":
+                        (
+                            (
+                                order.get(
+                                    "latest_correction_audit"
+                                )
+                                or {}
+                            )
+                            .get(
+                                "created_at"
+                            )
+                        ),
 
                     "issues":
                         issues,
                 }
             )
+            
+            correction_info = (
+                correction_audits.get(
+                    int(
+                        order[
+                            "id"
+                        ]
+                    ),
+                    {
+                        "count":
+                            0,
 
+                        "latest":
+                            None,
+                    }
+                )
+            )
+
+
+            order[
+                "correction_audit_count"
+            ] = int(
+                correction_info.get(
+                    "count"
+                )
+                or 0
+            )
+
+
+            order[
+                "latest_correction_audit"
+            ] = (
+                correction_info.get(
+                    "latest"
+                )
+            )
+
+
+            if (
+                order[
+                    "correction_audit_count"
+                ]
+                > 0
+            ):
+
+                report[
+                    "corrected_orders"
+                ] += 1
+
+
+                report[
+                    "correction_events"
+                ] += (
+                    order[
+                        "correction_audit_count"
+                    ]
+                )
 
         return report
 
@@ -12917,6 +14319,703 @@ def get_verified_payment_amount(
     return payment_amount
 
 # ============================================================
+# PHASE 20I.5A
+# PAYMENT CORRECTION NORMALIZERS
+# ============================================================
+
+def normalize_payment_correction_reason(
+    value
+):
+
+    reason = str(
+        value
+        or ""
+    )
+
+
+    reason = re.sub(
+        r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
+        "",
+        reason
+    )
+
+
+    reason = " ".join(
+        reason
+        .strip()
+        .split()
+    )
+
+
+    if (
+        len(
+            reason
+        )
+        <
+        PAYMENT_CORRECTION_REASON_MIN_LENGTH
+    ):
+
+        raise ValueError(
+            (
+                "Alasan koreksi minimal "
+                f"{PAYMENT_CORRECTION_REASON_MIN_LENGTH} "
+                "karakter."
+            )
+        )
+
+
+    if (
+        len(
+            reason
+        )
+        >
+        PAYMENT_CORRECTION_REASON_MAX_LENGTH
+    ):
+
+        raise ValueError(
+            (
+                "Alasan koreksi maksimal "
+                f"{PAYMENT_CORRECTION_REASON_MAX_LENGTH} "
+                "karakter."
+            )
+        )
+
+
+    return reason
+
+def normalize_payment_correction_method(
+    value
+):
+
+    payment_method = str(
+        value
+        or ""
+    ).strip().upper()
+
+
+    if (
+        payment_method
+        not in PAYMENT_ALLOWED_METHODS
+    ):
+
+        raise ValueError(
+            "Metode pembayaran koreksi tidak valid."
+        )
+
+
+    return payment_method
+
+def normalize_payment_correction_reference(
+    value
+):
+
+    reference = str(
+        value
+        or ""
+    )
+
+
+    reference = re.sub(
+        r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
+        "",
+        reference
+    )
+
+
+    reference = " ".join(
+        reference
+        .strip()
+        .split()
+    )
+
+
+    if (
+        len(
+            reference
+        )
+        >
+        PAYMENT_CORRECTION_REFERENCE_MAX_LENGTH
+    ):
+
+        raise ValueError(
+            (
+                "Referensi pembayaran maksimal "
+                f"{PAYMENT_CORRECTION_REFERENCE_MAX_LENGTH} "
+                "karakter."
+            )
+        )
+
+
+    return (
+        reference
+        or None
+    )
+    
+def get_payment_correction_capability(
+    order
+):
+
+    if not order:
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                "Pesanan tidak ditemukan.",
+        }
+
+
+    trip_status = str(
+        order.get(
+            "status"
+        )
+        or ""
+    ).strip().upper()
+
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    refund_request_status = (
+        normalize_payment_refund_request_status(
+            order.get(
+                "payment_refund_request_status"
+            )
+        )
+    )
+
+
+    # ========================================================
+    # COMPLETED TRIP ONLY
+    # ========================================================
+
+    if (
+        trip_status
+        != STATUS_COMPLETED
+    ):
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                (
+                    "Koreksi pembayaran hanya tersedia "
+                    "untuk perjalanan yang sudah selesai."
+                ),
+        }
+
+
+    # ========================================================
+    # PAID ONLY
+    # ========================================================
+
+    if (
+        payment_status
+        != PAYMENT_STATUS_PAID
+    ):
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                (
+                    "Koreksi hanya tersedia untuk "
+                    "pembayaran berstatus DIBAYAR."
+                ),
+        }
+
+
+    # ========================================================
+    # REFUND WORKFLOW MUST NOT BE ACTIVE
+    # ========================================================
+
+    if (
+        refund_request_status
+        != PAYMENT_REFUND_REQUEST_NONE
+    ):
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                (
+                    "Pembayaran tidak dapat dikoreksi "
+                    "karena sudah memiliki proses refund."
+                ),
+        }
+
+
+    # ========================================================
+    # ACTUAL REFUND MUST NOT EXIST
+    # ========================================================
+
+    if (
+        order.get(
+            "payment_refunded_at"
+        )
+        or
+        order.get(
+            "payment_refund_amount"
+        )
+    ):
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                (
+                    "Pembayaran yang sudah memiliki "
+                    "metadata refund tidak dapat dikoreksi."
+                ),
+        }
+
+
+    # ========================================================
+    # ACCOUNTING INTEGRITY
+    # ========================================================
+
+    try:
+
+        get_verified_payment_amount(
+            order
+        )
+
+    except ValueError as error:
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                str(
+                    error
+                ),
+        }
+
+
+    if not order.get(
+        "paid_at"
+    ):
+
+        return {
+            "allowed":
+                False,
+
+            "reason":
+                (
+                    "Pembayaran tidak memiliki "
+                    "waktu paid_at yang valid."
+                ),
+        }
+
+
+    return {
+        "allowed":
+            True,
+
+        "reason":
+            None,
+    }
+    
+    # ============================================================
+# PHASE 20I.5A
+# CORRECT PAID PAYMENT METADATA
+#
+# IMPORTANT:
+# - payment_status tidak berubah
+# - payment_amount tidak berubah
+# - paid_at tidak berubah
+# - tidak commit di dalam helper
+# ============================================================
+
+def correct_paid_payment(
+    connection,
+    order,
+    payment_method,
+    payment_reference,
+    reason
+):
+
+    if not order:
+
+        raise ValueError(
+            "Pesanan tidak ditemukan."
+        )
+
+
+    capability = (
+        get_payment_correction_capability(
+            order
+        )
+    )
+
+
+    if not capability[
+        "allowed"
+    ]:
+
+        raise ValueError(
+            capability[
+                "reason"
+            ]
+            or
+            "Pembayaran tidak dapat dikoreksi."
+        )
+
+
+    payment_method = (
+        normalize_payment_correction_method(
+            payment_method
+        )
+    )
+
+
+    payment_reference = (
+        normalize_payment_correction_reference(
+            payment_reference
+        )
+    )
+
+
+    reason = (
+        normalize_payment_correction_reason(
+            reason
+        )
+    )
+
+
+    # ========================================================
+    # VERIFIED AMOUNT
+    #
+    # Tidak menerima nominal dari browser.
+    # ========================================================
+
+    payment_amount = (
+        get_verified_payment_amount(
+            order
+        )
+    )
+
+
+    old_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    old_reference = (
+        normalize_payment_correction_reference(
+            order.get(
+                "payment_reference"
+            )
+        )
+    )
+
+
+    # ========================================================
+    # NORMALIZE PROVIDER / REFERENCE
+    # ========================================================
+
+    if (
+        payment_method
+        == PAYMENT_METHOD_CASH
+    ):
+
+        payment_provider = (
+            None
+        )
+
+        payment_reference = (
+            None
+        )
+
+
+    else:
+
+        payment_provider = (
+            "MANUAL"
+        )
+
+
+        if not payment_reference:
+
+            payment_reference = (
+                old_reference
+
+                or
+
+                str(
+                    order.get(
+                        "order_code"
+                    )
+                    or ""
+                ).strip()
+            )
+
+
+    # Sistem Anda memang memakai provider None untuk tunai
+    # dan MANUAL untuk pembayaran digital pada initialization.
+    
+        # ========================================================
+    # NO CHANGE
+    # ========================================================
+
+    old_provider = str(
+        order.get(
+            "payment_provider"
+        )
+        or ""
+    ).strip()
+
+
+    normalized_new_provider = str(
+        payment_provider
+        or ""
+    ).strip()
+
+
+    if (
+        payment_method
+        == old_method
+
+        and
+
+        payment_reference
+        == old_reference
+
+        and
+
+        normalized_new_provider
+        == old_provider
+    ):
+
+        raise ValueError(
+            (
+                "Tidak ada perubahan data pembayaran "
+                "yang perlu disimpan."
+            )
+        )
+
+
+    timestamp = (
+        current_timestamp()
+    )
+
+
+    old_snapshot = (
+        build_payment_audit_snapshot(
+            order
+        )
+    )
+
+
+    previous_updated_at = str(
+        order.get(
+            "payment_updated_at"
+        )
+        or ""
+    )
+
+
+    # ========================================================
+    # ATOMIC UPDATE
+    # ========================================================
+
+    update_cursor = (
+        connection.execute(
+            """
+            UPDATE orders
+
+            SET
+                payment_method = ?,
+
+                payment_reference = ?,
+
+                payment_provider = ?,
+
+                payment_updated_at = ?
+
+            WHERE
+                id = ?
+
+                AND status = ?
+
+                AND payment_status = ?
+
+                AND payment_refund_request_status = ?
+
+                AND COALESCE(
+                    payment_updated_at,
+                    ''
+                ) = ?
+            """,
+            (
+                payment_method,
+
+                payment_reference,
+
+                payment_provider,
+
+                timestamp,
+
+                order[
+                    "id"
+                ],
+
+                STATUS_COMPLETED,
+
+                PAYMENT_STATUS_PAID,
+
+                PAYMENT_REFUND_REQUEST_NONE,
+
+                previous_updated_at,
+            )
+        )
+    )
+
+
+    affected_rows = int(
+        update_cursor.rowcount
+        or 0
+    )
+
+
+    if affected_rows != 1:
+
+        raise RuntimeError(
+            (
+                "Data pembayaran berubah saat koreksi "
+                "sedang diproses. Muat ulang halaman "
+                "dan periksa kembali."
+            )
+        )
+
+
+    # ========================================================
+    # UPDATED SNAPSHOT
+    # ========================================================
+
+    updated_order = dict(
+        order
+    )
+
+
+    updated_order[
+        "payment_method"
+    ] = (
+        payment_method
+    )
+
+
+    updated_order[
+        "payment_reference"
+    ] = (
+        payment_reference
+    )
+
+
+    updated_order[
+        "payment_provider"
+    ] = (
+        payment_provider
+    )
+
+
+    updated_order[
+        "payment_updated_at"
+    ] = (
+        timestamp
+    )
+
+
+    # Status, amount dan paid_at SENGAJA tetap.
+    updated_order[
+        "payment_status"
+    ] = (
+        PAYMENT_STATUS_PAID
+    )
+
+
+    updated_order[
+        "payment_amount"
+    ] = (
+        payment_amount
+    )
+
+
+    new_snapshot = (
+        build_payment_audit_snapshot(
+            updated_order
+        )
+    )
+
+
+    # ========================================================
+    # AUDIT
+    # ========================================================
+
+    record_payment_audit_event(
+        connection,
+        order,
+
+        action=
+            PAYMENT_AUDIT_ACTION_CORRECTION,
+
+        actor_type=
+            PAYMENT_AUDIT_ACTOR_DRIVER,
+
+        old_snapshot=
+            old_snapshot,
+
+        new_snapshot=
+            new_snapshot,
+
+        reason=
+            reason
+    )
+
+
+    return {
+        "corrected":
+            True,
+
+        "payment": {
+            "method":
+                payment_method,
+
+            "status":
+                PAYMENT_STATUS_PAID,
+
+            "amount":
+                payment_amount,
+
+            "reference":
+                payment_reference,
+
+            "provider":
+                payment_provider,
+
+            "paid_at":
+                order.get(
+                    "paid_at"
+                ),
+
+            "updated_at":
+                timestamp,
+        },
+    }
+# ============================================================
 # PHASE 20I.4D
 # FAILED PAYMENT HELPERS
 # ============================================================
@@ -14007,7 +16106,38 @@ def get_driver_payment_control_summary():
                     COUNT(*) FILTER (
                         WHERE
                             payment_status = ?
-                    ) AS expired
+                    ) AS expired,
+                    
+                COUNT(*) FILTER (
+                    WHERE
+                        status = ?
+
+                        AND payment_status = ?
+
+                        AND COALESCE(
+                            payment_refund_request_status,
+                            ?
+                        ) = ?
+
+                        AND payment_refunded_at IS NULL
+
+                        AND COALESCE(
+                            payment_refund_amount,
+                            0
+                        ) <= 0
+
+                        AND payment_amount IS NOT NULL
+
+                        AND payment_amount > 0
+
+                        AND fare IS NOT NULL
+
+                        AND fare > 0
+
+                        AND payment_amount = fare
+
+                        AND paid_at IS NOT NULL
+                ) AS correctable
 
                 FROM orders
 
@@ -14015,21 +16145,71 @@ def get_driver_payment_control_summary():
                     status != ?
                 """,
                 (
-                    PAYMENT_STATUS_AWAITING_CONFIRMATION,
+                # ========================================================
+                # NEEDS CONFIRMATION
+                # 1 placeholder
+                # ========================================================
 
-                    PAYMENT_STATUS_UNPAID,
+                PAYMENT_STATUS_AWAITING_CONFIRMATION,
 
-                    PAYMENT_STATUS_UNPAID,
-                    PAYMENT_STATUS_PENDING,
 
-                    PAYMENT_STATUS_PAID,
+                # ========================================================
+                # WAITING PAYMENT
+                # 3 placeholders
+                # ========================================================
 
-                    PAYMENT_STATUS_FAILED,
+                PAYMENT_STATUS_UNPAID,
 
-                    PAYMENT_STATUS_EXPIRED,
+                PAYMENT_STATUS_UNPAID,
 
-                    STATUS_REJECTED,
-                )
+                PAYMENT_STATUS_PENDING,
+
+
+                # ========================================================
+                # PAID
+                # 1 placeholder
+                # ========================================================
+
+                PAYMENT_STATUS_PAID,
+
+
+                # ========================================================
+                # FAILED
+                # 1 placeholder
+                # ========================================================
+
+                PAYMENT_STATUS_FAILED,
+
+
+                # ========================================================
+                # EXPIRED
+                # 1 placeholder
+                # ========================================================
+
+                PAYMENT_STATUS_EXPIRED,
+
+
+                # ========================================================
+                # CORRECTABLE
+                # 4 placeholders
+                # ========================================================
+
+                STATUS_COMPLETED,
+
+                PAYMENT_STATUS_PAID,
+
+                PAYMENT_REFUND_REQUEST_NONE,
+
+                PAYMENT_REFUND_REQUEST_NONE,
+
+
+                # ========================================================
+                # BASE WHERE
+                # 1 placeholder
+                # ========================================================
+
+                STATUS_REJECTED,
+            )
             )
             .fetchone()
         )
@@ -14073,6 +16253,13 @@ def get_driver_payment_control_summary():
             )
             or 0
         )
+        
+        correctable = int(
+            row.get(
+                "correctable"
+            )
+            or 0
+        )
 
 
         return {
@@ -14091,6 +16278,9 @@ def get_driver_payment_control_summary():
 
             "expired":
                 expired,
+
+            "correctable":
+                correctable,
 
             "attention":
                 (
@@ -14125,6 +16315,9 @@ def get_driver_payment_control_summary():
                 0,
 
             "expired":
+                0,
+
+            "correctable":
                 0,
 
             "attention":
@@ -14177,6 +16370,8 @@ def get_driver_payment_orders(
         "failed",
 
         "expired",
+        
+        "correctable",
     }
 
 
@@ -14323,6 +16518,56 @@ def get_driver_payment_orders(
         parameters.append(
             PAYMENT_STATUS_EXPIRED
         )
+        
+    elif (
+        payment_filter
+        == "correctable"
+    ):
+
+        conditions.append(
+            """
+            status = ?
+
+            AND payment_status = ?
+
+            AND COALESCE(
+                payment_refund_request_status,
+                ?
+            ) = ?
+
+            AND payment_refunded_at IS NULL
+
+            AND COALESCE(
+                payment_refund_amount,
+                0
+            ) <= 0
+
+            AND payment_amount IS NOT NULL
+
+            AND payment_amount > 0
+
+            AND fare IS NOT NULL
+
+            AND fare > 0
+
+            AND payment_amount = fare
+
+            AND paid_at IS NOT NULL
+            """
+        )
+
+
+        parameters.extend(
+            [
+                STATUS_COMPLETED,
+
+                PAYMENT_STATUS_PAID,
+
+                PAYMENT_REFUND_REQUEST_NONE,
+
+                PAYMENT_REFUND_REQUEST_NONE,
+            ]
+        )
 
 
     # ========================================================
@@ -14407,7 +16652,13 @@ def get_driver_payment_orders(
 
             payment_failure_reason,
 
-            payment_failure_actor
+            payment_failure_actor,
+            
+            payment_refund_request_status,
+
+            payment_refunded_at,
+
+            payment_refund_amount
 
         FROM orders
 
@@ -14577,6 +16828,19 @@ def get_driver_payment_orders(
                 "payment_expiry"
             ] = (
                 get_payment_expiry_state(
+                    payment_order
+                )
+            )
+            
+            # =================================================
+            # PHASE 20I.5D
+            # PAYMENT CORRECTION CAPABILITY
+            # =================================================
+
+            payment_order[
+                "payment_correction"
+            ] = (
+                get_payment_correction_capability(
                     payment_order
                 )
             )
@@ -24086,6 +26350,17 @@ def driver_order_detail(
             order
         )
     )
+    
+    # ========================================================
+    # PHASE 20I.5C
+    # DRIVER PAYMENT CORRECTION CAPABILITY
+    # ========================================================
+
+    payment_correction = (
+        get_payment_correction_capability(
+            order
+        )
+    )
 
 
     return render_template(
@@ -24102,6 +26377,9 @@ def driver_order_detail(
             
         refund_request=
             refund_request,
+            
+        payment_correction=
+            payment_correction,
     )    
     
 # ============================================================
@@ -24536,6 +26814,318 @@ def driver_confirm_manual_payment(
     )
     
     # ============================================================
+# PHASE 20I.5B
+# DRIVER SECURE PAYMENT CORRECTION
+# ============================================================
+
+@app.route(
+    "/driver/orders/<string:order_code>/payment/correct",
+    methods=["POST"]
+)
+@driver_login_required
+@driver_csrf_required
+def driver_correct_payment(
+    order_code
+):
+
+    # ========================================================
+    # NORMALIZE ORDER CODE
+    # ========================================================
+
+    order_code = str(
+        order_code
+        or ""
+    ).strip().upper()
+
+
+    if not order_code:
+
+        flash(
+            "Kode pesanan tidak valid.",
+            "error"
+        )
+
+
+        return redirect(
+            url_for(
+                "driver_dashboard"
+            )
+        )
+
+
+    # ========================================================
+    # FORM INPUT
+    #
+    # Hanya metadata yang boleh dikoreksi.
+    #
+    # TIDAK menerima:
+    # - payment_status
+    # - payment_amount
+    # - paid_at
+    # ========================================================
+
+    payment_method = (
+        request.form.get(
+            "payment_method",
+            ""
+        )
+    )
+
+
+    payment_reference = (
+        request.form.get(
+            "payment_reference",
+            ""
+        )
+    )
+
+
+    correction_reason = (
+        request.form.get(
+            "correction_reason",
+            ""
+        )
+    )
+
+
+    connection = None
+
+    order = None
+
+
+    try:
+
+        connection = (
+            get_db()
+        )
+
+
+        # ====================================================
+        # LOAD CURRENT ORDER
+        # ====================================================
+
+        order = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE order_code = ?
+
+                LIMIT 1
+                """,
+                (
+                    order_code,
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not order:
+
+            flash(
+                "Pesanan tidak ditemukan.",
+                "error"
+            )
+
+
+            return redirect(
+                url_for(
+                    "driver_dashboard"
+                )
+            )
+
+
+        # ====================================================
+        # DEFENSE-IN-DEPTH
+        # CORRECTION CAPABILITY
+        # ====================================================
+
+        capability = (
+            get_payment_correction_capability(
+                order
+            )
+        )
+
+
+        if not capability[
+            "allowed"
+        ]:
+
+            raise ValueError(
+                capability[
+                    "reason"
+                ]
+                or
+                (
+                    "Pembayaran ini tidak dapat "
+                    "dikoreksi."
+                )
+            )
+
+
+        # ====================================================
+        # SECURE CORRECTION
+        #
+        # Helper melakukan:
+        #
+        # - server-side validation
+        # - verified payment amount
+        # - status tetap DIBAYAR
+        # - amount tetap
+        # - paid_at tetap
+        # - optimistic concurrency check
+        # - PAYMENT_CORRECTED audit
+        #
+        # Helper TIDAK commit.
+        # ====================================================
+
+        result = (
+            correct_paid_payment(
+                connection,
+                order,
+
+                payment_method=
+                    payment_method,
+
+                payment_reference=
+                    payment_reference,
+
+                reason=
+                    correction_reason
+            )
+        )
+
+
+        # ====================================================
+        # ATOMIC COMMIT
+        #
+        # payment update
+        # +
+        # audit log
+        #
+        # menjadi satu transaction.
+        # ====================================================
+
+        connection.commit()
+
+
+        if (
+            result
+            and
+            result.get(
+                "corrected"
+            )
+        ):
+
+            flash(
+                (
+                    "Data pembayaran berhasil "
+                    "dikoreksi dan dicatat "
+                    "ke audit pembayaran."
+                ),
+                "success"
+            )
+
+
+        else:
+
+            flash(
+                (
+                    "Koreksi pembayaran selesai."
+                ),
+                "success"
+            )
+
+
+    except ValueError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        flash(
+            str(
+                error
+            ),
+            "error"
+        )
+
+
+    except RuntimeError as error:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        flash(
+            str(
+                error
+            ),
+            "error"
+        )
+
+
+    except Exception:
+
+        if connection is not None:
+
+            connection.rollback()
+
+
+        app.logger.exception(
+            (
+                "[DRIVER PAYMENT CORRECTION ERROR] "
+                f"order={order_code}"
+            )
+        )
+
+
+        flash(
+            (
+                "Koreksi pembayaran belum "
+                "dapat diproses."
+            ),
+            "error"
+        )
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()
+
+
+    # ========================================================
+    # RETURN TO ORDER DETAIL
+    # ========================================================
+
+    if order:
+
+        return redirect(
+            url_for(
+                "driver_order_detail",
+
+                order_id=
+                    order[
+                        "id"
+                    ]
+            )
+        )
+
+
+    return redirect(
+        url_for(
+            "driver_dashboard"
+        )
+    )
+    
+# ============================================================
 # PHASE 20I.4D
 # DRIVER MARK DIGITAL PAYMENT FAILED
 # ============================================================
@@ -25552,6 +28142,8 @@ def driver_payments():
         "failed",
 
         "expired",
+        
+        "correctable",
     }
 
 

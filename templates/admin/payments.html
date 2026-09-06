@@ -291,6 +291,58 @@ Pembayaran Driver | Ojek Pribadi
 </div>
 
 <!-- =========================================================
+     PHASE 20I.5D
+     PAYMENT CORRECTION CONTROL
+========================================================== -->
+
+<a
+    href="{{
+        url_for(
+            'driver_payments',
+            status='correctable',
+            method=payment_method_filter
+        )
+    }}"
+    class="
+        driver-payment-correction-control
+
+        {% if payment_filter == 'correctable' %}
+            is-active
+        {% endif %}
+    "
+>
+
+    <div class="driver-payment-correction-control-icon">
+        ✎
+    </div>
+
+
+    <div class="driver-payment-correction-control-content">
+
+        <span>
+            KOREKSI PEMBAYARAN
+        </span>
+
+        <strong>
+            {{ payment_control.correctable }}
+            transaksi dapat dikoreksi
+        </strong>
+
+        <small>
+            Perbaiki metode atau referensi
+            pembayaran yang salah dicatat.
+        </small>
+
+    </div>
+
+
+    <span class="driver-payment-correction-control-arrow">
+        →
+    </span>
+
+</a>
+
+<!-- =========================================================
      PHASE 20I.4G
      AUDIT & RECONCILIATION
 ========================================================== -->
@@ -389,6 +441,18 @@ Pembayaran Driver | Ojek Pribadi
 
     </div>
 
+    <div>
+
+    <span>
+        AUDIT KOREKSI
+    </span>
+
+    <strong>
+        {{ payment_reconciliation.correction_events }}
+    </strong>
+
+</div>
+
 
     {% if payment_reconciliation["items"] %}
 
@@ -416,6 +480,18 @@ Pembayaran Driver | Ojek Pribadi
                         <span class="driver-payment-reconciliation-status">
                             {{ item.payment_status }}
                         </span>
+
+                        {% if item.correction_audit_count > 0 %}
+
+                        <span class="driver-payment-reconciliation-correction-badge">
+
+                                ✎
+                                {{ item.correction_audit_count }}
+                                audit koreksi
+
+                            </span>
+
+                        {% endif %}
 
                     </div>
 
@@ -721,7 +797,37 @@ Pembayaran Driver | Ojek Pribadi
                             {% endif %}
                         </span>
 
+                        
                     </div>
+
+                    {% if
+    order.payment_correction
+    and
+    order.payment_correction.allowed
+%}
+
+    <div class="driver-payment-correction-available">
+
+        <span>
+            ✎
+        </span>
+
+        <div>
+
+            <strong>
+                Koreksi tersedia
+            </strong>
+
+            <small>
+                Metode atau referensi pembayaran
+                masih dapat diperbaiki.
+            </small>
+
+        </div>
+
+    </div>
+
+{% endif %}
 
                     <!-- PAYMENT INFO -->
 
@@ -1025,6 +1131,35 @@ Pembayaran Driver | Ojek Pribadi
                         </a>
 
                     {% endif %}
+
+                    {% if
+    order.payment_correction
+    and
+    order.payment_correction.allowed
+%}
+
+    <a
+        href="{{
+            url_for(
+                'driver_order_detail',
+                order_id=order.id
+            )
+        }}#payment-correction"
+
+        class="driver-payment-control-correction-button"
+    >
+
+        <span>
+            ✎ Koreksi Pembayaran
+        </span>
+
+        <span aria-hidden="true">
+            →
+        </span>
+
+    </a>
+
+{% endif %}
 
                 </article>
 
