@@ -38097,3 +38097,739 @@ CUSTOMER PAYMENT FAILURE DETAIL
     color:
         #fdba74;
 }
+
+/* ==========================================================
+PHASE 20I.4F
+DRIVER PAYMENT CONTROL — FAILED / EXPIRED
+========================================================== */
+
+.driver-payment-control-stat.is-failed {
+    border-color:
+        rgba(248, 113, 113, .16);
+
+    background:
+        rgba(248, 113, 113, .045);
+}
+
+
+.driver-payment-control-stat.is-failed strong {
+    color:
+        #fca5a5;
+}
+
+
+.driver-payment-control-stat.is-expired {
+    border-color:
+        rgba(251, 146, 60, .16);
+
+    background:
+        rgba(251, 146, 60, .045);
+}
+
+
+.driver-payment-control-stat.is-expired strong {
+    color:
+        #fdba74;
+}
+
+.driver-payment-control-summary {
+    grid-template-columns:
+        repeat(
+            5,
+            minmax(0, 1fr)
+        );
+}
+
+
+@media (max-width: 760px) {
+
+    .driver-payment-control-summary {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+}
+
+
+@media (max-width: 390px) {
+
+    .driver-payment-control-summary {
+        grid-template-columns:
+            1fr;
+    }
+
+}
+
+.driver-payment-control-failure,
+.driver-payment-control-expired {
+    margin-top:
+        12px;
+
+    padding:
+        12px;
+
+    border-radius:
+        13px;
+}
+
+
+.driver-payment-control-failure {
+    border:
+        1px solid
+        rgba(248, 113, 113, .14);
+
+    background:
+        rgba(248, 113, 113, .04);
+}
+
+
+.driver-payment-control-expired {
+    border:
+        1px solid
+        rgba(251, 146, 60, .14);
+
+    background:
+        rgba(251, 146, 60, .04);
+}
+
+
+.driver-payment-control-failure span,
+.driver-payment-control-expired span {
+    display:
+        block;
+
+    margin-bottom:
+        4px;
+
+    font-size:
+        6px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        .08em;
+}
+
+
+.driver-payment-control-failure span {
+    color:
+        #fca5a5;
+}
+
+
+.driver-payment-control-expired span {
+    color:
+        #fdba74;
+}
+
+
+.driver-payment-control-failure strong,
+.driver-payment-control-expired strong {
+    color:
+        rgba(255, 255, 255, .85);
+
+    font-size:
+        9px;
+}
+
+
+.driver-payment-control-failure p {
+    margin:
+        9px 0 0;
+
+    color:
+        rgba(255, 255, 255, .52);
+
+    font-size:
+        8px;
+
+    line-height:
+        1.55;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+.driver-payment-control-failure small,
+.driver-payment-control-expired small {
+    display:
+        block;
+
+    margin-top:
+        8px;
+
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size:
+        7px;
+}
+
+.driver-payment-control-review-button,
+.driver-payment-control-detail-button {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        10px;
+
+    margin-top:
+        13px;
+
+    min-height:
+        42px;
+
+    padding:
+        0 13px;
+
+    border-radius:
+        12px;
+
+    text-decoration:
+        none;
+
+    font-size:
+        8px;
+
+    font-weight:
+        800;
+}
+
+
+.driver-payment-control-review-button {
+    border:
+        1px solid
+        rgba(96, 165, 250, .2);
+
+    background:
+        rgba(96, 165, 250, .07);
+
+    color:
+        #93c5fd;
+}
+
+
+.driver-payment-control-detail-button {
+    border:
+        1px solid
+        rgba(52, 211, 153, .12);
+
+    background:
+        rgba(52, 211, 153, .04);
+
+    color:
+        #34d399;
+}
+
+.driver-payment-status.is-failed {
+    color:
+        #fca5a5;
+
+    background:
+        rgba(248, 113, 113, .08);
+}
+
+
+.driver-payment-status.is-expired {
+    color:
+        #fdba74;
+
+    background:
+        rgba(251, 146, 60, .08);
+}
+
+.driver-dashboard-payment-alert.is-failed {
+    border-color:
+        rgba(248, 113, 113, .14);
+
+    background:
+        rgba(248, 113, 113, .045);
+}
+
+
+.driver-dashboard-payment-alert.is-failed
+.driver-dashboard-payment-alert-icon,
+.driver-dashboard-payment-alert.is-failed strong {
+    color:
+        #fca5a5;
+}
+
+
+.driver-dashboard-payment-alert.is-expired {
+    border-color:
+        rgba(251, 146, 60, .14);
+
+    background:
+        rgba(251, 146, 60, .045);
+}
+
+
+.driver-dashboard-payment-alert.is-expired
+.driver-dashboard-payment-alert-icon,
+.driver-dashboard-payment-alert.is-expired strong {
+    color:
+        #fdba74;
+}
+
+/* ==========================================================
+PHASE 20I.4G
+PAYMENT AUDIT & RECONCILIATION
+========================================================== */
+
+.driver-payment-reconciliation {
+    margin-top: 20px;
+    padding: 18px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .09);
+
+    border-radius: 18px;
+
+    background:
+        rgba(255, 255, 255, .018);
+}
+
+
+.driver-payment-reconciliation-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+
+.driver-payment-reconciliation-eyebrow {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color:
+        rgba(52, 211, 153, .7);
+
+    font-size: 6px;
+    font-weight: 800;
+
+    letter-spacing: .1em;
+}
+
+
+.driver-payment-reconciliation-head h3 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 14px;
+}
+
+
+.driver-payment-reconciliation-head p {
+    max-width: 380px;
+
+    margin:
+        5px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .4);
+
+    font-size: 8px;
+
+    line-height: 1.55;
+}
+
+
+.driver-payment-reconciliation-health {
+    flex-shrink: 0;
+
+    padding:
+        7px
+        9px;
+
+    border-radius: 999px;
+
+    font-size: 6px;
+    font-weight: 900;
+
+    letter-spacing: .08em;
+}
+
+
+.driver-payment-reconciliation-health.is-healthy {
+    background:
+        rgba(52, 211, 153, .08);
+
+    color:
+        #34d399;
+}
+
+
+.driver-payment-reconciliation-health.is-warning {
+    background:
+        rgba(248, 113, 113, .09);
+
+    color:
+        #fca5a5;
+}
+
+
+/* ==========================================================
+STATS
+========================================================== */
+
+.driver-payment-reconciliation-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
+
+    gap: 8px;
+
+    margin-top: 16px;
+}
+
+
+.driver-payment-reconciliation-stats > div {
+    min-width: 0;
+
+    padding:
+        11px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .045);
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(0, 0, 0, .12);
+}
+
+
+.driver-payment-reconciliation-stats span {
+    display: block;
+
+    color:
+        rgba(255, 255, 255, .28);
+
+    font-size: 5px;
+
+    font-weight: 800;
+
+    letter-spacing: .06em;
+}
+
+
+.driver-payment-reconciliation-stats strong {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #ffffff;
+
+    font-size: 16px;
+}
+
+
+/* ==========================================================
+ISSUES
+========================================================== */
+
+.driver-payment-reconciliation-list {
+    display: grid;
+
+    gap: 10px;
+
+    margin-top: 14px;
+}
+
+
+.driver-payment-reconciliation-item {
+    padding: 13px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .05);
+
+    border-radius: 14px;
+
+    background:
+        rgba(0, 0, 0, .12);
+}
+
+
+.driver-payment-reconciliation-item-head {
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    gap: 10px;
+}
+
+
+.driver-payment-reconciliation-item-head > div > span {
+    display: block;
+
+    color:
+        rgba(52, 211, 153, .65);
+
+    font-size: 6px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-reconciliation-item-head strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #ffffff;
+
+    font-size: 9px;
+}
+
+
+.driver-payment-reconciliation-status {
+    padding:
+        5px
+        8px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 255, 255, .04);
+
+    color:
+        rgba(255, 255, 255, .55);
+
+    font-size: 6px;
+
+    font-weight: 800;
+}
+
+
+.driver-payment-reconciliation-issues {
+    display: grid;
+
+    gap: 7px;
+
+    margin-top: 11px;
+}
+
+
+.driver-payment-reconciliation-issue {
+    display: flex;
+
+    align-items:
+        flex-start;
+
+    gap: 8px;
+
+    padding: 9px;
+
+    border-radius: 10px;
+}
+
+
+.driver-payment-reconciliation-issue > span {
+    flex:
+        0 0 22px;
+
+    width: 22px;
+    height: 22px;
+
+    display: grid;
+
+    place-items:
+        center;
+
+    border-radius: 7px;
+
+    font-size: 9px;
+
+    font-weight: 900;
+}
+
+
+.driver-payment-reconciliation-issue.is-critical {
+    background:
+        rgba(248, 113, 113, .045);
+}
+
+
+.driver-payment-reconciliation-issue.is-critical > span {
+    background:
+        rgba(248, 113, 113, .09);
+
+    color:
+        #fca5a5;
+}
+
+
+.driver-payment-reconciliation-issue.is-warning {
+    background:
+        rgba(251, 191, 36, .04);
+}
+
+
+.driver-payment-reconciliation-issue.is-warning > span {
+    background:
+        rgba(251, 191, 36, .08);
+
+    color:
+        #fbbf24;
+}
+
+
+.driver-payment-reconciliation-issue strong {
+    color:
+        rgba(255, 255, 255, .72);
+
+    font-size: 7px;
+}
+
+
+.driver-payment-reconciliation-issue p {
+    margin:
+        3px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .38);
+
+    font-size: 7px;
+
+    line-height: 1.5;
+}
+
+
+.driver-payment-reconciliation-detail {
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    margin-top: 11px;
+
+    padding:
+        9px
+        10px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .1);
+
+    border-radius: 10px;
+
+    background:
+        rgba(52, 211, 153, .035);
+
+    color:
+        #34d399;
+
+    text-decoration: none;
+
+    font-size: 7px;
+
+    font-weight: 800;
+}
+
+
+/* ==========================================================
+HEALTHY
+========================================================== */
+
+.driver-payment-reconciliation-empty {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 14px;
+
+    padding: 13px;
+
+    border:
+        1px solid
+        rgba(52, 211, 153, .1);
+
+    border-radius: 13px;
+
+    background:
+        rgba(52, 211, 153, .035);
+}
+
+
+.driver-payment-reconciliation-empty > span {
+    color:
+        #34d399;
+
+    font-size: 15px;
+}
+
+
+.driver-payment-reconciliation-empty strong {
+    color:
+        rgba(255, 255, 255, .78);
+
+    font-size: 9px;
+}
+
+
+.driver-payment-reconciliation-empty p {
+    margin:
+        3px
+        0
+        0;
+
+    color:
+        rgba(255, 255, 255, .35);
+
+    font-size: 7px;
+}
+
+
+@media (max-width: 620px) {
+
+    .driver-payment-reconciliation-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+
+    .driver-payment-reconciliation-head {
+        flex-direction:
+            column;
+    }
+
+}

@@ -1,17 +1,19 @@
 {% extends "base.html" %}
 
-
 {% block title %}
-Pembayaran Driver | Ojek Pribadi
-{% endblock %}
 
+Pembayaran Driver | Ojek Pribadi
+
+{% endblock %}
 
 {% block content %}
 
 <section class="driver-payment-control-page">
 
     <!-- =====================================
+
          HEADER
+
     ====================================== -->
 
     <div class="driver-payment-control-header">
@@ -19,131 +21,494 @@ Pembayaran Driver | Ojek Pribadi
         <div>
 
             <span class="driver-payment-control-eyebrow">
+
                 PAYMENT CONTROL
+
             </span>
 
             <h1>
+
                 Pusat Pembayaran
+
             </h1>
 
             <p>
+
                 Pantau dan periksa pembayaran
+
                 pelanggan dari satu tempat.
+
+            </p>
+
+        </div>
+
+        <a
+
+            href="{{ url_for('driver_dashboard') }}"
+
+            class="driver-payment-back-button"
+
+        >
+
+            ← Dashboard
+
+        </a>
+
+    </div>
+
+    <!-- =====================================
+
+         SUMMARY
+
+    ====================================== -->
+
+    <div class="driver-payment-control-summary">
+
+    <a
+
+        href="{{
+
+            url_for(
+
+                'driver_payments',
+
+                status='needs_confirmation',
+
+                method=payment_method_filter
+
+            )
+
+        }}"
+
+        class="
+
+            driver-payment-control-stat
+
+            is-attention
+
+        "
+
+    >
+
+        <span>
+
+            PERLU KONFIRMASI
+
+        </span>
+
+        <strong>
+
+            {{ payment_control.needs_confirmation }}
+
+        </strong>
+
+        <small>
+
+            Perlu diperiksa
+
+        </small>
+
+    </a>
+
+    <a
+
+        href="{{
+
+            url_for(
+
+                'driver_payments',
+
+                status='waiting',
+
+                method=payment_method_filter
+
+            )
+
+        }}"
+
+        class="driver-payment-control-stat"
+
+    >
+
+        <span>
+
+            MENUNGGU
+
+        </span>
+
+        <strong>
+
+            {{ payment_control.waiting_payment }}
+
+        </strong>
+
+        <small>
+
+            Belum dibayar
+
+        </small>
+
+    </a>
+
+    <a
+
+        href="{{
+
+            url_for(
+
+                'driver_payments',
+
+                status='paid',
+
+                method=payment_method_filter
+
+            )
+
+        }}"
+
+        class="
+
+            driver-payment-control-stat
+
+            is-paid
+
+        "
+
+    >
+
+        <span>
+
+            DIBAYAR
+
+        </span>
+
+        <strong>
+
+            {{ payment_control.paid }}
+
+        </strong>
+
+        <small>
+
+            Pembayaran valid
+
+        </small>
+
+    </a>
+
+    <a
+
+        href="{{
+
+            url_for(
+
+                'driver_payments',
+
+                status='failed',
+
+                method=payment_method_filter
+
+            )
+
+        }}"
+
+        class="
+
+            driver-payment-control-stat
+
+            is-failed
+
+        "
+
+    >
+
+        <span>
+
+            GAGAL
+
+        </span>
+
+        <strong>
+
+            {{ payment_control.failed }}
+
+        </strong>
+
+        <small>
+
+            Verifikasi gagal
+
+        </small>
+
+    </a>
+
+    <a
+
+        href="{{
+
+            url_for(
+
+                'driver_payments',
+
+                status='expired',
+
+                method=payment_method_filter
+
+            )
+
+        }}"
+
+        class="
+
+            driver-payment-control-stat
+
+            is-expired
+
+        "
+
+    >
+
+        <span>
+
+            KEDALUWARSA
+
+        </span>
+
+        <strong>
+
+            {{ payment_control.expired }}
+
+        </strong>
+
+        <small>
+
+            Waktu pembayaran habis
+
+        </small>
+
+    </a>
+
+</div>
+
+<!-- =========================================================
+     PHASE 20I.4G
+     AUDIT & RECONCILIATION
+========================================================== -->
+
+<section class="driver-payment-reconciliation">
+
+    <div class="driver-payment-reconciliation-head">
+
+        <div>
+
+            <span class="driver-payment-reconciliation-eyebrow">
+                AUDIT & RECONCILIATION
+            </span>
+
+            <h3>
+                Integritas Pembayaran
+            </h3>
+
+            <p>
+                Pemeriksaan konsistensi antara status,
+                metadata pembayaran, dan audit log.
             </p>
 
         </div>
 
 
-        <a
-            href="{{ url_for('driver_dashboard') }}"
-            class="driver-payment-back-button"
-        >
-            ← Dashboard
-        </a>
+        {% if payment_reconciliation.issue_orders == 0 %}
+
+            <span class="driver-payment-reconciliation-health is-healthy">
+                ✓ SEHAT
+            </span>
+
+        {% else %}
+
+            <span class="driver-payment-reconciliation-health is-warning">
+                ! PERLU DIPERIKSA
+            </span>
+
+        {% endif %}
 
     </div>
 
 
-    <!-- =====================================
-         SUMMARY
-    ====================================== -->
+    <div class="driver-payment-reconciliation-stats">
 
-    <div class="driver-payment-control-summary">
-
-        <a
-            href="{{
-                url_for(
-                    'driver_payments',
-                    status='needs_confirmation',
-                    method=payment_method_filter
-                )
-            }}"
-            class="
-                driver-payment-control-stat
-                is-attention
-            "
-        >
+        <div>
 
             <span>
-                PERLU KONFIRMASI
+                DIPERIKSA
             </span>
 
             <strong>
-                {{
-                    payment_control
-                    .needs_confirmation
-                }}
+                {{ payment_reconciliation.scanned }}
             </strong>
 
-            <small>
-                Perlu diperiksa driver
-            </small>
-
-        </a>
+        </div>
 
 
-        <a
-            href="{{
-                url_for(
-                    'driver_payments',
-                    status='waiting',
-                    method=payment_method_filter
-                )
-            }}"
-            class="driver-payment-control-stat"
-        >
+        <div>
 
             <span>
-                MENUNGGU
+                NORMAL
             </span>
 
             <strong>
-                {{
-                    payment_control
-                    .waiting_payment
-                }}
+                {{ payment_reconciliation.healthy }}
             </strong>
 
-            <small>
-                Belum selesai dibayar
-            </small>
-
-        </a>
+        </div>
 
 
-        <a
-            href="{{
-                url_for(
-                    'driver_payments',
-                    status='paid',
-                    method=payment_method_filter
-                )
-            }}"
-            class="
-                driver-payment-control-stat
-                is-paid
-            "
-        >
+        <div>
 
             <span>
-                DIBAYAR
+                PESANAN BERMASALAH
             </span>
 
             <strong>
-                {{
-                    payment_control
-                    .paid
-                }}
+                {{ payment_reconciliation.issue_orders }}
             </strong>
 
-            <small>
-                Pembayaran selesai
-            </small>
+        </div>
 
-        </a>
+
+        <div>
+
+            <span>
+                KRITIS
+            </span>
+
+            <strong>
+                {{ payment_reconciliation.critical }}
+            </strong>
+
+        </div>
 
     </div>
 
+
+    {% if payment_reconciliation["items"] %}
+
+        <div class="driver-payment-reconciliation-list">
+
+            {% for item in payment_reconciliation["items"] %}
+
+                <article class="driver-payment-reconciliation-item">
+
+                    <div class="driver-payment-reconciliation-item-head">
+
+                        <div>
+
+                            <span>
+                                {{ item.order_code }}
+                            </span>
+
+                            <strong>
+                                {{ item.customer_name or "Pelanggan" }}
+                            </strong>
+
+                        </div>
+
+
+                        <span class="driver-payment-reconciliation-status">
+                            {{ item.payment_status }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="driver-payment-reconciliation-issues">
+
+                        {% for issue in item.issues %}
+
+                            <div
+                                class="
+                                    driver-payment-reconciliation-issue
+
+                                    {% if issue.severity == 'critical' %}
+                                        is-critical
+                                    {% else %}
+                                        is-warning
+                                    {% endif %}
+                                "
+                            >
+
+                                <span>
+                                    {% if issue.severity == "critical" %}
+                                        !
+                                    {% else %}
+                                        i
+                                    {% endif %}
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        {{ issue.code }}
+                                    </strong>
+
+                                    <p>
+                                        {{ issue.message }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <a
+                        href="{{
+                            url_for(
+                                'driver_order_detail',
+                                order_id=item.id
+                            )
+                        }}"
+                        class="driver-payment-reconciliation-detail"
+                    >
+                        Periksa Pesanan
+                        <span>→</span>
+                    </a>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="driver-payment-reconciliation-empty">
+
+            <span>
+                ✓
+            </span>
+
+            <div>
+
+                <strong>
+                    Data pembayaran konsisten
+                </strong>
+
+                <p>
+                    Tidak ditemukan anomali pada
+                    pembayaran yang diperiksa.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</section>
 
     <!-- =====================================
          PAYMENT STATUS FILTER
@@ -151,137 +516,37 @@ Pembayaran Driver | Ojek Pribadi
 
     <div class="driver-payment-filter-section">
 
-        <span>
-            STATUS
-        </span>
-
+        <span>STATUS</span>
 
         <div class="driver-payment-filter-row">
 
-            <a
-                href="{{
-                    url_for(
-                        'driver_payments',
-                        status='all',
-                        method=payment_method_filter
-                    )
-                }}"
-                class="
-                    driver-payment-filter-button
-
-                    {% if payment_filter == 'all' %}
-                        is-active
-                    {% endif %}
-                "
-            >
-                Semua
-            </a>
-
-
-            <a
-                href="{{
-                    url_for(
-                        'driver_payments',
-                        status='needs_confirmation',
-                        method=payment_method_filter
-                    )
-                }}"
-                class="
-                    driver-payment-filter-button
-
-                    {% if payment_filter == 'needs_confirmation' %}
-                        is-active
-                    {% endif %}
-                "
-            >
-                Perlu Konfirmasi
-            </a>
-
-
-            <a
-                href="{{
-                    url_for(
-                        'driver_payments',
-                        status='waiting',
-                        method=payment_method_filter
-                    )
-                }}"
-                class="
-                    driver-payment-filter-button
-
-                    {% if payment_filter == 'waiting' %}
-                        is-active
-                    {% endif %}
-                "
-            >
-                Menunggu
-            </a>
-
-
-            <a
-                href="{{
-                    url_for(
-                        'driver_payments',
-                        status='paid',
-                        method=payment_method_filter
-                    )
-                }}"
-                class="
-                    driver-payment-filter-button
-
-                    {% if payment_filter == 'paid' %}
-                        is-active
-                    {% endif %}
-                "
-            >
-                Dibayar
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================
-         PAYMENT METHOD FILTER
-    ====================================== -->
-
-    <div class="driver-payment-filter-section">
-
-        <span>
-            METODE
-        </span>
-
-
-        <div class="driver-payment-filter-row">
-
-            {% set methods = [
-                ("ALL", "Semua"),
-                ("TUNAI", "Tunai"),
-                ("QRIS", "QRIS"),
-                ("TRANSFER_BANK", "Transfer")
+            {% set status_filters = [
+                ("all", "Semua"),
+                ("needs_confirmation", "Perlu Konfirmasi"),
+                ("waiting", "Menunggu"),
+                ("paid", "Dibayar"),
+                ("failed", "Gagal"),
+                ("expired", "Kedaluwarsa")
             ] %}
 
-
-            {% for method_value, method_label in methods %}
+            {% for status_value, status_label in status_filters %}
 
                 <a
                     href="{{
                         url_for(
                             'driver_payments',
-                            status=payment_filter,
-                            method=method_value
+                            status=status_value,
+                            method=payment_method_filter
                         )
                     }}"
                     class="
                         driver-payment-filter-button
-
-                        {% if payment_method_filter == method_value %}
+                        {% if payment_filter == status_value %}
                             is-active
                         {% endif %}
                     "
                 >
-                    {{ method_label }}
+                    {{ status_label }}
                 </a>
 
             {% endfor %}
@@ -290,9 +555,78 @@ Pembayaran Driver | Ojek Pribadi
 
     </div>
 
+    <!-- =====================================
+         PAYMENT METHOD FILTER
+    ====================================== -->
+
+    <div class="driver-payment-filter-section">
+
+        <span>
+
+            METODE
+
+        </span>
+
+        <div class="driver-payment-filter-row">
+
+            {% set methods = [
+
+                ("ALL", "Semua"),
+
+                ("TUNAI", "Tunai"),
+
+                ("QRIS", "QRIS"),
+
+                ("TRANSFER_BANK", "Transfer")
+
+            ] %}
+
+            {% for method_value, method_label in methods %}
+
+                <a
+
+                    href="{{
+
+                        url_for(
+
+                            'driver_payments',
+
+                            status=payment_filter,
+
+                            method=method_value
+
+                        )
+
+                    }}"
+
+                    class="
+
+                        driver-payment-filter-button
+
+                        {% if payment_method_filter == method_value %}
+
+                            is-active
+
+                        {% endif %}
+
+                    "
+
+                >
+
+                    {{ method_label }}
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
 
     <!-- =====================================
+
          PAYMENT ORDERS
+
     ====================================== -->
 
     <div class="driver-payment-order-list">
@@ -302,16 +636,20 @@ Pembayaran Driver | Ojek Pribadi
             {% for order in payment_orders %}
 
                 {% set method =
-                    order.payment_method
-                    or "TUNAI"
-                %}
 
+                    order.payment_method
+
+                    or "TUNAI"
+
+                %}
 
                 {% set payment_status =
-                    order.payment_status
-                    or "BELUM_DIBAYAR"
-                %}
 
+                    order.payment_status
+
+                    or "BELUM_DIBAYAR"
+
+                %}
 
                 <article
                     class="
@@ -319,6 +657,10 @@ Pembayaran Driver | Ojek Pribadi
 
                         {% if payment_status == 'MENUNGGU_KONFIRMASI' %}
                             needs-attention
+                        {% elif payment_status == 'GAGAL' %}
+                            is-failed
+                        {% elif payment_status == 'KEDALUWARSA' %}
+                            is-expired
                         {% endif %}
                     "
                 >
@@ -330,58 +672,56 @@ Pembayaran Driver | Ojek Pribadi
                         <div>
 
                             <span class="driver-payment-order-code">
+
                                 {{ order.order_code }}
+
                             </span>
 
                             <strong>
+
                                 {{ order.customer_name }}
+
                             </strong>
 
                         </div>
-
 
                         <span
                             class="
                                 driver-payment-control-badge
 
                                 {% if payment_status == 'DIBAYAR' %}
-
                                     is-paid
-
                                 {% elif payment_status == 'MENUNGGU_KONFIRMASI' %}
-
                                     is-attention
-
+                                {% elif payment_status == 'GAGAL' %}
+                                    is-failed
+                                {% elif payment_status == 'KEDALUWARSA' %}
+                                    is-expired
+                                {% elif payment_status == 'DIKEMBALIKAN' %}
+                                    is-refunded
                                 {% else %}
-
                                     is-waiting
-
                                 {% endif %}
                             "
                         >
-
                             {% if payment_status == "DIBAYAR" %}
-
                                 DIBAYAR
-
+                            {% elif payment_status == "DIKEMBALIKAN" %}
+                                DIKEMBALIKAN
                             {% elif payment_status == "MENUNGGU_KONFIRMASI" %}
-
                                 PERLU KONFIRMASI
-
                             {% elif payment_status == "MENUNGGU_PEMBAYARAN" %}
-
                                 MENUNGGU PEMBAYARAN
-
+                            {% elif payment_status == "GAGAL" %}
+                                GAGAL
+                            {% elif payment_status == "KEDALUWARSA" %}
+                                KEDALUWARSA
                             {% else %}
-
                                 BELUM DIBAYAR
-
                             {% endif %}
-
                         </span>
 
                     </div>
-
 
                     <!-- PAYMENT INFO -->
 
@@ -390,7 +730,9 @@ Pembayaran Driver | Ojek Pribadi
                         <div>
 
                             <span>
+
                                 METODE
+
                             </span>
 
                             <strong>
@@ -409,67 +751,90 @@ Pembayaran Driver | Ojek Pribadi
 
                         </div>
 
-
                         <div>
 
                             <span>
+
                                 NOMINAL
+
                             </span>
 
                             <strong>
+
                                 {{
+
                                     (
+
                                         order.payment_amount
+
                                         or order.fare
+
                                         or 0
+
                                     )
+
                                     | rupiah
+
                                 }}
+
                             </strong>
 
                         </div>
 
-
                         <div>
 
                             <span>
+
                                 PERJALANAN
+
                             </span>
 
                             <strong>
+
                                 {{ order.status }}
+
                             </strong>
 
                         </div>
 
                     </div>
 
-
                     <!-- ALERT -->
 
                     {% if
+
                         payment_status
+
                         == "MENUNGGU_KONFIRMASI"
+
                     %}
 
                         <div class="driver-payment-order-alert">
 
                             <strong>
+
                                 Pelanggan menyatakan sudah membayar
+
                             </strong>
 
                             <p>
-                                Periksa pembayaran sebelum
-                                melakukan konfirmasi.
-                            </p>
 
+                                Periksa pembayaran sebelum
+
+                                melakukan konfirmasi.
+
+                            </p>
 
                             {% if order.payment_customer_confirmed_at %}
 
                                 <small>
+
                                     {{
+
                                         order.payment_customer_confirmed_at
+
                                     }}
+
                                 </small>
 
                             {% endif %}
@@ -478,6 +843,109 @@ Pembayaran Driver | Ojek Pribadi
 
                     {% endif %}
 
+                    <!-- =====================================
+                         PHASE 20I.4F
+                         ACTIVE PAYMENT DEADLINE
+                    ====================================== -->
+
+                    {% if
+                        order.payment_expires_at
+                        and
+                        payment_status in (
+                            "MENUNGGU_PEMBAYARAN",
+                            "MENUNGGU_KONFIRMASI"
+                        )
+                    %}
+
+                        <div class="driver-payment-control-meta is-expiry">
+
+                            <span>
+                                BATAS PEMBAYARAN
+                            </span>
+
+                            <strong>
+                                {{ order.payment_expires_at }}
+                            </strong>
+
+                        </div>
+
+                    {% endif %}
+
+                    <!-- =====================================
+                         PHASE 20I.4F
+                         FAILED PAYMENT DETAIL
+                    ====================================== -->
+
+                    {% if payment_status == "GAGAL" %}
+
+                        <div class="driver-payment-control-failure">
+
+                            <div>
+
+                                <span>
+                                    PEMBAYARAN GAGAL
+                                </span>
+
+                                <strong>
+                                    Verifikasi pembayaran tidak berhasil
+                                </strong>
+
+                            </div>
+
+                            {% if order.payment_failure_reason %}
+
+                                <p>
+                                    {{ order.payment_failure_reason }}
+                                </p>
+
+                            {% endif %}
+
+                            {% if order.payment_failed_at %}
+
+                                <small>
+                                    Diproses:
+                                    {{ order.payment_failed_at }}
+                                </small>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+                    <!-- =====================================
+                         PHASE 20I.4F
+                         EXPIRED PAYMENT DETAIL
+                    ====================================== -->
+
+                    {% if payment_status == "KEDALUWARSA" %}
+
+                        <div class="driver-payment-control-expired">
+
+                            <div>
+
+                                <span>
+                                    PEMBAYARAN KEDALUWARSA
+                                </span>
+
+                                <strong>
+                                    Batas waktu pembayaran telah berakhir
+                                </strong>
+
+                            </div>
+
+                            {% if order.payment_expires_at %}
+
+                                <small>
+                                    Batas:
+                                    {{ order.payment_expires_at }}
+                                </small>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
 
                     <!-- ROUTE -->
 
@@ -486,87 +954,104 @@ Pembayaran Driver | Ojek Pribadi
                         <div>
 
                             <span>
+
                                 JEMPUT
+
                             </span>
 
                             <p>
+
                                 {{ order.pickup }}
+
                             </p>
 
                         </div>
 
-
                         <div>
 
                             <span>
+
                                 TUJUAN
+
                             </span>
 
                             <p>
+
                                 {{ order.destination }}
+
                             </p>
 
                         </div>
 
                     </div>
 
-
                     <!-- ACTION -->
 
-                    <a
-                        href="{{
-                            url_for(
-                                'driver_order_detail',
-                                order_id=order.id
-                            )
-                        }}"
-                        class="
-                            driver-payment-order-action
+                    {% if payment_status == "MENUNGGU_KONFIRMASI" %}
 
-                            {% if
-                                payment_status
-                                == 'MENUNGGU_KONFIRMASI'
-                            %}
+                        <a
+                            href="{{
+                                url_for(
+                                    'driver_order_detail',
+                                    order_id=order.id
+                                )
+                            }}"
+                            class="
+                                driver-payment-order-action
                                 is-important
-                            {% endif %}
-                        "
-                    >
+                                driver-payment-control-review-button
+                            "
+                        >
+                            Periksa Pembayaran
+                            <span>→</span>
+                        </a>
 
-                        {% if
-                            payment_status
-                            == "MENUNGGU_KONFIRMASI"
-                        %}
+                    {% else %}
 
-                            Periksa & Konfirmasi Pembayaran →
+                        <a
+                            href="{{
+                                url_for(
+                                    'driver_order_detail',
+                                    order_id=order.id
+                                )
+                            }}"
+                            class="
+                                driver-payment-order-action
+                                driver-payment-control-detail-button
+                            "
+                        >
+                            Lihat Detail
+                            <span>→</span>
+                        </a>
 
-                        {% else %}
-
-                            Lihat Detail Order →
-
-                        {% endif %}
-
-                    </a>
+                    {% endif %}
 
                 </article>
 
             {% endfor %}
-
 
         {% else %}
 
             <div class="driver-payment-control-empty">
 
                 <span>
+
                     ✓
+
                 </span>
 
                 <strong>
+
                     Tidak ada pembayaran
+
                 </strong>
 
                 <p>
+
                     Tidak ada transaksi yang cocok
+
                     dengan filter saat ini.
+
                 </p>
 
             </div>

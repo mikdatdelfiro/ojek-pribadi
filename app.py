@@ -727,6 +727,13 @@ PAYMENT_AUDIT_REASON_MAX_LENGTH = 500
 
 PAYMENT_AUDIT_EVENT_CODE_BYTES = 12
 
+# ============================================================
+# PHASE 20I.4G
+# PAYMENT RECONCILIATION CONFIGURATION
+# ============================================================
+
+PAYMENT_RECONCILIATION_LIMIT_DEFAULT = 100
+PAYMENT_RECONCILIATION_LIMIT_MAX = 250
 
 PAYMENT_AUDIT_ACTOR_DRIVER = (
     "DRIVER"
@@ -3276,6 +3283,890 @@ def get_payment_audit_events(
         for row
         in rows
     ]
+    
+    # ============================================================
+# PHASE 20I.4G
+# PAYMENT RECONCILIATION
+# ============================================================
+
+def get_payment_reconciliation_issues(
+    order
+):
+
+    issues = []
+
+
+    if not order:
+
+        return [
+            {
+                "code":
+                    "ORDER_MISSING",
+
+                "severity":
+                    "critical",
+
+                "message":
+                    "Data pesanan tidak tersedia.",
+            }
+        ]
+
+
+    def add_issue(
+        code,
+        message,
+        severity="warning"
+    ):
+
+        issues.append(
+            {
+                "code":
+                    code,
+
+                "severity":
+                    severity,
+
+                "message":
+                    message,
+            }
+        )
+
+
+    # ========================================================
+    # NORMALIZED VALUES
+    # ========================================================
+
+    payment_method = str(
+        order.get(
+            "payment_method"
+        )
+        or PAYMENT_METHOD_CASH
+    ).strip().upper()
+
+
+    payment_status = (
+        get_effective_payment_status(
+            order
+        )
+    )
+
+
+    payment_amount = (
+        payment_audit_safe_integer(
+            order.get(
+                "payment_amount"
+            )
+        )
+    )
+
+
+    fare = (
+        payment_audit_safe_integer(
+            order.get(
+                "fare"
+            )
+        )
+    )
+
+
+    paid_at = str(
+        order.get(
+            "paid_at"
+        )
+        or ""
+    ).strip()
+
+
+    failed_at = str(
+        order.get(
+            "payment_failed_at"
+        )
+        or ""
+    ).strip()
+
+
+    failure_reason = str(
+        order.get(
+            "payment_failure_reason"
+        )
+        or ""
+    ).strip()
+
+
+    failure_actor = str(
+        order.get(
+            "payment_failure_actor"
+        )
+        or ""
+    ).strip().upper()
+
+
+    expires_at = str(
+        order.get(
+            "payment_expires_at"
+        )
+        or ""
+    ).strip()
+
+
+    refunded_at = str(
+        order.get(
+            "payment_refunded_at"
+        )
+        or ""
+    ).strip()
+
+
+    refund_amount = (
+        payment_audit_safe_integer(
+            order.get(
+                "payment_refund_amount"
+            )
+        )
+    )
+
+
+    valid_method = (
+        payment_method
+        in (
+            PAYMENT_METHOD_CASH,
+            PAYMENT_METHOD_QRIS,
+            PAYMENT_METHOD_BANK_TRANSFER,
+        )
+    )
+
+
+    # ========================================================
+    # PAYMENT METHOD
+    # ========================================================
+
+    if not valid_method:
+
+        add_issue(
+            "INVALID_PAYMENT_METHOD",
+            "Metode pembayaran tidak dikenal.",
+            "critical"
+        )
+
+
+    # ========================================================
+    # PAID
+    # ========================================================
+
+    if (
+        payment_status
+        == PAYMENT_STATUS_PAID
+    ):
+
+        if not paid_at:
+
+            add_issue(
+                "PAID_WITHOUT_PAID_AT",
+                (
+                    "Pembayaran DIBAYAR tidak memiliki "
+                    "waktu paid_at."
+                ),
+                "critical"
+            )
+
+
+        if (
+            payment_amount is None
+            or
+            payment_amount <= 0
+        ):
+
+            add_issue(
+                "PAID_WITHOUT_AMOUNT",
+                (
+                    "Pembayaran DIBAYAR tidak memiliki "
+                    "nominal pembayaran yang valid."
+                ),
+                "critical"
+            )
+
+
+        if (
+            fare is not None
+            and
+            fare > 0
+            and
+            payment_amount is not None
+            and
+            payment_amount != fare
+        ):
+
+            add_issue(
+                "PAID_AMOUNT_MISMATCH",
+                (
+                    "Nominal pembayaran tidak sama "
+                    "dengan tarif pesanan."
+                ),
+                "critical"
+            )
+
+
+        if (
+            failed_at
+            or
+            failure_reason
+        ):
+
+            add_issue(
+                "PAID_WITH_FAILURE_METADATA",
+                (
+                    "Pembayaran DIBAYAR masih memiliki "
+                    "metadata kegagalan."
+                ),
+                "critical"
+            )
+
+
+        if (
+            refunded_at
+            or
+            (
+                refund_amount is not None
+                and
+                refund_amount > 0
+            )
+        ):
+
+            add_issue(
+                "PAID_WITH_REFUND_METADATA",
+                (
+                    "Pembayaran masih DIBAYAR tetapi "
+                    "memiliki metadata refund aktual."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # FAILED
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_FAILED
+    ):
+
+        if not payment_method_is_digital(
+            payment_method
+        ):
+
+            add_issue(
+                "FAILED_NON_DIGITAL",
+                (
+                    "Status GAGAL digunakan pada "
+                    "pembayaran non-digital."
+                ),
+                "critical"
+            )
+
+
+        if not failed_at:
+
+            add_issue(
+                "FAILED_WITHOUT_TIMESTAMP",
+                (
+                    "Pembayaran GAGAL tidak memiliki "
+                    "payment_failed_at."
+                ),
+                "critical"
+            )
+
+
+        if not failure_reason:
+
+            add_issue(
+                "FAILED_WITHOUT_REASON",
+                (
+                    "Pembayaran GAGAL tidak memiliki "
+                    "alasan kegagalan."
+                ),
+                "critical"
+            )
+
+
+        if (
+            failure_actor
+            not in (
+                PAYMENT_AUDIT_ACTOR_DRIVER,
+                PAYMENT_AUDIT_ACTOR_SYSTEM,
+            )
+        ):
+
+            add_issue(
+                "FAILED_INVALID_ACTOR",
+                (
+                    "Aktor pembayaran gagal "
+                    "tidak valid."
+                ),
+                "critical"
+            )
+
+
+        if paid_at:
+
+            add_issue(
+                "FAILED_WITH_PAID_AT",
+                (
+                    "Pembayaran GAGAL tidak boleh "
+                    "memiliki paid_at."
+                ),
+                "critical"
+            )
+
+
+        if refunded_at:
+
+            add_issue(
+                "FAILED_WITH_REFUND",
+                (
+                    "Pembayaran GAGAL tidak boleh "
+                    "memiliki refund aktual."
+                ),
+                "critical"
+            )
+
+
+        if not bool(
+            order.get(
+                "has_failed_audit"
+            )
+        ):
+
+            add_issue(
+                "FAILED_AUDIT_MISSING",
+                (
+                    "Status GAGAL tidak memiliki "
+                    "PAYMENT_FAILED audit."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # EXPIRED
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_EXPIRED
+    ):
+
+        if not payment_method_is_digital(
+            payment_method
+        ):
+
+            add_issue(
+                "EXPIRED_NON_DIGITAL",
+                (
+                    "Status KEDALUWARSA digunakan "
+                    "pada pembayaran non-digital."
+                ),
+                "critical"
+            )
+
+
+        if not expires_at:
+
+            add_issue(
+                "EXPIRED_WITHOUT_DEADLINE",
+                (
+                    "Pembayaran KEDALUWARSA tidak "
+                    "memiliki payment_expires_at."
+                ),
+                "critical"
+            )
+
+
+        if paid_at:
+
+            add_issue(
+                "EXPIRED_WITH_PAID_AT",
+                (
+                    "Pembayaran KEDALUWARSA tidak "
+                    "boleh memiliki paid_at."
+                ),
+                "critical"
+            )
+
+
+        if (
+            failed_at
+            or
+            failure_reason
+        ):
+
+            add_issue(
+                "EXPIRED_WITH_FAILURE_METADATA",
+                (
+                    "Pembayaran KEDALUWARSA memiliki "
+                    "metadata kegagalan yang tidak sesuai."
+                ),
+                "warning"
+            )
+
+
+        if refunded_at:
+
+            add_issue(
+                "EXPIRED_WITH_REFUND",
+                (
+                    "Pembayaran KEDALUWARSA tidak "
+                    "boleh mempunyai refund aktual."
+                ),
+                "critical"
+            )
+
+
+        if not bool(
+            order.get(
+                "has_expired_audit"
+            )
+        ):
+
+            add_issue(
+                "EXPIRED_AUDIT_MISSING",
+                (
+                    "Status KEDALUWARSA tidak memiliki "
+                    "PAYMENT_EXPIRED audit SYSTEM."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # REFUNDED
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_REFUNDED
+    ):
+
+        if not paid_at:
+
+            add_issue(
+                "REFUNDED_WITHOUT_PAID_AT",
+                (
+                    "Pembayaran DIKEMBALIKAN tidak "
+                    "memiliki paid_at pembayaran awal."
+                ),
+                "critical"
+            )
+
+
+        if not refunded_at:
+
+            add_issue(
+                "REFUNDED_WITHOUT_REFUNDED_AT",
+                (
+                    "Pembayaran DIKEMBALIKAN tidak "
+                    "memiliki payment_refunded_at."
+                ),
+                "critical"
+            )
+
+
+        if (
+            refund_amount is None
+            or
+            refund_amount <= 0
+        ):
+
+            add_issue(
+                "REFUNDED_WITHOUT_AMOUNT",
+                (
+                    "Nominal refund aktual tidak valid."
+                ),
+                "critical"
+            )
+
+
+        if (
+            payment_amount is not None
+            and
+            refund_amount is not None
+            and
+            payment_amount > 0
+            and
+            refund_amount != payment_amount
+        ):
+
+            add_issue(
+                "REFUND_AMOUNT_MISMATCH",
+                (
+                    "Nominal refund tidak sama dengan "
+                    "nominal pembayaran."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # AWAITING CONFIRMATION
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_AWAITING_CONFIRMATION
+    ):
+
+        if not payment_method_is_digital(
+            payment_method
+        ):
+
+            add_issue(
+                "AWAITING_NON_DIGITAL",
+                (
+                    "MENUNGGU_KONFIRMASI hanya boleh "
+                    "digunakan untuk pembayaran digital."
+                ),
+                "critical"
+            )
+
+
+        if not order.get(
+            "payment_customer_confirmed_at"
+        ):
+
+            add_issue(
+                "AWAITING_WITHOUT_CUSTOMER_CONFIRMATION",
+                (
+                    "Pembayaran menunggu konfirmasi "
+                    "tetapi timestamp customer kosong."
+                ),
+                "warning"
+            )
+
+
+        if paid_at:
+
+            add_issue(
+                "AWAITING_WITH_PAID_AT",
+                (
+                    "Pembayaran MENUNGGU_KONFIRMASI "
+                    "tidak boleh mempunyai paid_at."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # PENDING DIGITAL PAYMENT
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_PENDING
+    ):
+
+        if not payment_method_is_digital(
+            payment_method
+        ):
+
+            add_issue(
+                "PENDING_NON_DIGITAL",
+                (
+                    "MENUNGGU_PEMBAYARAN hanya "
+                    "digunakan untuk QRIS / Transfer."
+                ),
+                "warning"
+            )
+
+
+        if paid_at:
+
+            add_issue(
+                "PENDING_WITH_PAID_AT",
+                (
+                    "Pembayaran MENUNGGU_PEMBAYARAN "
+                    "tidak boleh mempunyai paid_at."
+                ),
+                "critical"
+            )
+
+
+    # ========================================================
+    # CASH UNPAID
+    # ========================================================
+
+    elif (
+        payment_status
+        == PAYMENT_STATUS_UNPAID
+    ):
+
+        if (
+            payment_method
+            != PAYMENT_METHOD_CASH
+        ):
+
+            add_issue(
+                "UNPAID_DIGITAL",
+                (
+                    "BELUM_DIBAYAR seharusnya digunakan "
+                    "untuk pembayaran tunai."
+                ),
+                "warning"
+            )
+
+
+        if paid_at:
+
+            add_issue(
+                "UNPAID_WITH_PAID_AT",
+                (
+                    "Pembayaran BELUM_DIBAYAR memiliki "
+                    "paid_at yang tidak sesuai."
+                ),
+                "critical"
+            )
+
+
+    return issues
+
+def get_payment_reconciliation_report(
+    limit=PAYMENT_RECONCILIATION_LIMIT_DEFAULT
+):
+
+    try:
+
+        limit = int(
+            limit
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        limit = (
+            PAYMENT_RECONCILIATION_LIMIT_DEFAULT
+        )
+
+
+    limit = max(
+        1,
+        min(
+            limit,
+            PAYMENT_RECONCILIATION_LIMIT_MAX
+        )
+    )
+
+
+    connection = None
+
+
+    report = {
+
+        "scanned":
+            0,
+
+        "healthy":
+            0,
+
+        "issue_orders":
+            0,
+
+        "critical":
+            0,
+
+        "warnings":
+            0,
+
+        "items":
+            [],
+    }
+
+
+    try:
+
+        connection = (
+            get_db()
+        )
+
+
+        rows = (
+            connection.execute(
+                """
+                SELECT
+
+                    o.*,
+
+
+                    EXISTS (
+                        SELECT 1
+
+                        FROM payment_audit_logs pal
+
+                        WHERE
+                            pal.order_id = o.id
+
+                            AND pal.action = ?
+
+                            AND pal.new_payment_status = ?
+
+                        LIMIT 1
+                    ) AS has_failed_audit,
+
+
+                    EXISTS (
+                        SELECT 1
+
+                        FROM payment_audit_logs pal
+
+                        WHERE
+                            pal.order_id = o.id
+
+                            AND pal.action = ?
+
+                            AND pal.actor_type = ?
+
+                            AND pal.new_payment_status = ?
+
+                        LIMIT 1
+                    ) AS has_expired_audit
+
+                FROM orders o
+
+                WHERE
+                    o.status != ?
+
+                ORDER BY
+                    o.id DESC
+
+                LIMIT ?
+                """,
+                (
+                    PAYMENT_AUDIT_ACTION_FAILED,
+
+                    PAYMENT_STATUS_FAILED,
+
+                    PAYMENT_AUDIT_ACTION_EXPIRED,
+
+                    PAYMENT_AUDIT_ACTOR_SYSTEM,
+
+                    PAYMENT_STATUS_EXPIRED,
+
+                    STATUS_REJECTED,
+
+                    limit,
+                )
+            )
+            .fetchall()
+        )
+
+
+        for row in rows:
+
+            order = dict(
+                row
+            )
+
+
+            report[
+                "scanned"
+            ] += 1
+
+
+            issues = (
+                get_payment_reconciliation_issues(
+                    order
+                )
+            )
+
+
+            if not issues:
+
+                report[
+                    "healthy"
+                ] += 1
+
+
+                continue
+
+
+            report[
+                "issue_orders"
+            ] += 1
+
+
+            for issue in issues:
+
+                if (
+                    issue.get(
+                        "severity"
+                    )
+                    == "critical"
+                ):
+
+                    report[
+                        "critical"
+                    ] += 1
+
+                else:
+
+                    report[
+                        "warnings"
+                    ] += 1
+
+
+            report[
+                "items"
+            ].append(
+                {
+                    "id":
+                        order.get(
+                            "id"
+                        ),
+
+                    "order_code":
+                        order.get(
+                            "order_code"
+                        ),
+
+                    "customer_name":
+                        order.get(
+                            "customer_name"
+                        ),
+
+                    "payment_method":
+                        order.get(
+                            "payment_method"
+                        ),
+
+                    "payment_status":
+                        get_effective_payment_status(
+                            order
+                        ),
+
+                    "issues":
+                        issues,
+                }
+            )
+
+
+        return report
+
+
+    except Exception:
+
+        app.logger.exception(
+            "[PAYMENT RECONCILIATION ERROR]"
+        )
+
+
+        return report
+
+
+    finally:
+
+        if connection is not None:
+
+            connection.close()
     
 # ============================================================
 # PHASE 20I.3
@@ -13064,7 +13955,7 @@ def confirm_manual_payment(
     }
 
 # ============================================================
-# PHASE 20E
+# PHASE 20I.4F
 # DRIVER PAYMENT CONTROL SUMMARY
 # ============================================================
 
@@ -13072,9 +13963,12 @@ def get_driver_payment_control_summary():
 
     connection = None
 
+
     try:
 
-        connection = get_db()
+        connection = (
+            get_db()
+        )
 
 
         row = (
@@ -13082,38 +13976,43 @@ def get_driver_payment_control_summary():
                 """
                 SELECT
 
-                    SUM(
-                        CASE
-                            WHEN payment_status = ?
-                            THEN 1
-                            ELSE 0
-                        END
+                    COUNT(*) FILTER (
+                        WHERE
+                            payment_status = ?
                     ) AS needs_confirmation,
 
-                    SUM(
-                        CASE
-                            WHEN
-                                COALESCE(
-                                    payment_status,
-                                    ?
-                                )
-                                IN (?, ?)
-                            THEN 1
-                            ELSE 0
-                        END
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            COALESCE(
+                                payment_status,
+                                ?
+                            )
+                            IN (?, ?)
                     ) AS waiting_payment,
 
-                    SUM(
-                        CASE
-                            WHEN payment_status = ?
-                            THEN 1
-                            ELSE 0
-                        END
-                    ) AS paid
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            payment_status = ?
+                    ) AS paid,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            payment_status = ?
+                    ) AS failed,
+
+
+                    COUNT(*) FILTER (
+                        WHERE
+                            payment_status = ?
+                    ) AS expired
 
                 FROM orders
 
-                WHERE status != ?
+                WHERE
+                    status != ?
                 """,
                 (
                     PAYMENT_STATUS_AWAITING_CONFIRMATION,
@@ -13125,6 +14024,10 @@ def get_driver_payment_control_summary():
 
                     PAYMENT_STATUS_PAID,
 
+                    PAYMENT_STATUS_FAILED,
+
+                    PAYMENT_STATUS_EXPIRED,
+
                     STATUS_REJECTED,
                 )
             )
@@ -13132,30 +14035,70 @@ def get_driver_payment_control_summary():
         )
 
 
+        needs_confirmation = int(
+            row.get(
+                "needs_confirmation"
+            )
+            or 0
+        )
+
+
+        waiting_payment = int(
+            row.get(
+                "waiting_payment"
+            )
+            or 0
+        )
+
+
+        paid = int(
+            row.get(
+                "paid"
+            )
+            or 0
+        )
+
+
+        failed = int(
+            row.get(
+                "failed"
+            )
+            or 0
+        )
+
+
+        expired = int(
+            row.get(
+                "expired"
+            )
+            or 0
+        )
+
+
         return {
 
             "needs_confirmation":
-                int(
-                    row[
-                        "needs_confirmation"
-                    ]
-                    or 0
-                ),
+                needs_confirmation,
 
             "waiting_payment":
-                int(
-                    row[
-                        "waiting_payment"
-                    ]
-                    or 0
-                ),
+                waiting_payment,
 
             "paid":
-                int(
-                    row[
-                        "paid"
-                    ]
-                    or 0
+                paid,
+
+            "failed":
+                failed,
+
+            "expired":
+                expired,
+
+            "attention":
+                (
+                    needs_confirmation
+                    +
+                    failed
+                    +
+                    expired
                 ),
         }
 
@@ -13177,6 +14120,15 @@ def get_driver_payment_control_summary():
 
             "paid":
                 0,
+
+            "failed":
+                0,
+
+            "expired":
+                0,
+
+            "attention":
+                0,
         }
 
 
@@ -13187,7 +14139,7 @@ def get_driver_payment_control_summary():
             connection.close()
             
 # ============================================================
-# PHASE 20E
+# PHASE 20I.4F
 # DRIVER PAYMENT ORDERS
 # ============================================================
 
@@ -13208,6 +14160,10 @@ def get_driver_payment_orders(
     ).strip().upper()
 
 
+    # ========================================================
+    # ALLOWED FILTERS
+    # ========================================================
+
     allowed_filters = {
 
         "all",
@@ -13217,13 +14173,26 @@ def get_driver_payment_orders(
         "waiting",
 
         "paid",
+
+        "failed",
+
+        "expired",
     }
 
 
-    if payment_filter not in allowed_filters:
+    if (
+        payment_filter
+        not in allowed_filters
+    ):
 
-        payment_filter = "all"
+        payment_filter = (
+            "all"
+        )
 
+
+    # ========================================================
+    # ALLOWED METHODS
+    # ========================================================
 
     allowed_methods = {
 
@@ -13237,10 +14206,19 @@ def get_driver_payment_orders(
     }
 
 
-    if payment_method not in allowed_methods:
+    if (
+        payment_method
+        not in allowed_methods
+    ):
 
-        payment_method = "ALL"
+        payment_method = (
+            "ALL"
+        )
 
+
+    # ========================================================
+    # BASE CONDITIONS
+    # ========================================================
 
     conditions = [
 
@@ -13257,7 +14235,7 @@ def get_driver_payment_orders(
 
 
     # ========================================================
-    # PAYMENT STATUS FILTER
+    # PAYMENT FILTER
     # ========================================================
 
     if (
@@ -13317,8 +14295,38 @@ def get_driver_payment_orders(
         )
 
 
+    elif (
+        payment_filter
+        == "failed"
+    ):
+
+        conditions.append(
+            "payment_status = ?"
+        )
+
+
+        parameters.append(
+            PAYMENT_STATUS_FAILED
+        )
+
+
+    elif (
+        payment_filter
+        == "expired"
+    ):
+
+        conditions.append(
+            "payment_status = ?"
+        )
+
+
+        parameters.append(
+            PAYMENT_STATUS_EXPIRED
+        )
+
+
     # ========================================================
-    # PAYMENT METHOD FILTER
+    # METHOD FILTER
     # ========================================================
 
     if (
@@ -13352,6 +14360,10 @@ def get_driver_payment_orders(
     )
 
 
+    # ========================================================
+    # QUERY
+    # ========================================================
+
     sql = f"""
         SELECT
 
@@ -13371,6 +14383,10 @@ def get_driver_payment_orders(
 
             created_at,
 
+            accepted_at,
+
+            completed_at,
+
             payment_method,
 
             payment_status,
@@ -13381,19 +14397,59 @@ def get_driver_payment_orders(
 
             payment_driver_confirmed_at,
 
+            payment_expires_at,
+
             paid_at,
 
-            payment_updated_at
+            payment_updated_at,
+
+            payment_failed_at,
+
+            payment_failure_reason,
+
+            payment_failure_actor
 
         FROM orders
 
         WHERE
             {where_sql}
 
-        ORDER BY id DESC
+        ORDER BY
+
+            CASE
+
+                WHEN
+                    payment_status = ?
+                THEN 0
+
+                WHEN
+                    payment_status = ?
+                THEN 1
+
+                WHEN
+                    payment_status = ?
+                THEN 2
+
+                ELSE 3
+
+            END ASC,
+
+            id DESC
 
         LIMIT 100
     """
+
+
+    # Parameter tambahan ORDER BY.
+    parameters.extend(
+        [
+            PAYMENT_STATUS_AWAITING_CONFIRMATION,
+
+            PAYMENT_STATUS_FAILED,
+
+            PAYMENT_STATUS_EXPIRED,
+        ]
+    )
 
 
     connection = None
@@ -13401,10 +14457,12 @@ def get_driver_payment_orders(
 
     try:
 
-        connection = get_db()
+        connection = (
+            get_db()
+        )
 
 
-        return (
+        rows = (
             connection.execute(
                 sql,
                 tuple(
@@ -13413,6 +14471,123 @@ def get_driver_payment_orders(
             )
             .fetchall()
         )
+
+
+        payment_orders = []
+
+
+        for row in rows:
+
+            payment_order = dict(
+                row
+            )
+
+
+            # =================================================
+            # PAYMENT METHOD LABEL
+            # =================================================
+
+            row_method = str(
+                payment_order.get(
+                    "payment_method"
+                )
+                or PAYMENT_METHOD_CASH
+            ).strip().upper()
+
+
+            if (
+                row_method
+                == PAYMENT_METHOD_QRIS
+            ):
+
+                payment_order[
+                    "payment_method_label"
+                ] = "QRIS"
+
+
+            elif (
+                row_method
+                == PAYMENT_METHOD_BANK_TRANSFER
+            ):
+
+                payment_order[
+                    "payment_method_label"
+                ] = "Transfer Bank"
+
+
+            else:
+
+                payment_order[
+                    "payment_method_label"
+                ] = "Tunai"
+
+
+            # =================================================
+            # PAYMENT STATUS LABEL
+            # =================================================
+
+            row_status = str(
+                payment_order.get(
+                    "payment_status"
+                )
+                or PAYMENT_STATUS_UNPAID
+            ).strip().upper()
+
+
+            payment_status_labels = {
+
+                PAYMENT_STATUS_UNPAID:
+                    "Belum Dibayar",
+
+                PAYMENT_STATUS_PENDING:
+                    "Menunggu Pembayaran",
+
+                PAYMENT_STATUS_AWAITING_CONFIRMATION:
+                    "Perlu Konfirmasi",
+
+                PAYMENT_STATUS_PAID:
+                    "Dibayar",
+
+                PAYMENT_STATUS_FAILED:
+                    "Gagal",
+
+                PAYMENT_STATUS_EXPIRED:
+                    "Kedaluwarsa",
+
+                PAYMENT_STATUS_REFUNDED:
+                    "Dikembalikan",
+            }
+
+
+            payment_order[
+                "payment_status_label"
+            ] = (
+                payment_status_labels.get(
+                    row_status,
+                    row_status
+                )
+            )
+
+
+            # =================================================
+            # EXPIRY STATE
+            # =================================================
+
+            payment_order[
+                "payment_expiry"
+            ] = (
+                get_payment_expiry_state(
+                    payment_order
+                )
+            )
+
+
+            payment_orders.append(
+                payment_order
+            )
+
+
+        return payment_orders
 
 
     finally:
@@ -24373,6 +25548,10 @@ def driver_payments():
         "waiting",
 
         "paid",
+
+        "failed",
+
+        "expired",
     }
 
 
@@ -24401,6 +25580,12 @@ def driver_payments():
     payment_control = (
         get_driver_payment_control_summary()
     )
+    
+    payment_reconciliation = (
+        get_payment_reconciliation_report(
+            limit=100
+        )
+    )
 
 
     payment_orders = (
@@ -24422,6 +25607,9 @@ def driver_payments():
 
         payment_control=
             payment_control,
+
+        payment_reconciliation=
+            payment_reconciliation,
 
         payment_filter=
             payment_filter,
