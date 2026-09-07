@@ -11906,7 +11906,116 @@ def api_reverse_geocode():
             }
         ), 400
 
+# ============================================================
+# DESTINATION GEOCODE API
+# FINAL LOCATION
+# ============================================================
 
+@app.route(
+    "/api/geocode-location",
+    methods=["POST"]
+)
+def api_geocode_location():
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+
+    query = str(
+        data.get(
+            "query"
+        )
+        or ""
+    ).strip()
+
+
+    if len(query) < 3:
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    "Alamat tujuan terlalu pendek.",
+            }
+        ), 400
+
+
+    try:
+
+        location = (
+            geocode_location(
+                query
+            )
+        )
+
+
+        if not location:
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        (
+                            "Alamat tujuan belum ditemukan. "
+                            "Silakan pilih titik tujuan langsung di peta."
+                        ),
+                }
+            ), 404
+
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "location": {
+
+                    "lat":
+                        location[
+                            "lat"
+                        ],
+
+                    "lon":
+                        location[
+                            "lon"
+                        ],
+
+                    "display_name":
+                        location[
+                            "display_name"
+                        ],
+                },
+            }
+        )
+
+
+    except requests.RequestException:
+
+        app.logger.exception(
+            "[DESTINATION GEOCODE ERROR]"
+        )
+
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    (
+                        "Pencarian alamat tujuan sedang mengalami kendala. "
+                        "Silakan pilih titik langsung di peta."
+                    ),
+            }
+        ), 503
 # ============================================================
 # CHECK FARE API
 # ============================================================

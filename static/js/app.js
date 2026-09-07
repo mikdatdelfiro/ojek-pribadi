@@ -83,6 +83,84 @@ const locationButtonText =
         "locationButtonText"
     );
 
+// ------------------------------------------------------------
+// DESTINATION MAP PICKER
+// ------------------------------------------------------------
+
+const destinationMapButton =
+    getElement(
+        "destinationMapButton",
+        false
+    );
+
+const destinationMapStatus =
+    getElement(
+        "destinationMapStatus",
+        false
+    );
+
+const destinationMapModal =
+    getElement(
+        "destinationMapModal",
+        false
+    );
+
+const destinationMapClose =
+    getElement(
+        "destinationMapClose",
+        false
+    );
+
+const destinationMapConfirm =
+    getElement(
+        "destinationMapConfirm",
+        false
+    );
+
+const destinationMapCanvas =
+    getElement(
+        "destinationMapCanvas",
+        false
+    );
+
+const destinationMapMessage =
+    getElement(
+        "destinationMapMessage",
+        false
+    );
+
+    const destinationAddressDetail =
+    getElement(
+        "destinationAddressDetail",
+        false
+    );
+
+
+const destinationAddressValue =
+    getElement(
+        "destinationAddressValue",
+        false
+    );
+
+
+const destinationAddressCoordinates =
+    getElement(
+        "destinationAddressCoordinates",
+        false
+    );
+
+
+const destinationGoogleMapsLink =
+    getElement(
+        "destinationGoogleMapsLink",
+        false
+    );
+
+const destinationAddressDetailInput =
+    getElement(
+        "destinationAddressDetailInput",
+        false
+    );
 
 // ------------------------------------------------------------
 // CHECK FARE
@@ -263,6 +341,24 @@ let pickupCoordinates =
     null;
 
 
+let destinationCoordinates =
+    null;
+
+
+let destinationMap =
+    null;
+
+
+let destinationMarker =
+    null;
+
+
+let destinationDraftCoordinates =
+    null;
+
+let destinationDraftAddress =
+    "";    
+
 let currentRoute =
     null;
 
@@ -282,6 +378,31 @@ let serviceOpen =
             === "true"
         )
         : true;
+
+// ============================================================
+// DESTINATION COORDINATE BRIDGE
+// ============================================================
+
+window.OjekDestination =
+    window.OjekDestination
+    ||
+    {
+        coordinates:
+            null,
+
+        address:
+            ""
+    };
+
+    if (
+    typeof window.OjekDestination.detail
+    !== "string"
+) {
+
+    window.OjekDestination.detail =
+        "";
+
+}
 
 
 // ============================================================
@@ -1145,6 +1266,1264 @@ if (pickupInput) {
 
 }
 
+// ============================================================
+// DESTINATION MAP PICKER
+// ============================================================
+
+function setDestinationMapStatus(
+    message,
+    selected = false
+) {
+
+    if (destinationMapStatus) {
+
+        destinationMapStatus.textContent =
+            message;
+
+    }
+
+
+    if (destinationMapButton) {
+
+        destinationMapButton
+            .classList
+            .toggle(
+                "is-selected",
+                Boolean(
+                    selected
+                )
+            );
+
+    }
+
+}
+
+
+function setDestinationMapMessage(
+    message
+) {
+
+    if (!destinationMapMessage) {
+
+        return;
+
+    }
+
+
+    destinationMapMessage.textContent =
+        message;
+
+}
+
+// ============================================================
+// DESTINATION ADDRESS DETAIL
+// ============================================================
+
+function renderDestinationAddressDetail(
+    address,
+    latitude,
+    longitude
+) {
+
+    const lat =
+        Number(
+            latitude
+        );
+
+
+    const lon =
+        Number(
+            longitude
+        );
+
+
+    if (
+        !Number.isFinite(
+            lat
+        )
+        ||
+        !Number.isFinite(
+            lon
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const cleanAddress =
+        String(
+            address
+            || "Titik tujuan dipilih"
+        ).trim();
+
+
+    if (destinationAddressValue) {
+
+        destinationAddressValue.textContent =
+            cleanAddress;
+
+    }
+
+
+    if (destinationAddressCoordinates) {
+
+        destinationAddressCoordinates.textContent =
+            (
+                `${lat.toFixed(6)}, `
+                +
+                `${lon.toFixed(6)}`
+            );
+
+    }
+
+
+    if (destinationGoogleMapsLink) {
+
+        const coordinates =
+            `${lat},${lon}`;
+
+
+        destinationGoogleMapsLink.href =
+            (
+                "https://www.google.com/maps/search/"
+                +
+                "?api=1&query="
+                +
+                encodeURIComponent(
+                    coordinates
+                )
+            );
+
+    }
+
+
+    if (destinationAddressDetail) {
+
+        destinationAddressDetail.hidden =
+            false;
+
+    }
+
+}
+
+
+function createDestinationMarkerIcon() {
+
+    if (
+        !window.L
+        ||
+        !window.L.divIcon
+    ) {
+
+        return null;
+
+    }
+
+
+    return window.L.divIcon(
+        {
+
+            className:
+                "destination-selected-marker",
+
+            html:
+                "<span><i>●</i></span>",
+
+            iconSize:
+                [
+                    42,
+                    42
+                ],
+
+            iconAnchor:
+                [
+                    10,
+                    38
+                ]
+
+        }
+    );
+
+}
+
+
+function setDestinationDraftPoint(
+    latitude,
+    longitude,
+    moveMap = false
+) {
+
+    if (!destinationMap) {
+
+        return;
+
+    }
+
+
+    const lat =
+        Number(
+            latitude
+        );
+
+
+    const lon =
+        Number(
+            longitude
+        );
+
+
+    if (
+        !Number.isFinite(
+            lat
+        )
+        ||
+        !Number.isFinite(
+            lon
+        )
+        ||
+        lat < -90
+        ||
+        lat > 90
+        ||
+        lon < -180
+        ||
+        lon > 180
+    ) {
+
+        return;
+
+    }
+
+
+    destinationDraftCoordinates = {
+
+        lat:
+            lat,
+
+        lon:
+            lon
+
+    };
+
+
+    if (destinationMarker) {
+
+        destinationMarker.setLatLng(
+            [
+                lat,
+                lon
+            ]
+        );
+
+    }
+
+    else {
+
+        const markerOptions = {};
+
+
+        const markerIcon =
+            createDestinationMarkerIcon();
+
+
+        if (markerIcon) {
+
+            markerOptions.icon =
+                markerIcon;
+
+        }
+
+
+        destinationMarker =
+            window.L
+                .marker(
+                    [
+                        lat,
+                        lon
+                    ],
+                    markerOptions
+                )
+                .addTo(
+                    destinationMap
+                );
+
+    }
+
+
+    if (moveMap) {
+
+        destinationMap.setView(
+            [
+                lat,
+                lon
+            ],
+            Math.max(
+                destinationMap.getZoom(),
+                16
+            )
+        );
+
+    }
+
+
+    if (destinationMapConfirm) {
+
+        destinationMapConfirm.disabled =
+            false;
+
+    }
+
+
+    setDestinationMapMessage(
+        (
+            "Titik dipilih: "
+            +
+            `${lat.toFixed(6)}, `
+            +
+            `${lon.toFixed(6)}. `
+            +
+            "Tekan “Gunakan Titik Ini”."
+        )
+    );
+
+}
+
+
+function initializeDestinationMap() {
+
+    if (
+        destinationMap
+        ||
+        !destinationMapCanvas
+    ) {
+
+        return Boolean(
+            destinationMap
+        );
+
+    }
+
+
+    if (
+        !window.L
+        ||
+        typeof window.L.map
+        !== "function"
+    ) {
+
+        setDestinationMapMessage(
+            "Peta belum dapat dimuat. Periksa koneksi internet lalu coba kembali."
+        );
+
+
+        return false;
+
+    }
+
+
+    const initialCoordinates =
+        destinationCoordinates
+        ||
+        pickupCoordinates;
+
+
+    const initialLat =
+        initialCoordinates
+            ? initialCoordinates.lat
+            : -4.10;
+
+
+    const initialLon =
+        initialCoordinates
+            ? initialCoordinates.lon
+            : 104.65;
+
+
+    const initialZoom =
+        initialCoordinates
+            ? 16
+            : 11;
+
+
+    destinationMap =
+        window.L.map(
+            destinationMapCanvas,
+            {
+                zoomControl:
+                    true,
+
+                attributionControl:
+                    true
+            }
+        )
+        .setView(
+            [
+                initialLat,
+                initialLon
+            ],
+            initialZoom
+        );
+
+
+    // ============================================================
+// SATELLITE HYBRID MAP
+// SATELLITE + ROAD + PLACE LABELS
+// ============================================================
+
+const satelliteLayer =
+    window.L.tileLayer(
+        (
+            "https://server.arcgisonline.com/"
+            +
+            "ArcGIS/rest/services/"
+            +
+            "World_Imagery/MapServer/"
+            +
+            "tile/{z}/{y}/{x}"
+        ),
+        {
+            maxZoom:
+                20,
+
+            attribution:
+                (
+                    "Tiles © Esri"
+                )
+        }
+    );
+
+
+const labelLayer =
+    window.L.tileLayer(
+        (
+            "https://services.arcgisonline.com/"
+            +
+            "ArcGIS/rest/services/"
+            +
+            "Reference/"
+            +
+            "World_Boundaries_and_Places/"
+            +
+            "MapServer/tile/{z}/{y}/{x}"
+        ),
+        {
+            maxZoom:
+                20,
+
+            pane:
+                "overlayPane"
+        }
+    );
+
+
+satelliteLayer.addTo(
+    destinationMap
+);
+
+
+labelLayer.addTo(
+    destinationMap
+);
+
+
+destinationMap.on(
+    "click",
+    async function (
+        event
+    ) {
+
+        if (
+            !event
+            ||
+            !event.latlng
+        ) {
+
+            return;
+
+        }
+
+
+        const latitude =
+            event.latlng.lat;
+
+
+        const longitude =
+            event.latlng.lng;
+
+
+        setDestinationDraftPoint(
+            latitude,
+            longitude,
+            false
+        );
+
+
+        setDestinationMapMessage(
+            "Mencari detail alamat titik tujuan..."
+        );
+
+
+        const address =
+            await reverseGeocodeDestinationPoint(
+                latitude,
+                longitude
+            );
+
+
+        destinationDraftAddress =
+            address;
+
+
+        renderDestinationAddressDetail(
+            (
+                address
+                ||
+                "Titik tujuan yang dipilih"
+            ),
+            latitude,
+            longitude
+        );
+
+
+        setDestinationMapMessage(
+            "Periksa alamat lalu tekan “Gunakan Titik Ini”."
+        );
+
+    }
+);
+
+
+return true;
+
+}
+
+
+// ============================================================
+// SEARCH DESTINATION ADDRESS
+// ============================================================
+
+async function geocodeDestinationText(
+    query
+) {
+
+    query =
+        String(
+            query
+            || ""
+        ).trim();
+
+
+    if (
+        query.length
+        <
+        3
+    ) {
+
+        return null;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/geocode-location",
+                {
+
+                    method:
+                        "POST",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                query:
+                                    query
+                            }
+                        )
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data
+            ||
+            data.success !== true
+            ||
+            !data.location
+        ) {
+
+            return null;
+
+        }
+
+
+        const latitude =
+            Number(
+                data.location.lat
+            );
+
+
+        const longitude =
+            Number(
+                data.location.lon
+            );
+
+
+        if (
+            !Number.isFinite(
+                latitude
+            )
+            ||
+            !Number.isFinite(
+                longitude
+            )
+        ) {
+
+            return null;
+
+        }
+
+
+        return {
+
+            lat:
+                latitude,
+
+            lon:
+                longitude,
+
+            display_name:
+                String(
+                    data.location.display_name
+                    || query
+                ).trim(),
+
+        };
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[DESTINATION SEARCH]",
+            error
+        );
+
+
+        return null;
+
+    }
+
+}
+
+// ============================================================
+// FOCUS MAP TO DESTINATION INPUT
+// ============================================================
+
+async function focusMapToDestinationInput() {
+
+    if (
+        !destinationMap
+        ||
+        !destinationInput
+    ) {
+
+        return false;
+
+    }
+
+
+    // Jika sebelumnya sudah ada koordinat valid,
+    // langsung gunakan.
+    if (destinationCoordinates) {
+
+        setDestinationDraftPoint(
+            destinationCoordinates.lat,
+            destinationCoordinates.lon,
+            true
+        );
+
+
+        const address =
+            await reverseGeocodeDestinationPoint(
+                destinationCoordinates.lat,
+                destinationCoordinates.lon
+            );
+
+
+        destinationDraftAddress =
+            address;
+
+
+        renderDestinationAddressDetail(
+            (
+                address
+                ||
+                destinationInput.value.trim()
+            ),
+            destinationCoordinates.lat,
+            destinationCoordinates.lon
+        );
+
+
+        return true;
+
+    }
+
+
+    const query =
+        destinationInput
+            .value
+            .trim();
+
+
+    if (
+        query.length
+        <
+        3
+    ) {
+
+        return false;
+
+    }
+
+
+    setDestinationMapMessage(
+        "Mencari alamat tujuan..."
+    );
+
+
+    const location =
+        await geocodeDestinationText(
+            query
+        );
+
+
+    if (!location) {
+
+        setDestinationMapMessage(
+            (
+                "Alamat belum ditemukan otomatis. "
+                +
+                "Silakan sentuh titik tujuan langsung pada peta."
+            )
+        );
+
+
+        return false;
+
+    }
+
+
+    destinationDraftAddress =
+        location.display_name;
+
+
+    setDestinationDraftPoint(
+        location.lat,
+        location.lon,
+        true
+    );
+
+
+    renderDestinationAddressDetail(
+        location.display_name,
+        location.lat,
+        location.lon
+    );
+
+
+    setDestinationMapMessage(
+        "Peta diarahkan ke alamat tujuan yang ditemukan."
+    );
+
+
+    return true;
+
+}
+
+async function openDestinationMap() {
+
+    hideMessage();
+
+
+    if (!destinationMapModal) {
+
+        return;
+
+    }
+
+
+    destinationMapModal
+        .classList
+        .add(
+            "is-open"
+        );
+
+
+    destinationMapModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document.body.classList.add(
+        "no-scroll"
+    );
+
+
+    window.setTimeout(
+    async function () {
+
+            if (!initializeDestinationMap()) {
+
+                return;
+
+            }
+
+
+            destinationMap.invalidateSize();
+
+            const destinationFound =
+                await focusMapToDestinationInput();
+
+
+            if (destinationFound) {
+
+                return;
+
+            }
+
+
+            const preferredCoordinates =
+                destinationCoordinates
+                ||
+                pickupCoordinates;
+
+
+            if (preferredCoordinates) {
+
+                setDestinationDraftPoint(
+                    preferredCoordinates.lat,
+                    preferredCoordinates.lon,
+                    true
+                );
+
+            }
+
+            else if (
+                navigator.geolocation
+            ) {
+
+                setDestinationMapMessage(
+                    "Mencari area Anda agar peta lebih mudah digunakan..."
+                );
+
+
+                navigator.geolocation
+                    .getCurrentPosition(
+                        function (
+                            position
+                        ) {
+
+                            if (!destinationMap) {
+
+                                return;
+
+                            }
+
+
+                            destinationMap.setView(
+                                [
+                                    position.coords.latitude,
+                                    position.coords.longitude
+                                ],
+                                15
+                            );
+
+
+                            setDestinationMapMessage(
+                                "Sentuh titik tujuan yang tepat pada peta."
+                            );
+
+                        },
+
+                        function () {
+
+                            setDestinationMapMessage(
+                                "Sentuh titik tujuan yang tepat pada peta."
+                            );
+
+                        },
+
+                        {
+                            enableHighAccuracy:
+                                true,
+
+                            timeout:
+                                8000,
+
+                            maximumAge:
+                                60000
+                        }
+                    );
+
+            }
+
+            else {
+
+                setDestinationMapMessage(
+                    "Sentuh titik tujuan yang tepat pada peta."
+                );
+
+            }
+
+        },
+        80
+    );
+
+}
+
+
+function closeDestinationMap() {
+
+    if (!destinationMapModal) {
+
+        return;
+
+    }
+
+
+    destinationMapModal
+        .classList
+        .remove(
+            "is-open"
+        );
+
+
+    destinationMapModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    document.body.classList.remove(
+        "no-scroll"
+    );
+
+}
+
+
+async function reverseGeocodeDestinationPoint(
+    latitude,
+    longitude
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/reverse-geocode",
+                {
+
+                    method:
+                        "POST",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+
+                                lat:
+                                    latitude,
+
+                                lon:
+                                    longitude
+
+                            }
+                        )
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            response.ok
+            &&
+            data
+            &&
+            data.success
+            &&
+            data.location
+            &&
+            data.location.display_name
+        ) {
+
+            return String(
+                data.location.display_name
+            ).trim();
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "[DESTINATION MAP] Reverse geocode gagal:",
+            error
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+if (destinationMapButton) {
+
+    destinationMapButton.addEventListener(
+        "click",
+        openDestinationMap
+    );
+
+}
+
+
+if (destinationMapClose) {
+
+    destinationMapClose.addEventListener(
+        "click",
+        closeDestinationMap
+    );
+
+}
+
+
+if (destinationMapModal) {
+
+    destinationMapModal.addEventListener(
+        "click",
+        function (
+            event
+        ) {
+
+            if (
+                event.target
+                &&
+                event.target.hasAttribute(
+                    "data-destination-map-close"
+                )
+            ) {
+
+                closeDestinationMap();
+
+            }
+
+        }
+    );
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    function (
+        event
+    ) {
+
+        if (
+            event.key
+            === "Escape"
+            &&
+            destinationMapModal
+            &&
+            destinationMapModal
+                .classList
+                .contains(
+                    "is-open"
+                )
+        ) {
+
+            closeDestinationMap();
+
+        }
+
+    }
+);
+
+
+if (destinationMapConfirm) {
+
+    destinationMapConfirm.addEventListener(
+        "click",
+        async function () {
+
+            if (!destinationDraftCoordinates) {
+
+                setDestinationMapMessage(
+                    "Pilih titik tujuan pada peta terlebih dahulu."
+                );
+
+
+                return;
+
+            }
+
+
+            destinationMapConfirm.disabled =
+                true;
+
+
+            const selectedCoordinates = {
+
+                lat:
+                    destinationDraftCoordinates.lat,
+
+                lon:
+                    destinationDraftCoordinates.lon
+
+            };
+
+
+            const currentDestinationText =
+                destinationInput
+                    ? destinationInput.value.trim()
+                    : "";
+
+
+            setDestinationMapMessage(
+                "Menyimpan titik tujuan..."
+            );
+
+
+            const reverseAddress =
+                (
+                    destinationDraftAddress
+                    ||
+                    await reverseGeocodeDestinationPoint(
+                        selectedCoordinates.lat,
+                        selectedCoordinates.lon
+                    )
+                );
+
+            const addressDetail =
+                    destinationAddressDetailInput
+                        ? destinationAddressDetailInput
+                            .value
+                            .trim()
+                        : "";
+
+
+            destinationCoordinates =
+                selectedCoordinates;
+
+            window.OjekDestination.detail =
+                addressDetail;
+
+
+            if (destinationInput) {
+
+    const baseAddress =
+        (
+            reverseAddress
+            ||
+            currentDestinationText
+            ||
+            (
+                "Titik tujuan "
+                +
+                `(${selectedCoordinates.lat.toFixed(5)}, `
+                +
+                `${selectedCoordinates.lon.toFixed(5)})`
+            )
+        );
+
+
+    destinationInput.value =
+        addressDetail
+            ? (
+                baseAddress
+                +
+                " • "
+                +
+                addressDetail
+            )
+            : baseAddress;
+
+}
+
+
+            setDestinationMapStatus(
+                (
+                    reverseAddress
+                        ? (
+                            "Titik tujuan dipilih • "
+                            +
+                            shortenLocation(
+                                reverseAddress
+                            )
+                        )
+                        : "Titik tujuan berhasil dipilih"
+                ),
+                true
+            );
+
+
+            invalidateFare();
+
+
+            closeDestinationMap();
+
+
+            destinationMapConfirm.disabled =
+                false;
+
+        }
+    );
+
+}
 
 // ============================================================
 // DESTINATION EDIT
@@ -1154,7 +2533,34 @@ if (destinationInput) {
 
     destinationInput.addEventListener(
         "input",
-        invalidateFare
+        function () {
+
+            if (window.OjekDestination) {
+
+                window.OjekDestination.coordinates =
+                    null;
+
+
+                window.OjekDestination.address =
+                    "";
+
+            }
+
+            window.OjekDestination.detail =
+                "";
+
+
+            if (destinationAddressDetailInput) {
+
+                destinationAddressDetailInput.value =
+                    "";
+
+            }
+
+
+            invalidateFare();
+
+        }
     );
 
 }
@@ -1202,7 +2608,7 @@ function setFareLoading(
 // CHECK FARE
 // ============================================================
 
-if (bookingForm) {
+if (bookingForm)
 
     bookingForm.addEventListener(
         "submit",
@@ -1237,7 +2643,6 @@ if (bookingForm) {
                 destinationInput
                     .value
                     .trim();
-
 
             // ------------------------------------------------
             // VALIDATION
@@ -1292,60 +2697,95 @@ if (bookingForm) {
 
 
                 // Gunakan GPS pickup jika tersedia.
-                if (pickupCoordinates) {
+if (pickupCoordinates) {
 
-                    payload.pickup_lat =
-                        pickupCoordinates.lat;
-
-
-                    payload.pickup_lon =
-                        pickupCoordinates.lon;
-
-                }
+            payload.pickup_lat =
+                pickupCoordinates.lat;
 
 
-                const response =
-                    await fetch(
-                        "/api/check-fare",
-                        {
+            payload.pickup_lon =
+                pickupCoordinates.lon;
 
-                            method:
-                                "POST",
+        }
+
+        // ============================================================
+// DESTINATION MAP COORDINATES
+// ============================================================
+
+if (
+    window.OjekDestination
+    &&
+    window.OjekDestination.coordinates
+) {
+
+    payload.destination_lat =
+        window.OjekDestination
+            .coordinates
+            .lat;
 
 
-                            headers: {
+    payload.destination_lon =
+        window.OjekDestination
+            .coordinates
+            .lon;
 
-                                "Content-Type":
-                                    "application/json",
-
-                                "Accept":
-                                    "application/json"
-
-                            },
+}
 
 
-                            body:
-                                JSON.stringify(
-                                    payload
-                                )
+                    // Jika customer memilih titik tujuan di peta,
+                    // kirim koordinat langsung ke backend.
+                    if (destinationCoordinates) {
 
-                        }
-                    );
+                        payload.destination_lat =
+                            destinationCoordinates.lat;
+
+
+                        payload.destination_lon =
+                            destinationCoordinates.lon;
+
+                    }
+
+
+                    const response =
+                        await fetch(
+                            "/api/check-fare",
+                            {
+
+                                method:
+                                    "POST",
+
+                                cache:
+                                    "no-store",
+
+                                headers: {
+
+                                    "Content-Type":
+                                        "application/json",
+
+                                    "Accept":
+                                        "application/json"
+
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    )
+
+                            }
+                        );
 
 
                 const data =
                     await response.json();
 
-                    console.log(
-                    "[CREATE ORDER RESPONSE]",
-                    data
-                );
-
 
                 if (
                     !response.ok
                     ||
-                    !data.success
+                    !data
+                    ||
+                    data.success !== true
                 ) {
 
                     throw new Error(
@@ -1416,7 +2856,6 @@ if (bookingForm) {
         }
     );
 
-}
 
 
 // ============================================================
@@ -3190,3 +4629,4 @@ refreshCustomerOrderHistory();
 console.log(
     "[APP] Ojek Pribadi customer app aktif."
 );
+

@@ -976,43 +976,69 @@ Ojek Pribadi
                     </label>
 
 
-
-
-
                     <div class="input-wrapper">
 
-                <span
-                    class="
-                        input-icon
-                        destination-icon
-                    "
-                >
-                    <img
-                        src="{{ url_for('static', filename='icons/ui/pin.svg.png') }}"
-                        alt=""
-                        class="destination-pin-icon"
-                        aria-hidden="true"
-                    >
+                        <span
+                            class="
+                                input-icon
+                                destination-icon
+                            "
+                        >
+                            <img
+                                src="{{ url_for('static', filename='icons/ui/pin.svg.png') }}"
+                                alt=""
+                                class="destination-pin-icon"
+                                aria-hidden="true"
+                            >
                         </span>
 
 
                         <input
-
                             type="text"
-
                             id="destination"
-
                             name="destination"
-
                             placeholder="Cari lokasi tujuan"
-
                             autocomplete="off"
-
                             required
-
                         >
 
                     </div>
+
+
+                    <!-- =====================================
+                         FINAL LOCATION FIX
+                         DESTINATION MAP PICKER
+                    ====================================== -->
+
+                    <button
+                        type="button"
+                        class="destination-map-button"
+                        id="destinationMapButton"
+                    >
+
+                        <span class="destination-map-button-icon">
+                            🗺
+                        </span>
+
+
+                        <span class="destination-map-button-content">
+
+                            <strong>
+                                Pilih titik tujuan di peta
+                            </strong>
+
+                            <small id="destinationMapStatus">
+                                Gunakan jika nama lokasi sulit ditemukan
+                            </small>
+
+                        </span>
+
+
+                        <span class="destination-map-button-arrow">
+                            →
+                        </span>
+
+                    </button>
 
                 </div>
 
@@ -1105,13 +1131,9 @@ Ojek Pribadi
                 ============================== -->
 
                 <button
-
                     type="submit"
-
                     class="primary-button"
-
                     id="checkFareButton"
-
                 >
 
                     <span id="buttonText">
@@ -1896,17 +1918,444 @@ Ojek Pribadi
 <!-- /.success-overlay -->
 
 
+<!-- =========================================
+     DESTINATION MAP PICKER
+========================================== -->
+
+<div
+    class="destination-map-modal"
+    id="destinationMapModal"
+    aria-hidden="true"
+>
+
+    <div
+        class="destination-map-backdrop"
+        data-destination-map-close
+    ></div>
+
+
+    <section
+        class="destination-map-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="destinationMapTitle"
+    >
+
+        <div class="destination-map-head">
+
+            <div>
+
+                <span class="result-label">
+                    PILIH TITIK TUJUAN
+                </span>
+
+                <h3 id="destinationMapTitle">
+                    Tentukan tujuan di peta
+                </h3>
+
+                <p>
+                    Geser peta lalu sentuh titik tujuan yang tepat.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="destination-map-close"
+                id="destinationMapClose"
+                aria-label="Tutup peta tujuan"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            class="destination-map-canvas"
+            id="destinationMapCanvas"
+        ></div>
+
+
+        <div
+            class="destination-map-message"
+            id="destinationMapMessage"
+            role="status"
+        >
+            Sentuh peta untuk menentukan titik tujuan.
+        </div>
+
+<!-- =========================================
+     DESTINATION ADDRESS DETAIL
+========================================== -->
+
+        <div
+            class="destination-address-detail"
+            id="destinationAddressDetail"
+            hidden
+        >
+
+            <span class="destination-address-label">
+                ALAMAT TITIK TUJUAN
+            </span>
+
+
+            <strong
+                class="destination-address-value"
+                id="destinationAddressValue"
+            >
+                -
+            </strong>
+
+
+            <span
+                class="destination-address-coordinates"
+                id="destinationAddressCoordinates"
+            >
+                -
+            </span>
+
+            <div class="destination-address-extra">
+
+                <label for="destinationAddressDetailInput">
+                    DETAIL ALAMAT
+                    <span>(Opsional)</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="destinationAddressDetailInput"
+                    placeholder="Contoh: Rumah pagar hitam, samping minimarket"
+                    autocomplete="off"
+                    maxlength="160"
+                >
+
+                <small>
+                    Tambahkan nomor rumah, gang, warna bangunan, atau patokan.
+                </small>
+
+            </div>
+
+
+            <a
+                class="destination-google-maps-link"
+                id="destinationGoogleMapsLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+
+                <span>
+                    📍 Buka di Google Maps
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </a>
+
+        </div>
+
+        <button
+            type="button"
+            class="destination-map-confirm"
+            id="destinationMapConfirm"
+            disabled
+        >
+            <span>
+                Gunakan Titik Ini
+            </span>
+
+            <span>
+                →
+            </span>
+        </button>
+
+    </section>
+
+</div>
+
 
 {% endblock %}
 
 {% block scripts %}
 
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+>
+
+<style>
+    .destination-map-button {
+        width: 100%;
+        margin-top: 10px;
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid rgba(45, 212, 160, .25);
+        border-radius: 16px;
+        background: rgba(45, 212, 160, .055);
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .destination-map-button:hover {
+        border-color: rgba(45, 212, 160, .5);
+        background: rgba(45, 212, 160, .085);
+    }
+
+    .destination-map-button-icon {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(45, 212, 160, .12);
+        font-size: 18px;
+    }
+
+    .destination-map-button-content {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .destination-map-button-content strong {
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .destination-map-button-content small {
+        opacity: .62;
+        font-size: 10px;
+        line-height: 1.35;
+    }
+
+    .destination-map-button.is-selected {
+        border-color: rgba(45, 212, 160, .72);
+        background: rgba(45, 212, 160, .11);
+    }
+
+    .destination-map-button.is-selected small {
+        opacity: 1;
+        color: #2dd4a0;
+    }
+
+    .destination-map-button-arrow {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        background: rgba(255,255,255,.92);
+        color: #062117;
+        font-size: 15px;
+    }
+
+    .destination-map-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 18px;
+    }
+
+    .destination-map-modal.is-open {
+        display: flex;
+    }
+
+    .destination-map-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, .72);
+        backdrop-filter: blur(8px);
+    }
+
+    .destination-map-card {
+        position: relative;
+        z-index: 1;
+        width: min(620px, 100%);
+        max-height: calc(100vh - 36px);
+        overflow: auto;
+        border: 1px solid rgba(45, 212, 160, .25);
+        border-radius: 24px;
+        background: #071711;
+        box-shadow: 0 24px 80px rgba(0,0,0,.5);
+        padding: 18px;
+    }
+
+    .destination-map-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+    }
+
+    .destination-map-head h3 {
+        margin: 4px 0 4px;
+        font-size: 21px;
+    }
+
+    .destination-map-head p {
+        margin: 0;
+        opacity: .65;
+        font-size: 12px;
+    }
+
+    .destination-map-close {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 22px;
+    }
+
+    .destination-map-canvas {
+        width: 100%;
+        height: min(48vh, 390px);
+        min-height: 300px;
+        overflow: hidden;
+        border-radius: 18px;
+        background: #0d2118;
+    }
+
+    .destination-map-message {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255,255,255,.045);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .destination-map-confirm {
+        width: 100%;
+        min-height: 52px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        cursor: pointer;
+        font-weight: 800;
+        background: #2dd4a0;
+        color: #061710;
+    }
+
+    .destination-map-confirm:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+    .destination-selected-marker {
+        background: transparent;
+        border: 0;
+    }
+
+    .destination-selected-marker span {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 50% 50% 50% 10%;
+        transform: rotate(-45deg);
+        background: #ff2152;
+        border: 3px solid #fff;
+        box-shadow: 0 7px 20px rgba(0,0,0,.4);
+        font-size: 16px;
+    }
+
+    .destination-selected-marker span i {
+        transform: rotate(45deg);
+        font-style: normal;
+    }
+
+
+    .destination-address-detail {
+        margin-top: 12px;
+        padding: 14px;
+        border: 1px solid rgba(45, 212, 160, .18);
+        border-radius: 16px;
+        background: rgba(45, 212, 160, .055);
+    }
+
+    .destination-address-detail[hidden] {
+        display: none;
+    }
+
+    .destination-address-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #2dd4a0;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .12em;
+    }
+
+    .destination-address-value {
+        display: block;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .destination-address-coordinates {
+        display: block;
+        margin-top: 7px;
+        opacity: .55;
+        font-size: 10px;
+        font-family: monospace;
+    }
+
+    .destination-google-maps-link {
+        margin-top: 11px;
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 12px;
+        border-radius: 12px;
+        background: rgba(45, 212, 160, .11);
+        color: #2dd4a0;
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (min-width: 700px) {
+        .destination-map-modal {
+            align-items: center;
+        }
+    }
+</style>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
 <script
     src="{{ url_for(
         'static',
         filename='js/app.js',
-        v='phase20i-fixed'
+        v='destination-fixed-v6.1'
     ) }}"
 ></script>
+
 
 {% endblock %}
