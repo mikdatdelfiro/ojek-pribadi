@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+{{ order.order_code }} • Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+<section class="customer-order-detail-page">
+
+    <div class="customer-order-detail">
+
+        <a
+            href="{{ url_for('customer_orders') }}"
+            class="customer-order-back"
+        >
+            ← Riwayat Pesanan
+        </a>
+
+
+        <div class="customer-order-detail-header">
+
+            <small>
+                PESANAN
+            </small>
+
+            <h1>
+                {{ order.order_code }}
+            </h1>
+
+            <span>
+                {{ order.status }}
+            </span>
+
+        </div>
+
+
+        <div class="customer-order-detail-card">
+
+            <small>
+                LOKASI JEMPUT
+            </small>
+
+            <p>
+                {{ order.pickup }}
+            </p>
+
+
+            <small>
+                TUJUAN
+            </small>
+
+            <p>
+                {{ order.destination }}
+            </p>
+
+
+            {% if order.note %}
+
+            <small>
+                CATATAN
+            </small>
+
+            <p>
+                {{ order.note }}
+            </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="customer-order-detail-grid">
+
+            <div>
+
+                <small>
+                    JARAK
+                </small>
+
+                <strong>
+                    {{ order.distance_km }} km
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    ESTIMASI
+                </small>
+
+                <strong>
+                    {{ order.duration_minutes }} menit
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    TARIF
+                </small>
+
+                <strong>
+                    {{ order.fare|rupiah }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    PEMBAYARAN
+                </small>
+
+                <strong>
+                    {{
+                        payment.status
+                        if payment
+                        else "-"
+                    }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="customer-order-created">
+
+            Dibuat:
+            {{ order.created_at }}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<style>
+
+.customer-order-detail-page {
+    min-height: 100vh;
+    padding: 70px 18px;
+}
+
+.customer-order-detail {
+    width: min(560px, 100%);
+    margin: auto;
+}
+
+.customer-order-back {
+    color: rgba(255,255,255,.55);
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.customer-order-detail-header {
+    margin: 28px 0 18px;
+}
+
+.customer-order-detail-header small,
+.customer-order-detail-card small,
+.customer-order-detail-grid small {
+    color: #2dd4a0;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .11em;
+}
+
+.customer-order-detail-header h1 {
+    margin: 5px 0;
+    font-size: 29px;
+}
+
+.customer-order-detail-header span {
+    color: #2dd4a0;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.customer-order-detail-card {
+    padding: 20px;
+    border: 1px solid rgba(45,212,160,.18);
+    border-radius: 20px;
+    background: rgba(7,23,17,.9);
+}
+
+.customer-order-detail-card p {
+    margin: 5px 0 20px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.customer-order-detail-card p:last-child {
+    margin-bottom: 0;
+}
+
+.customer-order-detail-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.customer-order-detail-grid > div {
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+}
+
+.customer-order-detail-grid strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+.customer-order-created {
+    margin-top: 16px;
+    color: rgba(255,255,255,.4);
+    font-size: 10px;
+}
+
+</style>
+
+{% endblock %}

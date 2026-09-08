@@ -4623,6 +4623,117 @@ if (clearCustomerHistoryButton) {
 refreshCustomerOrderHistory();
 
 // ============================================================
+// PHASE 23
+// CUSTOMER ACCOUNT MENU
+// ============================================================
+
+const customerNavMenuButton =
+    document.getElementById(
+        "customerNavMenuButton"
+    );
+
+
+const customerNavMenu =
+    document.getElementById(
+        "customerNavMenu"
+    );
+
+
+function closeCustomerNavMenu() {
+
+    if (!customerNavMenu) {
+        return;
+    }
+
+
+    customerNavMenu.hidden =
+        true;
+
+
+    if (customerNavMenuButton) {
+
+        customerNavMenuButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+    }
+
+}
+
+
+if (
+    customerNavMenuButton
+    &&
+    customerNavMenu
+) {
+
+    customerNavMenuButton.addEventListener(
+        "click",
+        function(event) {
+
+            event.stopPropagation();
+
+
+            const willOpen =
+                customerNavMenu.hidden;
+
+
+            customerNavMenu.hidden =
+                !willOpen;
+
+
+            customerNavMenuButton.setAttribute(
+                "aria-expanded",
+                willOpen
+                    ? "true"
+                    : "false"
+            );
+
+        }
+    );
+
+
+    customerNavMenu.addEventListener(
+        "click",
+        function(event) {
+
+            event.stopPropagation();
+
+        }
+    );
+
+
+    document.addEventListener(
+        "click",
+        function() {
+
+            closeCustomerNavMenu();
+
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key
+                ===
+                "Escape"
+            ) {
+
+                closeCustomerNavMenu();
+
+            }
+
+        }
+    );
+
+}
+
+// ============================================================
 // APP READY
 // ============================================================
 

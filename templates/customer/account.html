@@ -1,0 +1,834 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Akun Saya • Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+<section class="customer-account-page">
+
+    <div class="customer-account-card">
+
+        <div class="customer-account-top">
+
+            <a href="{{ url_for('index') }}">
+                ← Beranda
+            </a>
+
+            <span>
+                AKUN CUSTOMER
+            </span>
+
+        </div>
+
+        <!-- =====================================================
+     PHASE 25
+     CUSTOMER NOTIFICATION CENTER
+===================================================== -->
+
+<section
+    class="customer-notification-center"
+    id="customerNotificationCenter"
+    data-csrf-token="{{ customer_csrf_token() }}"
+>
+
+    <button
+        type="button"
+        class="customer-notification-toggle"
+        id="customerNotificationToggle"
+        aria-expanded="false"
+    >
+
+        <span>
+            🔔 Notifikasi
+        </span>
+
+        <span
+            class="customer-notification-count"
+            id="customerNotificationCount"
+            hidden
+        >
+            0
+        </span>
+
+    </button>
+
+
+    <div
+        class="customer-notification-panel"
+        id="customerNotificationPanel"
+        hidden
+    >
+
+        <div class="customer-notification-head">
+
+            <strong>
+                Notifikasi
+            </strong>
+
+            <button
+                type="button"
+                id="customerNotificationReadAll"
+            >
+                Tandai semua dibaca
+            </button>
+
+        </div>
+
+
+        <div id="customerNotificationList">
+
+            <p class="customer-notification-empty">
+                Belum ada notifikasi.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+        <div class="customer-account-profile">
+
+            <div class="customer-account-avatar">
+                {{
+                    customer.name[0]|upper
+                    if customer.name
+                    else "C"
+                }}
+            </div>
+
+
+            <div>
+
+                <small>
+                    AKUN SAYA
+                </small>
+
+                <h1>
+                    {{ customer.name }}
+                </h1>
+
+                <p>
+                    {{ customer.whatsapp }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if error %}
+
+        <div class="customer-account-message error">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        {% if success %}
+
+        <div class="customer-account-message success">
+            {{ success }}
+        </div>
+
+        {% endif %}
+
+        <!-- =====================================================
+     PHASE 24
+     ACTIVE ORDER DASHBOARD
+===================================================== -->
+
+<section
+    class="customer-active-dashboard"
+    id="customerActiveDashboard"
+>
+
+    <div class="customer-active-heading">
+
+        <div>
+
+            <small>
+                PERJALANAN
+            </small>
+
+            <h2>
+                Pesanan Aktif
+            </h2>
+
+        </div>
+
+
+        <span
+            class="customer-active-refresh"
+            id="customerActiveRefresh"
+        >
+            LIVE
+        </span>
+
+    </div>
+
+
+    <div id="customerActiveOrders">
+
+        {% if active_orders %}
+
+            {% for order in active_orders %}
+
+            <a
+                href="{{ url_for(
+                    'customer_order_detail',
+                    order_code=order.order_code
+                ) }}"
+                class="customer-active-order"
+            >
+
+                <div class="customer-active-top">
+
+                    <strong>
+                        {{ order.order_code }}
+                    </strong>
+
+                    <span>
+                        {{ order.status }}
+                    </span>
+
+                </div>
+
+
+                <div class="customer-active-route">
+
+                    <div>
+                        <small>
+                            JEMPUT
+                        </small>
+
+                        <p>
+                            {{ order.pickup }}
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <small>
+                            TUJUAN
+                        </small>
+
+                        <p>
+                            {{ order.destination }}
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="customer-active-bottom">
+
+                    <span>
+                        {{ order.distance_km }} km
+                    </span>
+
+                    <strong>
+                        {{ order.fare|rupiah }}
+                    </strong>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+
+        {% else %}
+
+        <div
+            class="customer-active-empty"
+            id="customerActiveEmpty"
+        >
+
+            <strong>
+                Tidak ada pesanan aktif.
+            </strong>
+
+            <p>
+                Pesanan baru Anda akan muncul di sini.
+            </p>
+
+            <a href="{{ url_for('index') }}">
+                Pesan Perjalanan
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+        <a
+            href="{{ url_for('customer_orders') }}"
+            class="customer-orders-button"
+        >
+            <span>
+                Riwayat Pesanan
+            </span>
+
+            <span>
+                →
+            </span>
+        </a>
+
+        <!-- PROFILE -->
+
+        <form
+            method="POST"
+            class="customer-account-section"
+        >
+
+            <input
+                type="hidden"
+                name="_csrf_token"
+                value="{{ customer_csrf_token() }}"
+            >
+
+            <input
+                type="hidden"
+                name="action"
+                value="profile"
+            >
+
+
+            <div class="customer-account-heading">
+
+                <small>
+                    PROFIL
+                </small>
+
+                <h2>
+                    Informasi akun
+                </h2>
+
+            </div>
+
+
+            <label>
+                Nama
+            </label>
+
+            <input
+                type="text"
+                name="name"
+                value="{{ customer.name }}"
+                maxlength="80"
+                required
+            >
+
+
+            <label>
+                Nomor WhatsApp
+            </label>
+
+            <input
+                type="tel"
+                name="whatsapp"
+                value="{{ customer.whatsapp }}"
+                inputmode="tel"
+                required
+            >
+
+
+            <button type="submit">
+                <span>
+                    Simpan Profil
+                </span>
+
+                <span>
+                    →
+                </span>
+            </button>
+
+        </form>
+
+
+        <!-- PASSWORD -->
+
+        <form
+            method="POST"
+            class="customer-account-section"
+        >
+
+            <input
+                type="hidden"
+                name="_csrf_token"
+                value="{{ customer_csrf_token() }}"
+            >
+
+            <input
+                type="hidden"
+                name="action"
+                value="password"
+            >
+
+
+            <div class="customer-account-heading">
+
+                <small>
+                    KEAMANAN
+                </small>
+
+                <h2>
+                    Ganti password
+                </h2>
+
+            </div>
+
+
+            <label>
+                Password Saat Ini
+            </label>
+
+            <input
+                type="password"
+                name="current_password"
+                autocomplete="current-password"
+                required
+            >
+
+
+            <label>
+                Password Baru
+            </label>
+
+            <input
+                type="password"
+                name="new_password"
+                minlength="8"
+                maxlength="128"
+                autocomplete="new-password"
+                required
+            >
+
+
+            <label>
+                Konfirmasi Password Baru
+            </label>
+
+            <input
+                type="password"
+                name="new_password_confirmation"
+                minlength="8"
+                maxlength="128"
+                autocomplete="new-password"
+                required
+            >
+
+
+            <button type="submit">
+                <span>
+                    Ubah Password
+                </span>
+
+                <span>
+                    →
+                </span>
+            </button>
+
+        </form>
+
+
+        <!-- LOGOUT -->
+
+        <form
+            method="POST"
+            action="{{ url_for('customer_logout') }}"
+        >
+
+            <input
+                type="hidden"
+                name="_csrf_token"
+                value="{{ customer_csrf_token() }}"
+            >
+
+
+            <button
+                type="submit"
+                class="customer-logout-button"
+            >
+                Keluar dari Akun
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+<style>
+
+.customer-account-page {
+    min-height: 100vh;
+    padding: 70px 18px;
+    display: flex;
+    justify-content: center;
+}
+
+.customer-account-card {
+    width: min(520px, 100%);
+}
+
+.customer-account-top {
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.customer-account-top a {
+    color: rgba(255,255,255,.55);
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.customer-account-top span {
+    color: #2dd4a0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .13em;
+}
+
+.customer-account-profile {
+    margin-bottom: 18px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(45,212,160,.18);
+    border-radius: 24px;
+    background: rgba(7,23,17,.94);
+}
+
+.customer-account-avatar {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: #2dd4a0;
+    color: #04130d;
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.customer-account-profile small,
+.customer-account-heading small {
+    color: #2dd4a0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .12em;
+}
+
+.customer-account-profile h1 {
+    margin: 3px 0;
+    font-size: 23px;
+}
+
+.customer-account-profile p {
+    margin: 0;
+    opacity: .55;
+    font-size: 12px;
+}
+
+.customer-account-section {
+    margin-top: 16px;
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 22px;
+    background: rgba(7,23,17,.85);
+}
+
+.customer-account-heading {
+    margin-bottom: 18px;
+}
+
+.customer-account-heading h2 {
+    margin: 4px 0 0;
+    font-size: 18px;
+}
+
+.customer-account-section label {
+    display: block;
+    margin: 14px 0 7px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.customer-account-section input {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 13px;
+    outline: none;
+    background: rgba(255,255,255,.045);
+    color: white;
+}
+
+.customer-account-section input:focus {
+    border-color: rgba(45,212,160,.7);
+}
+
+.customer-account-section button {
+    width: 100%;
+    min-height: 52px;
+    margin-top: 18px;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 0;
+    border-radius: 14px;
+    background: #2dd4a0;
+    color: #04130d;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.customer-account-message {
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 13px;
+    font-size: 12px;
+}
+
+.customer-account-message.success {
+    background: rgba(45,212,160,.10);
+    color: #2dd4a0;
+}
+
+.customer-account-message.error {
+    background: rgba(255,70,90,.10);
+}
+
+.customer-logout-button {
+    width: 100%;
+    min-height: 50px;
+    margin-top: 16px;
+    border: 1px solid rgba(255,70,90,.22);
+    border-radius: 14px;
+    background: rgba(255,70,90,.07);
+    color: #ff657d;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.customer-orders-button {
+    width: 100%;
+    min-height: 54px;
+    margin-bottom: 16px;
+    padding: 0 18px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(45,212,160,.22);
+    border-radius: 15px;
+    background: rgba(45,212,160,.08);
+    color: #2dd4a0;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+/* ==========================================================
+   PHASE 24
+   ACTIVE ORDER DASHBOARD
+========================================================== */
+
+.customer-active-dashboard {
+    margin-bottom: 16px;
+    padding: 20px;
+    border: 1px solid rgba(45, 212, 160, .18);
+    border-radius: 22px;
+    background: rgba(7, 23, 17, .88);
+}
+
+
+.customer-active-heading {
+    margin-bottom: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.customer-active-heading small {
+    color: #2dd4a0;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .13em;
+}
+
+
+.customer-active-heading h2 {
+    margin: 4px 0 0;
+    font-size: 18px;
+}
+
+
+.customer-active-refresh {
+    padding: 6px 9px;
+
+    border: 1px solid rgba(45, 212, 160, .2);
+    border-radius: 999px;
+
+    background: rgba(45, 212, 160, .07);
+    color: #2dd4a0;
+
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+
+.customer-active-order {
+    display: block;
+
+    margin-top: 10px;
+    padding: 16px;
+
+    border: 1px solid rgba(45, 212, 160, .15);
+    border-radius: 17px;
+
+    background: rgba(255, 255, 255, .025);
+
+    color: #ffffff;
+    text-decoration: none;
+}
+
+
+.customer-active-top,
+.customer-active-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+
+.customer-active-top strong {
+    font-size: 12px;
+}
+
+
+.customer-active-top span {
+    color: #2dd4a0;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+
+.customer-active-route {
+    margin: 15px 0;
+}
+
+
+.customer-active-route div + div {
+    margin-top: 11px;
+}
+
+
+.customer-active-route small {
+    color: rgba(255, 255, 255, .35);
+    font-size: 8px;
+    font-weight: 900;
+}
+
+
+.customer-active-route p {
+    margin: 4px 0 0;
+
+    color: rgba(255, 255, 255, .82);
+
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+.customer-active-bottom {
+    padding-top: 11px;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .06);
+
+    color: rgba(255, 255, 255, .45);
+
+    font-size: 10px;
+}
+
+
+.customer-active-bottom strong {
+    color: #ffffff;
+}
+
+
+.customer-active-empty {
+    padding: 20px 10px 8px;
+
+    text-align: center;
+}
+
+
+.customer-active-empty strong {
+    font-size: 12px;
+}
+
+
+.customer-active-empty p {
+    margin: 6px 0 12px;
+
+    color: rgba(255, 255, 255, .45);
+
+    font-size: 10px;
+}
+
+
+.customer-active-empty a {
+    display: inline-flex;
+
+    padding: 10px 14px;
+
+    border-radius: 11px;
+
+    background: #2dd4a0;
+    color: #04130d;
+
+    text-decoration: none;
+
+    font-size: 10px;
+    font-weight: 900;
+}
+
+</style>
+
+{% block scripts %}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/customer_account.js',
+        v='phase24'
+    ) }}"
+></script>
+
+{% endblock %}
+
+{% endblock %}

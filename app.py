@@ -35,6 +35,11 @@ from flask import (
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash,
+)
+
 
 # ============================================================
 # PATHS + ENVIRONMENT
@@ -421,6 +426,58 @@ app.wsgi_app = ProxyFix(
     x_host=1
 )
 
+# ============================================================
+# CUSTOMER PRIVATE PAGE CACHE SECURITY
+# ============================================================
+
+@app.after_request
+def disable_customer_private_cache(
+    response
+):
+
+    path = str(
+        request.path
+        or ""
+    )
+
+
+    private_customer_page = (
+        path == "/"
+        or
+        path.startswith(
+            "/customer/account"
+        )
+        or
+        path.startswith(
+            "/customer/orders"
+        )
+    )
+
+
+    if private_customer_page:
+
+        response.headers[
+            "Cache-Control"
+        ] = (
+            "no-store, "
+            "no-cache, "
+            "must-revalidate, "
+            "max-age=0, "
+            "private"
+        )
+
+
+        response.headers[
+            "Pragma"
+        ] = "no-cache"
+
+
+        response.headers[
+            "Expires"
+        ] = "0"
+
+
+    return response
 
 # ============================================================
 # STARTUP DIAGNOSTICS
@@ -477,6 +534,31 @@ print(
     )
 )
 
+# ============================================================
+# PHASE 22A
+# CUSTOMER ACCOUNT FOUNDATION
+# ============================================================
+
+CUSTOMER_SESSION_ID_KEY = (
+    "customer_account_id"
+)
+
+CUSTOMER_SESSION_NAME_KEY = (
+    "customer_account_name"
+)
+
+CUSTOMER_CSRF_SESSION_KEY = (
+    "customer_csrf_token"
+)
+
+
+CUSTOMER_NAME_MIN_LENGTH = 2
+
+CUSTOMER_NAME_MAX_LENGTH = 80
+
+CUSTOMER_PASSWORD_MIN_LENGTH = 8
+
+CUSTOMER_PASSWORD_MAX_LENGTH = 128
 
 # ============================================================
 # FARE CONFIGURATION
@@ -641,6 +723,88 @@ STATUS_MESSAGES = {
 
     STATUS_REJECTED:
         "Pesanan ditolak.",
+}
+
+# ============================================================
+# PHASE 25
+# CUSTOMER NOTIFICATION COPY
+# ============================================================
+
+CUSTOMER_NOTIFICATION_STATUS_MAP = {
+
+    STATUS_ACCEPTED: {
+        "event_type":
+            "ORDER_ACCEPTED",
+
+        "title":
+            "Pesanan diterima",
+
+        "message":
+            (
+                "Driver sudah menerima pesanan Anda "
+                "dan akan segera memproses perjalanan."
+            ),
+    },
+
+
+    STATUS_TO_PICKUP: {
+        "event_type":
+            "DRIVER_TO_PICKUP",
+
+        "title":
+            "Driver menuju lokasi jemput",
+
+        "message":
+            (
+                "Driver sedang menuju lokasi "
+                "penjemputan Anda."
+            ),
+    },
+
+
+    STATUS_PICKED_UP: {
+        "event_type":
+            "TRIP_STARTED",
+
+        "title":
+            "Perjalanan dimulai",
+
+        "message":
+            (
+                "Anda sudah dijemput. "
+                "Perjalanan menuju tujuan telah dimulai."
+            ),
+    },
+
+
+    STATUS_COMPLETED: {
+        "event_type":
+            "TRIP_COMPLETED",
+
+        "title":
+            "Perjalanan selesai",
+
+        "message":
+            (
+                "Perjalanan Anda telah selesai. "
+                "Terima kasih menggunakan Ojek Pribadi."
+            ),
+    },
+
+
+    STATUS_REJECTED: {
+        "event_type":
+            "ORDER_REJECTED",
+
+        "title":
+            "Pesanan belum dapat diterima",
+
+        "message":
+            (
+                "Driver belum dapat menerima "
+                "pesanan Anda saat ini."
+            ),
+    },
 }
 
 # ============================================================
@@ -1655,6 +1819,225 @@ def init_database():
             """
         )
         
+        # ====================================================
+        # PHASE 22A
+        # CUSTOMER ACCOUNTS
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS
+            customer_accounts (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                name TEXT NOT NULL,
+
+                whatsapp TEXT NOT NULL,
+
+                whatsapp_normalized TEXT
+                    NOT NULL,
+
+                password_hash TEXT
+                    NOT NULL,
+
+                is_active BOOLEAN
+                    NOT NULL
+                    DEFAULT TRUE,
+
+                created_at TEXT
+                    NOT NULL,
+
+                updated_at TEXT
+                    NOT NULL,
+
+                last_login_at TEXT
+            )
+            """
+        )
+
+
+        # ====================================================
+        # CUSTOMER WHATSAPP UNIQUE
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            idx_customer_accounts_whatsapp
+
+            ON customer_accounts(
+                whatsapp_normalized
+            )
+            """
+        )
+
+
+        # ====================================================
+        # CUSTOMER ACTIVE INDEX
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_customer_accounts_active
+
+            ON customer_accounts(
+                is_active
+            )
+            """
+        )
+
+
+        # ====================================================
+        # PHASE 22A
+        # ORDER -> CUSTOMER ACCOUNT
+        # ====================================================
+
+        connection.execute(
+            """
+            ALTER TABLE orders
+
+            ADD COLUMN IF NOT EXISTS
+            customer_id BIGINT
+            """
+        )
+        
+        connection.execute(
+            """
+            DO $$
+
+            BEGIN
+
+                IF NOT EXISTS (
+
+                    SELECT 1
+
+                    FROM pg_constraint
+
+                    WHERE
+                        conname =
+                        'fk_orders_customer_account'
+
+                ) THEN
+
+                    ALTER TABLE orders
+
+                    ADD CONSTRAINT
+                    fk_orders_customer_account
+
+                    FOREIGN KEY (
+                        customer_id
+                    )
+
+                    REFERENCES
+                    customer_accounts(
+                        id
+                    )
+
+                    ON DELETE SET NULL;
+
+                END IF;
+
+            END $$;
+            """
+        )
+        
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_orders_customer_id
+
+            ON orders(
+                customer_id
+            )
+            """
+        )
+        
+                # ====================================================
+        # PHASE 25
+        # CUSTOMER NOTIFICATIONS
+        # ====================================================
+
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS
+            customer_notifications (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                customer_id BIGINT NOT NULL,
+
+                order_id BIGINT,
+
+                order_code TEXT,
+
+                event_type TEXT NOT NULL,
+
+                title TEXT NOT NULL,
+
+                message TEXT NOT NULL,
+
+                is_read BOOLEAN
+                    NOT NULL
+                    DEFAULT FALSE,
+
+                created_at TEXT NOT NULL,
+
+                read_at TEXT,
+
+                CONSTRAINT
+                fk_customer_notification_customer
+
+                    FOREIGN KEY (
+                        customer_id
+                    )
+
+                    REFERENCES
+                    customer_accounts(
+                        id
+                    )
+
+                    ON DELETE CASCADE,
+
+                CONSTRAINT
+                fk_customer_notification_order
+
+                    FOREIGN KEY (
+                        order_id
+                    )
+
+                    REFERENCES orders(
+                        id
+                    )
+
+                    ON DELETE SET NULL,
+
+                CONSTRAINT
+                uq_customer_notification_order_event
+
+                    UNIQUE (
+                        order_id,
+                        event_type
+                    )
+            )
+            """
+        )
+
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_customer_notifications_customer
+
+            ON customer_notifications(
+                customer_id,
+                is_read,
+                id DESC
+            )
+            """
+        )
+        
         # ----------------------------------------------------
         # PHASE 19E
         # REVIEW SECURITY TOKEN
@@ -2263,7 +2646,6 @@ def init_database():
                 payment_refund_requested_at IS NOT NULL
             """
         )
-
 
         # ----------------------------------------------------
         # SETTINGS
@@ -11287,10 +11669,578 @@ def build_trip(
             ),
     }
 
+# ============================================================
+# PHASE 22A
+# CUSTOMER ACCOUNT HELPERS
+# ============================================================
+
+def hash_customer_password(
+    password
+):
+
+    password = str(
+        password
+        or ""
+    )
+
+
+    if (
+        len(password)
+        <
+        CUSTOMER_PASSWORD_MIN_LENGTH
+    ):
+
+        raise ValueError(
+            (
+                "Password minimal "
+                f"{CUSTOMER_PASSWORD_MIN_LENGTH} karakter."
+            )
+        )
+
+
+    if (
+        len(password)
+        >
+        CUSTOMER_PASSWORD_MAX_LENGTH
+    ):
+
+        raise ValueError(
+            "Password terlalu panjang."
+        )
+
+
+    return generate_password_hash(
+        password
+    )
+
+
+def customer_password_is_valid(
+    password_hash,
+    password
+):
+
+    password_hash = str(
+        password_hash
+        or ""
+    ).strip()
+
+
+    password = str(
+        password
+        or ""
+    )
+
+
+    if (
+        not password_hash
+        or
+        not password
+    ):
+
+        return False
+
+
+    try:
+
+        return check_password_hash(
+            password_hash,
+            password
+        )
+
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return False
+    
+def get_customer_account_by_id(
+    connection,
+    customer_id
+):
+
+    try:
+
+        customer_id = int(
+            customer_id
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
+
+
+    return (
+        connection.execute(
+            """
+            SELECT
+
+                id,
+
+                name,
+
+                whatsapp,
+
+                whatsapp_normalized,
+
+                password_hash,
+
+                is_active,
+
+                created_at,
+
+                updated_at,
+
+                last_login_at
+
+            FROM customer_accounts
+
+            WHERE id = ?
+
+            LIMIT 1
+            """,
+            (
+                customer_id,
+            )
+        )
+        .fetchone()
+    )
+
+
+def get_customer_account_by_whatsapp(
+    connection,
+    whatsapp
+):
+
+    normalized = (
+        normalize_whatsapp_number(
+            whatsapp
+        )
+    )
+
+
+    if not normalized:
+
+        return None
+
+
+    return (
+        connection.execute(
+            """
+            SELECT *
+
+            FROM customer_accounts
+
+            WHERE
+                whatsapp_normalized = ?
+
+            LIMIT 1
+            """,
+            (
+                normalized,
+            )
+        )
+        .fetchone()
+    )
+    
+def customer_is_authenticated():
+
+    customer_id = (
+        session.get(
+            CUSTOMER_SESSION_ID_KEY
+        )
+    )
+
+
+    try:
+
+        return (
+            int(customer_id)
+            > 0
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return False
+
+
+def get_current_customer_id():
+
+    if not customer_is_authenticated():
+
+        return None
+
+
+    return int(
+        session[
+            CUSTOMER_SESSION_ID_KEY
+        ]
+    )
+
+
+def clear_customer_session():
+
+    session.pop(
+        CUSTOMER_SESSION_ID_KEY,
+        None
+    )
+
+    session.pop(
+        CUSTOMER_SESSION_NAME_KEY,
+        None
+    )
+
+    session.pop(
+        CUSTOMER_CSRF_SESSION_KEY,
+        None
+    )
+
+
+def set_customer_session(
+    customer
+):
+
+    if not customer:
+
+        raise ValueError(
+            "Customer tidak valid."
+        )
+
+
+    session[
+        CUSTOMER_SESSION_ID_KEY
+    ] = int(
+        customer[
+            "id"
+        ]
+    )
+
+
+    session[
+        CUSTOMER_SESSION_NAME_KEY
+    ] = str(
+        customer[
+            "name"
+        ]
+    ).strip()
+    
+def get_customer_csrf_token():
+
+    token = (
+        session.get(
+            CUSTOMER_CSRF_SESSION_KEY
+        )
+    )
+
+
+    if not token:
+
+        token = (
+            secrets.token_urlsafe(
+                32
+            )
+        )
+
+
+        session[
+            CUSTOMER_CSRF_SESSION_KEY
+        ] = token
+
+
+    return token
+
+
+@app.template_global(
+    "customer_csrf_token"
+)
+def customer_csrf_token_template():
+
+    return (
+        get_customer_csrf_token()
+    )
+
+
+def customer_csrf_token_is_valid():
+
+    expected_token = str(
+        session.get(
+            CUSTOMER_CSRF_SESSION_KEY,
+            ""
+        )
+        or ""
+    ).strip()
+
+
+    supplied_token = str(
+        request.form.get(
+            "_csrf_token",
+            ""
+        )
+        or
+        request.headers.get(
+            "X-CSRF-Token",
+            ""
+        )
+        or ""
+    ).strip()
+
+
+    if (
+        not expected_token
+        or
+        not supplied_token
+    ):
+
+        return False
+
+
+    return secrets.compare_digest(
+        expected_token,
+        supplied_token
+    )
+    
+    # ============================================================
+# PHASE 22F
+# CUSTOMER CSRF SECURITY
+# ============================================================
+
+def customer_csrf_required(
+    view_function
+):
+
+    @wraps(
+        view_function
+    )
+    def wrapped_view(
+        *args,
+        **kwargs
+    ):
+
+        if (
+            request.method
+            in (
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+            )
+            and
+            not customer_csrf_token_is_valid()
+        ):
+
+            app.logger.warning(
+                (
+                    "[CUSTOMER CSRF BLOCKED] "
+                    f"path={request.path} "
+                    f"ip={request.remote_addr}"
+                )
+            )
+
+
+            if request.path.startswith(
+                "/api/"
+            ):
+
+                return jsonify(
+                    {
+                        "success":
+                            False,
+
+                        "message":
+                            "Permintaan keamanan tidak valid.",
+                    }
+                ), 403
+
+
+            abort(
+                403
+            )
+
+
+        return view_function(
+            *args,
+            **kwargs
+        )
+
+
+    return wrapped_view
+    
+# ============================================================
+# PHASE 22C
+# CUSTOMER ACCOUNT SECURITY
+# ============================================================
+
+def get_current_customer_account():
+
+    customer_id = (
+        get_current_customer_id()
+    )
+
+
+    if not customer_id:
+
+        return None
+
+
+    connection = get_db()
+
+
+    try:
+
+        customer = (
+            get_customer_account_by_id(
+                connection,
+                customer_id
+            )
+        )
+
+
+        if (
+            not customer
+            or
+            not customer.get(
+                "is_active"
+            )
+        ):
+
+            clear_customer_session()
+
+            return None
+
+
+        session[
+            CUSTOMER_SESSION_NAME_KEY
+        ] = str(
+            customer.get(
+                "name"
+            )
+            or ""
+        ).strip()
+
+
+        return customer
+
+
+    finally:
+
+        connection.close()
+
+
+def customer_login_required(
+    view_function
+):
+
+    @wraps(
+        view_function
+    )
+    def wrapped_view(
+        *args,
+        **kwargs
+    ):
+
+        customer = (
+            get_current_customer_account()
+        )
+
+
+        if not customer:
+
+            return redirect(
+                url_for(
+                    "customer_login"
+                )
+            )
+
+
+        return view_function(
+            *args,
+            **kwargs
+        )
+
+
+    return wrapped_view    
+
+# ============================================================
+# CUSTOMER API AUTHENTICATION
+# ============================================================
+
+def customer_api_required(
+    view_function
+):
+
+    @wraps(
+        view_function
+    )
+    def wrapped_view(
+        *args,
+        **kwargs
+    ):
+
+        customer = (
+            get_current_customer_account()
+        )
+
+
+        if not customer:
+
+            return jsonify(
+                {
+                    "success":
+                        False,
+
+                    "message":
+                        "Silakan masuk terlebih dahulu.",
+
+                    "login_required":
+                        True,
+
+                    "login_url":
+                        url_for(
+                            "customer_login"
+                        ),
+                }
+            ), 401
+
+
+        return view_function(
+            *args,
+            **kwargs
+        )
+
+
+    return wrapped_view
 
 # ============================================================
 # DRIVER AUTHENTICATION
 # ============================================================
+def clear_driver_session():
+
+    session.pop(
+        "driver_authenticated",
+        None
+    )
+
+    session.pop(
+        "driver_username",
+        None
+    )
+
+    session.pop(
+        "driver_last_activity",
+        None
+    )
+
+    session.pop(
+        DRIVER_CSRF_SESSION_KEY,
+        None
+    )
 
 def driver_is_authenticated():
 
@@ -11382,7 +12332,7 @@ def driver_login_required(
 
         if driver_session_expired():
 
-            session.clear()
+            clear_driver_session()
 
 
             return redirect(
@@ -11438,7 +12388,7 @@ def driver_api_required(
 
         if driver_session_expired():
 
-            session.clear()
+            clear_driver_session()
 
 
             return jsonify(
@@ -11610,6 +12560,1955 @@ def driver_csrf_required(
     return wrapped_view
 
 # ============================================================
+# PHASE 22B
+# CUSTOMER REGISTER & LOGIN
+# ============================================================
+
+@app.route(
+    "/customer/register",
+    methods=[
+        "GET",
+        "POST",
+    ]
+)
+def customer_register():
+
+    if customer_is_authenticated():
+
+        return redirect(
+            url_for(
+                "index"
+            )
+        )
+
+
+    error = None
+
+
+    if request.method == "POST":
+
+        if not customer_csrf_token_is_valid():
+
+            abort(
+                403
+            )
+
+
+        name = (
+            " ".join(
+                str(
+                    request.form.get(
+                        "name",
+                        ""
+                    )
+                    or ""
+                )
+                .strip()
+                .split()
+            )
+        )
+
+
+        whatsapp = (
+            clean_whatsapp(
+                request.form.get(
+                    "whatsapp",
+                    ""
+                )
+            )
+        )
+
+
+        whatsapp_normalized = (
+            normalize_whatsapp_number(
+                whatsapp
+            )
+        )
+
+
+        password = str(
+            request.form.get(
+                "password",
+                ""
+            )
+            or ""
+        )
+
+
+        password_confirmation = str(
+            request.form.get(
+                "password_confirmation",
+                ""
+            )
+            or ""
+        )
+
+
+        # ----------------------------------------------------
+        # NAME
+        # ----------------------------------------------------
+
+        if (
+            len(name)
+            <
+            CUSTOMER_NAME_MIN_LENGTH
+        ):
+
+            error = (
+                "Nama minimal "
+                f"{CUSTOMER_NAME_MIN_LENGTH} karakter."
+            )
+
+
+        elif (
+            len(name)
+            >
+            CUSTOMER_NAME_MAX_LENGTH
+        ):
+
+            error = (
+                "Nama terlalu panjang."
+            )
+
+
+        # ----------------------------------------------------
+        # WHATSAPP
+        # ----------------------------------------------------
+
+        elif (
+            len(
+                whatsapp_normalized
+            )
+            < 10
+            or
+            len(
+                whatsapp_normalized
+            )
+            > 15
+        ):
+
+            error = (
+                "Nomor WhatsApp tidak valid."
+            )
+
+
+        # ----------------------------------------------------
+        # PASSWORD CONFIRMATION
+        # ----------------------------------------------------
+
+        elif not secrets.compare_digest(
+            password,
+            password_confirmation
+        ):
+
+            error = (
+                "Konfirmasi password tidak sama."
+            )
+
+
+        if error is None:
+
+            connection = (
+                get_db()
+            )
+
+
+            try:
+
+                existing_customer = (
+                    get_customer_account_by_whatsapp(
+                        connection,
+                        whatsapp
+                    )
+                )
+
+
+                if existing_customer:
+
+                    error = (
+                        "Nomor WhatsApp sudah terdaftar. "
+                        "Silakan masuk."
+                    )
+
+
+                else:
+
+                    password_hash = (
+                        hash_customer_password(
+                            password
+                        )
+                    )
+
+
+                    timestamp = (
+                        current_timestamp()
+                    )
+
+
+                    customer = (
+                        connection.execute(
+                            """
+                            INSERT INTO customer_accounts (
+
+                                name,
+
+                                whatsapp,
+
+                                whatsapp_normalized,
+
+                                password_hash,
+
+                                is_active,
+
+                                created_at,
+
+                                updated_at,
+
+                                last_login_at
+                            )
+
+                            VALUES (
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                TRUE,
+                                ?,
+                                ?,
+                                ?
+                            )
+
+                            RETURNING
+                                id,
+                                name,
+                                whatsapp,
+                                whatsapp_normalized,
+                                is_active,
+                                created_at,
+                                updated_at,
+                                last_login_at
+                            """,
+                            (
+                                name,
+
+                                whatsapp,
+
+                                whatsapp_normalized,
+
+                                password_hash,
+
+                                timestamp,
+
+                                timestamp,
+
+                                timestamp,
+                            )
+                        )
+                        .fetchone()
+                    )
+
+
+                    connection.commit()
+
+
+                    clear_customer_session()
+
+
+                    set_customer_session(
+                        customer
+                    )
+
+
+                    return redirect(
+                        url_for(
+                            "index"
+                        )
+                    )
+
+
+            except ValueError as register_error:
+
+                connection.rollback()
+
+
+                error = str(
+                    register_error
+                )
+
+
+            except psycopg.errors.UniqueViolation:
+
+                connection.rollback()
+
+
+                error = (
+                    "Nomor WhatsApp sudah terdaftar. "
+                    "Silakan masuk."
+                )
+
+
+            except Exception:
+
+                connection.rollback()
+
+
+                app.logger.exception(
+                    "[CUSTOMER REGISTER ERROR]"
+                )
+
+
+                error = (
+                    "Pendaftaran belum berhasil. "
+                    "Silakan coba kembali."
+                )
+
+
+            finally:
+
+                connection.close()
+
+
+    return render_template(
+        "customer/register.html",
+
+        error=
+            error
+    )
+
+
+# ============================================================
+# CUSTOMER LOGIN
+# ============================================================
+
+@app.route(
+    "/customer/login",
+    methods=[
+        "GET",
+        "POST",
+    ]
+)
+def customer_login():
+
+    if customer_is_authenticated():
+
+        return redirect(
+            url_for(
+                "index"
+            )
+        )
+
+
+    error = None
+
+    blocked_seconds = 0
+
+
+    login_key = (
+        "customer:"
+        +
+        get_client_ip()
+    )
+
+
+    blocked, blocked_seconds = (
+        login_is_blocked(
+            login_key
+        )
+    )
+
+
+    if request.method == "POST":
+
+        if not customer_csrf_token_is_valid():
+
+            abort(
+                403
+            )
+
+
+        if blocked:
+
+            return render_template(
+                "customer/login.html",
+
+                error=(
+                    "Terlalu banyak percobaan masuk. "
+                    "Silakan tunggu beberapa saat."
+                ),
+
+                blocked_seconds=
+                    blocked_seconds,
+
+            ), 429
+
+
+        whatsapp = (
+            request.form.get(
+                "whatsapp",
+                ""
+            )
+        )
+
+
+        password = str(
+            request.form.get(
+                "password",
+                ""
+            )
+            or ""
+        )
+
+
+        connection = (
+            get_db()
+        )
+
+
+        try:
+
+            customer = (
+                get_customer_account_by_whatsapp(
+                    connection,
+                    whatsapp
+                )
+            )
+
+
+            valid_account = bool(
+                customer
+                and
+                customer.get(
+                    "is_active"
+                )
+            )
+
+
+            valid_password = bool(
+                valid_account
+                and
+                customer_password_is_valid(
+                    customer.get(
+                        "password_hash"
+                    ),
+                    password
+                )
+            )
+
+
+            if (
+                valid_account
+                and
+                valid_password
+            ):
+
+                clear_login_attempts(
+                    login_key
+                )
+
+
+                login_at = (
+                    current_timestamp()
+                )
+
+
+                connection.execute(
+                    """
+                    UPDATE customer_accounts
+
+                    SET
+                        last_login_at = ?,
+
+                        updated_at = ?
+
+                    WHERE id = ?
+                    """,
+                    (
+                        login_at,
+
+                        login_at,
+
+                        customer[
+                            "id"
+                        ],
+                    )
+                )
+
+
+                connection.commit()
+
+
+                clear_customer_session()
+
+
+                set_customer_session(
+                    customer
+                )
+
+
+                return redirect(
+                    url_for(
+                        "index"
+                    )
+                )
+
+
+            attempts, blocked_until = (
+                register_failed_login(
+                    login_key
+                )
+            )
+
+
+            if blocked_until:
+
+                error = (
+                    "Terlalu banyak percobaan masuk. "
+                    f"Akses dikunci selama "
+                    f"{LOGIN_BLOCK_MINUTES} menit."
+                )
+
+
+            else:
+
+                attempts_left = max(
+                    0,
+                    LOGIN_MAX_ATTEMPTS
+                    - attempts
+                )
+
+
+                error = (
+                    "Nomor WhatsApp atau password "
+                    "tidak benar. "
+                    f"Sisa percobaan: "
+                    f"{attempts_left}."
+                )
+
+
+        except Exception:
+
+            connection.rollback()
+
+
+            app.logger.exception(
+                "[CUSTOMER LOGIN ERROR]"
+            )
+
+
+            error = (
+                "Proses masuk mengalami kendala. "
+                "Silakan coba kembali."
+            )
+
+
+        finally:
+
+            connection.close()
+
+
+    return render_template(
+        "customer/login.html",
+
+        error=
+            error,
+
+        blocked_seconds=
+            blocked_seconds,
+    )
+
+
+# ============================================================
+# CUSTOMER LOGOUT
+# ============================================================
+
+@app.route(
+    "/customer/logout",
+    methods=[
+        "POST",
+    ]
+)
+@customer_csrf_required
+def customer_logout():
+
+    clear_customer_session()
+
+
+    return redirect(
+        url_for(
+            "customer_login"
+        )
+    )
+    
+    # ============================================================
+# PHASE 22C
+# CUSTOMER PROFILE
+# ============================================================
+
+@app.route(
+    "/customer/account",
+    methods=[
+        "GET",
+        "POST",
+    ]
+)
+@customer_login_required
+@customer_csrf_required
+def customer_account():
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return redirect(
+            url_for(
+                "customer_login"
+            )
+        )
+
+
+    error = None
+
+    success = None
+
+    active_orders = []
+
+
+    if request.method == "POST":
+
+        action = str(
+            request.form.get(
+                "action",
+                ""
+            )
+            or ""
+        ).strip().lower()
+
+
+        # ====================================================
+        # UPDATE PROFILE
+        # ====================================================
+
+        if action == "profile":
+
+            name = (
+                " ".join(
+                    str(
+                        request.form.get(
+                            "name",
+                            ""
+                        )
+                        or ""
+                    )
+                    .strip()
+                    .split()
+                )
+            )
+
+
+            whatsapp = (
+                clean_whatsapp(
+                    request.form.get(
+                        "whatsapp",
+                        ""
+                    )
+                )
+            )
+
+
+            whatsapp_normalized = (
+                normalize_whatsapp_number(
+                    whatsapp
+                )
+            )
+
+
+            if (
+                len(name)
+                <
+                CUSTOMER_NAME_MIN_LENGTH
+            ):
+
+                error = (
+                    "Nama terlalu pendek."
+                )
+
+
+            elif (
+                len(name)
+                >
+                CUSTOMER_NAME_MAX_LENGTH
+            ):
+
+                error = (
+                    "Nama terlalu panjang."
+                )
+
+
+            elif (
+                len(
+                    whatsapp_normalized
+                )
+                < 10
+                or
+                len(
+                    whatsapp_normalized
+                )
+                > 15
+            ):
+
+                error = (
+                    "Nomor WhatsApp tidak valid."
+                )
+
+
+            if error is None:
+
+                connection = get_db()
+
+
+                try:
+
+                    existing = (
+                        connection.execute(
+                            """
+                            SELECT id
+
+                            FROM customer_accounts
+
+                            WHERE
+                                whatsapp_normalized = ?
+
+                                AND id <> ?
+
+                            LIMIT 1
+                            """,
+                            (
+                                whatsapp_normalized,
+
+                                customer[
+                                    "id"
+                                ],
+                            )
+                        )
+                        .fetchone()
+                    )
+
+
+                    if existing:
+
+                        error = (
+                            "Nomor WhatsApp sudah digunakan akun lain."
+                        )
+
+
+                    else:
+
+                        timestamp = (
+                            current_timestamp()
+                        )
+
+
+                        connection.execute(
+                            """
+                            UPDATE customer_accounts
+
+                            SET
+                                name = ?,
+
+                                whatsapp = ?,
+
+                                whatsapp_normalized = ?,
+
+                                updated_at = ?
+
+                            WHERE id = ?
+                            """,
+                            (
+                                name,
+
+                                whatsapp,
+
+                                whatsapp_normalized,
+
+                                timestamp,
+
+                                customer[
+                                    "id"
+                                ],
+                            )
+                        )
+
+
+                        connection.commit()
+
+
+                        session[
+                            CUSTOMER_SESSION_NAME_KEY
+                        ] = name
+
+
+                        success = (
+                            "Profil berhasil diperbarui."
+                        )
+
+
+                except psycopg.errors.UniqueViolation:
+
+                    connection.rollback()
+
+                    error = (
+                        "Nomor WhatsApp sudah digunakan akun lain."
+                    )
+
+
+                except Exception:
+
+                    connection.rollback()
+
+                    app.logger.exception(
+                        "[CUSTOMER PROFILE UPDATE ERROR]"
+                    )
+
+                    error = (
+                        "Profil belum berhasil diperbarui."
+                    )
+
+
+                finally:
+
+                    connection.close()
+
+
+        # ====================================================
+        # CHANGE PASSWORD
+        # ====================================================
+
+        elif action == "password":
+
+            current_password = str(
+                request.form.get(
+                    "current_password",
+                    ""
+                )
+                or ""
+            )
+
+
+            new_password = str(
+                request.form.get(
+                    "new_password",
+                    ""
+                )
+                or ""
+            )
+
+
+            new_password_confirmation = str(
+                request.form.get(
+                    "new_password_confirmation",
+                    ""
+                )
+                or ""
+            )
+
+
+            if not customer_password_is_valid(
+                customer.get(
+                    "password_hash"
+                ),
+                current_password
+            ):
+
+                error = (
+                    "Password saat ini tidak benar."
+                )
+
+
+            elif not secrets.compare_digest(
+                new_password,
+                new_password_confirmation
+            ):
+
+                error = (
+                    "Konfirmasi password baru tidak sama."
+                )
+
+
+            else:
+
+                try:
+
+                    new_password_hash = (
+                        hash_customer_password(
+                            new_password
+                        )
+                    )
+
+
+                    connection = get_db()
+
+
+                    try:
+
+                        timestamp = (
+                            current_timestamp()
+                        )
+
+
+                        connection.execute(
+                            """
+                            UPDATE customer_accounts
+
+                            SET
+                                password_hash = ?,
+
+                                updated_at = ?
+
+                            WHERE id = ?
+                            """,
+                            (
+                                new_password_hash,
+
+                                timestamp,
+
+                                customer[
+                                    "id"
+                                ],
+                            )
+                        )
+
+
+                        connection.commit()
+
+
+                        success = (
+                            "Password berhasil diperbarui."
+                        )
+
+
+                    except Exception:
+
+                        connection.rollback()
+
+                        app.logger.exception(
+                            "[CUSTOMER PASSWORD UPDATE ERROR]"
+                        )
+
+                        error = (
+                            "Password belum berhasil diperbarui."
+                        )
+
+
+                    finally:
+
+                        connection.close()
+
+
+                except ValueError as password_error:
+
+                    error = str(
+                        password_error
+                    )
+
+
+        else:
+
+            error = (
+                "Permintaan tidak valid."
+            )
+
+
+        customer = (
+            get_current_customer_account()
+        )
+
+
+    # ========================================================
+    # PHASE 24
+    # LOAD CUSTOMER ACTIVE ORDERS
+    # Berjalan untuk GET maupun POST.
+    # ========================================================
+
+    connection = get_db()
+
+
+    try:
+
+        active_orders = (
+            get_customer_active_orders(
+                connection,
+                customer[
+                    "id"
+                ]
+            )
+        )
+
+
+    finally:
+
+        connection.close()
+
+
+    return render_template(
+        "customer/account.html",
+
+        customer=
+            customer,
+
+        error=
+            error,
+
+        success=
+            success,
+
+        active_orders=
+            active_orders,
+    )
+    
+    
+# ============================================================
+# PHASE 25
+# CUSTOMER NOTIFICATION HELPERS
+# ============================================================
+
+def create_customer_order_status_notification(
+    connection,
+    order,
+    new_status,
+    created_at=None
+):
+
+    if not order:
+
+        return None
+
+
+    customer_id = (
+        order.get(
+            "customer_id"
+        )
+    )
+
+
+    if not customer_id:
+
+        # Guest tidak memiliki notification center.
+        return None
+
+
+    new_status = str(
+        new_status
+        or ""
+    ).strip().upper()
+
+
+    config = (
+        CUSTOMER_NOTIFICATION_STATUS_MAP.get(
+            new_status
+        )
+    )
+
+
+    if not config:
+
+        return None
+
+
+    created_at = (
+        created_at
+        or
+        current_timestamp()
+    )
+
+
+    return (
+        connection.execute(
+            """
+            INSERT INTO customer_notifications (
+
+                customer_id,
+
+                order_id,
+
+                order_code,
+
+                event_type,
+
+                title,
+
+                message,
+
+                is_read,
+
+                created_at
+            )
+
+            VALUES (
+                ?, ?, ?, ?, ?,
+                ?, FALSE, ?
+            )
+
+            ON CONFLICT (
+                order_id,
+                event_type
+            )
+
+            DO NOTHING
+
+            RETURNING id
+            """,
+            (
+                int(
+                    customer_id
+                ),
+
+                int(
+                    order[
+                        "id"
+                    ]
+                ),
+
+                order[
+                    "order_code"
+                ],
+
+                config[
+                    "event_type"
+                ],
+
+                config[
+                    "title"
+                ],
+
+                config[
+                    "message"
+                ],
+
+                created_at,
+            )
+        )
+        .fetchone()
+    )
+    
+@app.route(
+    "/api/customer/notifications",
+    methods=[
+        "GET",
+    ]
+)
+@customer_login_required
+def api_customer_notifications():
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    "Session customer tidak tersedia.",
+            }
+        ), 401
+
+
+    connection = get_db()
+
+
+    try:
+
+        notifications = (
+            connection.execute(
+                """
+                SELECT
+
+                    id,
+
+                    order_code,
+
+                    event_type,
+
+                    title,
+
+                    message,
+
+                    is_read,
+
+                    created_at,
+
+                    read_at
+
+                FROM customer_notifications
+
+                WHERE customer_id = ?
+
+                ORDER BY
+                    id DESC
+
+                LIMIT 30
+                """,
+                (
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+            .fetchall()
+        )
+
+
+        unread_row = (
+            connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS total
+
+                FROM customer_notifications
+
+                WHERE
+                    customer_id = ?
+
+                    AND is_read = FALSE
+                """,
+                (
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+            .fetchone()
+        )
+
+
+        items = []
+
+
+        for notification in notifications:
+
+            order_code = (
+                notification.get(
+                    "order_code"
+                )
+            )
+
+
+            items.append(
+                {
+                    "id":
+                        int(
+                            notification[
+                                "id"
+                            ]
+                        ),
+
+                    "order_code":
+                        order_code,
+
+                    "event_type":
+                        notification[
+                            "event_type"
+                        ],
+
+                    "title":
+                        notification[
+                            "title"
+                        ],
+
+                    "message":
+                        notification[
+                            "message"
+                        ],
+
+                    "is_read":
+                        bool(
+                            notification[
+                                "is_read"
+                            ]
+                        ),
+
+                    "created_at":
+                        notification[
+                            "created_at"
+                        ],
+
+                    "detail_url":
+                        (
+                            url_for(
+                                "customer_order_detail",
+
+                                order_code=
+                                    order_code
+                            )
+                            if order_code
+                            else
+                            url_for(
+                                "customer_account"
+                            )
+                        ),
+                }
+            )
+
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "unread_count":
+                    int(
+                        unread_row[
+                            "total"
+                        ]
+                        or 0
+                    ),
+
+                "notifications":
+                    items,
+            }
+        )
+
+
+    finally:
+
+        connection.close()
+        
+@app.route(
+    "/api/customer/notifications/read",
+    methods=[
+        "POST",
+    ]
+)
+        
+@customer_login_required
+@customer_csrf_required
+def api_customer_notifications_read():
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return jsonify(
+            {
+                "success":
+                    False,
+            }
+        ), 401
+
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+
+    mark_all = (
+        data.get(
+            "all"
+        )
+        is True
+    )
+
+
+    connection = get_db()
+
+
+    try:
+
+        timestamp = (
+            current_timestamp()
+        )
+
+
+        if mark_all:
+
+            connection.execute(
+                """
+                UPDATE customer_notifications
+
+                SET
+                    is_read = TRUE,
+
+                    read_at =
+                        COALESCE(
+                            read_at,
+                            ?
+                        )
+
+                WHERE
+                    customer_id = ?
+
+                    AND is_read = FALSE
+                """,
+                (
+                    timestamp,
+
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+
+
+        else:
+
+            try:
+
+                notification_id = int(
+                    data.get(
+                        "notification_id"
+                    )
+                )
+
+            except (
+                TypeError,
+                ValueError
+            ):
+
+                return jsonify(
+                    {
+                        "success":
+                            False,
+
+                        "message":
+                            "Notifikasi tidak valid.",
+                    }
+                ), 400
+
+
+            connection.execute(
+                """
+                UPDATE customer_notifications
+
+                SET
+                    is_read = TRUE,
+
+                    read_at =
+                        COALESCE(
+                            read_at,
+                            ?
+                        )
+
+                WHERE
+                    id = ?
+
+                    AND customer_id = ?
+                """,
+                (
+                    timestamp,
+
+                    notification_id,
+
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+
+
+        connection.commit()
+
+
+        return jsonify(
+            {
+                "success":
+                    True,
+            }
+        )
+
+
+    except Exception:
+
+        connection.rollback()
+
+        raise
+
+
+    finally:
+
+        connection.close()
+# ============================================================
+# PHASE 24
+# CUSTOMER ACTIVE ORDER DASHBOARD
+# ============================================================
+
+def get_customer_active_orders(
+    connection,
+    customer_id
+):
+
+    try:
+
+        customer_id = int(
+            customer_id
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return []
+
+
+    rows = (
+        connection.execute(
+            """
+            SELECT
+
+                id,
+
+                order_code,
+
+                pickup,
+
+                destination,
+
+                distance_km,
+
+                duration_minutes,
+
+                fare,
+
+                status,
+
+                created_at,
+
+                accepted_at,
+
+                to_pickup_at,
+
+                picked_up_at
+
+            FROM orders
+
+            WHERE
+                customer_id = ?
+
+                AND status IN (
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
+
+            ORDER BY
+                id DESC
+            """,
+            (
+                customer_id,
+
+                STATUS_WAITING,
+
+                STATUS_ACCEPTED,
+
+                STATUS_TO_PICKUP,
+
+                STATUS_PICKED_UP,
+            )
+        )
+        .fetchall()
+    )
+
+
+    return [
+        dict(
+            row
+        )
+
+        for row
+        in rows
+    ]
+    
+@app.route(
+    "/api/customer/active-orders",
+    methods=[
+        "GET",
+    ]
+)
+@customer_login_required
+def api_customer_active_orders():
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return jsonify(
+            {
+                "success":
+                    False,
+
+                "message":
+                    "Session customer tidak tersedia.",
+            }
+        ), 401
+
+
+    connection = get_db()
+
+
+    try:
+
+        orders = (
+            get_customer_active_orders(
+                connection,
+                customer[
+                    "id"
+                ]
+            )
+        )
+
+
+        items = []
+
+
+        for order in orders:
+
+            items.append(
+                {
+                    "order_code":
+                        order[
+                            "order_code"
+                        ],
+
+                    "pickup":
+                        order[
+                            "pickup"
+                        ],
+
+                    "destination":
+                        order[
+                            "destination"
+                        ],
+
+                    "distance_km":
+                        order[
+                            "distance_km"
+                        ],
+
+                    "duration_minutes":
+                        order[
+                            "duration_minutes"
+                        ],
+
+                    "fare":
+                        int(
+                            order[
+                                "fare"
+                            ]
+                            or 0
+                        ),
+
+                    "status":
+                        order[
+                            "status"
+                        ],
+
+                    "created_at":
+                        order[
+                            "created_at"
+                        ],
+
+                    "detail_url":
+                        url_for(
+                            "customer_order_detail",
+
+                            order_code=
+                                order[
+                                    "order_code"
+                                ]
+                        ),
+                }
+            )
+
+
+        return jsonify(
+            {
+                "success":
+                    True,
+
+                "orders":
+                    items,
+            }
+        )
+
+
+    finally:
+
+        connection.close()
+# ============================================================
+# PHASE 22E
+# CUSTOMER ORDER HISTORY
+# ============================================================
+
+@app.route(
+    "/customer/orders"
+)
+@customer_login_required
+def customer_orders():
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return redirect(
+            url_for(
+                "customer_login"
+            )
+        )
+
+
+    connection = get_db()
+
+
+    try:
+
+        rows = (
+            connection.execute(
+                """
+                SELECT
+
+                    id,
+
+                    order_code,
+
+                    pickup,
+
+                    destination,
+
+                    note,
+
+                    distance_km,
+
+                    duration_minutes,
+
+                    fare,
+
+                    status,
+
+                    created_at,
+
+                    accepted_at,
+
+                    to_pickup_at,
+
+                    picked_up_at,
+
+                    completed_at,
+
+                    rejected_at,
+
+                    payment_method,
+
+                    payment_status,
+
+                    payment_amount,
+
+                    paid_at
+
+                FROM orders
+
+                WHERE customer_id = ?
+
+                ORDER BY
+                    id DESC
+
+                LIMIT 200
+                """,
+                (
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+            .fetchall()
+        )
+
+
+        active_orders = []
+
+        history_orders = []
+
+
+        for row in rows:
+
+            order = dict(
+                row
+            )
+
+
+            status = str(
+                order.get(
+                    "status"
+                )
+                or ""
+            ).strip().upper()
+
+
+            order[
+                "payment"
+            ] = (
+                order_payment_payload(
+                    order
+                )
+            )
+
+
+            if status in (
+                STATUS_WAITING,
+                STATUS_ACCEPTED,
+                STATUS_TO_PICKUP,
+                STATUS_PICKED_UP,
+            ):
+
+                active_orders.append(
+                    order
+                )
+
+
+            else:
+
+                history_orders.append(
+                    order
+                )
+
+
+    finally:
+
+        connection.close()
+
+
+    return render_template(
+        "customer/orders.html",
+
+        customer=
+            customer,
+
+        active_orders=
+            active_orders,
+
+        history_orders=
+            history_orders,
+    )
+    
+    # ============================================================
+# CUSTOMER ORDER DETAIL
+# ============================================================
+
+@app.route(
+    "/customer/orders/<order_code>"
+)
+@customer_login_required
+def customer_order_detail(
+    order_code
+):
+
+    customer = (
+        get_current_customer_account()
+    )
+
+
+    if not customer:
+
+        return redirect(
+            url_for(
+                "customer_login"
+            )
+        )
+
+
+    order_code = str(
+        order_code
+        or ""
+    ).strip().upper()
+
+
+    connection = get_db()
+
+
+    try:
+
+        order = (
+            connection.execute(
+                """
+                SELECT *
+
+                FROM orders
+
+                WHERE
+                    order_code = ?
+
+                    AND customer_id = ?
+
+                LIMIT 1
+                """,
+                (
+                    order_code,
+
+                    customer[
+                        "id"
+                    ],
+                )
+            )
+            .fetchone()
+        )
+
+
+        if not order:
+
+            abort(
+                404
+            )
+
+
+        order = dict(
+            order
+        )
+
+
+        payment = (
+            order_payment_payload(
+                order
+            )
+        )
+
+
+    finally:
+
+        connection.close()
+
+
+    return render_template(
+        "customer/order_detail.html",
+
+        customer=
+            customer,
+
+        order=
+            order,
+
+        payment=
+            payment,
+    )
+# ============================================================
 # PHASE 13
 # PWA FILES
 # ============================================================
@@ -11676,6 +14575,7 @@ def pwa_service_worker():
 # ============================================================
 
 @app.route("/")
+@customer_login_required
 def index():
 
     connection = (
@@ -11707,6 +14607,42 @@ def index():
         )
 
 
+        # ====================================================
+        # PHASE 22D
+        # CURRENT CUSTOMER
+        # ====================================================
+
+        customer_account = None
+
+
+        customer_id = (
+            get_current_customer_id()
+        )
+
+
+        if customer_id:
+
+            customer_account = (
+                get_customer_account_by_id(
+                    connection,
+                    customer_id
+                )
+            )
+
+
+            if (
+                not customer_account
+                or
+                not customer_account.get(
+                    "is_active"
+                )
+            ):
+
+                clear_customer_session()
+
+                customer_account = None
+
+
     finally:
 
         connection.close()
@@ -11723,6 +14659,9 @@ def index():
 
         driver_trust=
             driver_trust,
+
+        customer_account=
+            customer_account,
     )
 
 
@@ -11774,6 +14713,7 @@ def get_service_status():
     "/api/reverse-geocode",
     methods=["POST"]
 )
+@customer_api_required
 def api_reverse_geocode():
 
     data = (
@@ -11915,6 +14855,7 @@ def api_reverse_geocode():
     "/api/geocode-location",
     methods=["POST"]
 )
+@customer_api_required
 def api_geocode_location():
 
     data = (
@@ -12024,6 +14965,7 @@ def api_geocode_location():
     "/api/check-fare",
     methods=["POST"]
 )
+@customer_api_required
 def check_fare():
 
     data = (
@@ -19489,6 +22431,7 @@ def get_driver_payment_statistics(
     "/api/orders",
     methods=["POST"]
 )
+@customer_api_required
 def create_order():
 
     if not get_service_open():
@@ -19518,21 +22461,64 @@ def create_order():
     )
 
 
-    customer_name = (
-        data.get(
-            "customer_name",
-            ""
-        )
-        .strip()
-    )
+# ============================================================
+# PHASE 22D
+# CUSTOMER ACCOUNT BOOKING IDENTITY
+# ============================================================
+
+    account_customer = None
+
+    customer_id = None
 
 
-    whatsapp = clean_whatsapp(
-        data.get(
-            "whatsapp",
-            ""
+    if customer_is_authenticated():
+
+        account_customer = (
+            get_current_customer_account()
         )
-    )
+
+
+    if account_customer:
+
+        customer_id = int(
+            account_customer[
+                "id"
+            ]
+        )
+
+
+        customer_name = str(
+            account_customer.get(
+                "name"
+            )
+            or ""
+        ).strip()
+
+
+        whatsapp = clean_whatsapp(
+            account_customer.get(
+                "whatsapp"
+            )
+        )
+
+
+    else:
+
+        customer_name = str(
+            data.get(
+                "customer_name",
+                ""
+            )
+            or ""
+        ).strip()
+
+
+        whatsapp = clean_whatsapp(
+            data.get(
+                "whatsapp",
+                ""
+            )
+        )
 
 
     pickup_text = (
@@ -19701,6 +22687,8 @@ def create_order():
 
                     order_code,
 
+                    customer_id,
+
                     customer_name,
 
                     whatsapp,
@@ -19734,12 +22722,14 @@ def create_order():
 
                 VALUES (
                     ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?
                 )
                 """,
                 (
                     order_code,
+
+                    customer_id,
 
                     customer_name,
 
@@ -23765,7 +26755,7 @@ def driver_login():
             )
 
 
-        session.clear()
+        clear_driver_session()
 
 
     error = None
@@ -23869,7 +26859,7 @@ def driver_login():
             )
 
 
-            session.clear()
+            clear_driver_session()
 
 
             session.permanent = (
@@ -23954,7 +26944,7 @@ def driver_login():
 @driver_login_required
 def driver_logout():
 
-    session.clear()
+    clear_driver_session()
 
 
     return redirect(
@@ -30272,7 +33262,23 @@ def update_order_status(
 
 
         # ====================================================
+        # PHASE 25
+        # CUSTOMER STATUS NOTIFICATION
+        # ====================================================
+
+        create_customer_order_status_notification(
+            connection,
+            order,
+            new_status,
+
+            created_at=
+                status_timestamp
+        )
+
+
+        # ====================================================
         # ONE TRANSACTION
+        # ORDER STATUS + NOTIFICATION
         # ====================================================
 
         connection.commit()

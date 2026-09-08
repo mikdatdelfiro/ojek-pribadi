@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Riwayat Pesanan • Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+<section class="customer-orders-page">
+
+    <div class="customer-orders-container">
+
+        <div class="customer-orders-top">
+
+            <a href="{{ url_for('customer_account') }}">
+                ← Akun Saya
+            </a>
+
+            <span>
+                RIWAYAT PERJALANAN
+            </span>
+
+        </div>
+
+
+        <div class="customer-orders-heading">
+
+            <small>
+                OJEK PRIBADI
+            </small>
+
+            <h1>
+                Pesanan Saya
+            </h1>
+
+            <p>
+                Semua perjalanan yang terhubung
+                dengan akun {{ customer.name }}.
+            </p>
+
+        </div>
+
+
+        {% if active_orders %}
+
+        <section class="customer-orders-section">
+
+            <div class="customer-orders-section-title">
+
+                <span class="customer-orders-live-dot"></span>
+
+                <h2>
+                    Pesanan Aktif
+                </h2>
+
+            </div>
+
+
+            {% for order in active_orders %}
+
+            <a
+                href="{{ url_for(
+                    'customer_order_detail',
+                    order_code=order.order_code
+                ) }}"
+                class="customer-order-card active"
+            >
+
+                <div class="customer-order-card-top">
+
+                    <strong>
+                        {{ order.order_code }}
+                    </strong>
+
+                    <span>
+                        {{ order.status }}
+                    </span>
+
+                </div>
+
+
+                <div class="customer-order-route">
+
+                    <div>
+
+                        <small>
+                            JEMPUT
+                        </small>
+
+                        <p>
+                            {{ order.pickup }}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            TUJUAN
+                        </small>
+
+                        <p>
+                            {{ order.destination }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="customer-order-card-bottom">
+
+                    <span>
+                        {{ order.distance_km }} km
+                    </span>
+
+                    <strong>
+                        {{ order.fare|rupiah }}
+                    </strong>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </section>
+
+        {% endif %}
+
+
+        <section class="customer-orders-section">
+
+            <div class="customer-orders-section-title">
+
+                <h2>
+                    Riwayat
+                </h2>
+
+            </div>
+
+
+            {% if history_orders %}
+
+                {% for order in history_orders %}
+
+                <a
+                    href="{{ url_for(
+                        'customer_order_detail',
+                        order_code=order.order_code
+                    ) }}"
+                    class="customer-order-card"
+                >
+
+                    <div class="customer-order-card-top">
+
+                        <strong>
+                            {{ order.order_code }}
+                        </strong>
+
+                        <span>
+                            {{ order.status }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="customer-order-route">
+
+                        <div>
+
+                            <small>
+                                TUJUAN
+                            </small>
+
+                            <p>
+                                {{ order.destination }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="customer-order-card-bottom">
+
+                        <span>
+                            {{ order.created_at }}
+                        </span>
+
+                        <strong>
+                            {{ order.fare|rupiah }}
+                        </strong>
+
+                    </div>
+
+                </a>
+
+                {% endfor %}
+
+
+            {% else %}
+
+            <div class="customer-orders-empty">
+
+                <strong>
+                    Belum ada riwayat perjalanan.
+                </strong>
+
+                <p>
+                    Pesanan yang dibuat menggunakan akun
+                    ini akan tampil di sini.
+                </p>
+
+                <a href="{{ url_for('index') }}">
+                    Pesan Sekarang
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+
+</section>
+
+
+<style>
+
+.customer-orders-page {
+    min-height: 100vh;
+    padding: 70px 18px;
+}
+
+.customer-orders-container {
+    width: min(620px, 100%);
+    margin: auto;
+}
+
+.customer-orders-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.customer-orders-top a {
+    color: rgba(255,255,255,.55);
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.customer-orders-top > span,
+.customer-orders-heading small {
+    color: #2dd4a0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .13em;
+}
+
+.customer-orders-heading h1 {
+    margin: 5px 0;
+    font-size: 30px;
+}
+
+.customer-orders-heading p {
+    margin: 0;
+    color: rgba(255,255,255,.5);
+    font-size: 12px;
+}
+
+.customer-orders-section {
+    margin-top: 30px;
+}
+
+.customer-orders-section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+
+.customer-orders-section-title h2 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.customer-orders-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2dd4a0;
+    box-shadow: 0 0 14px #2dd4a0;
+}
+
+.customer-order-card {
+    display: block;
+    margin-bottom: 12px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    background: rgba(7,23,17,.85);
+    color: white;
+    text-decoration: none;
+}
+
+.customer-order-card.active {
+    border-color: rgba(45,212,160,.25);
+}
+
+.customer-order-card-top,
+.customer-order-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.customer-order-card-top span {
+    color: #2dd4a0;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.customer-order-route {
+    margin: 18px 0;
+}
+
+.customer-order-route div + div {
+    margin-top: 13px;
+}
+
+.customer-order-route small {
+    color: rgba(255,255,255,.35);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+.customer-order-route p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.customer-order-card-bottom {
+    padding-top: 13px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    color: rgba(255,255,255,.5);
+    font-size: 11px;
+}
+
+.customer-order-card-bottom strong {
+    color: white;
+}
+
+.customer-orders-empty {
+    padding: 30px 20px;
+    text-align: center;
+    border: 1px dashed rgba(255,255,255,.12);
+    border-radius: 20px;
+}
+
+.customer-orders-empty p {
+    color: rgba(255,255,255,.45);
+    font-size: 12px;
+}
+
+.customer-orders-empty a {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    background: #2dd4a0;
+    color: #04130d;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+</style>
+
+{% endblock %}

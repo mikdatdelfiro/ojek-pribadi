@@ -142,7 +142,161 @@ Ojek Pribadi
 
 
 
+<!-- =====================================================
+     PHASE 23
+     CUSTOMER ACCOUNT NAVIGATION
+===================================================== -->
 
+<div class="customer-nav">
+
+    {% if customer_account %}
+
+    <div class="customer-nav-authenticated">
+
+        <a
+            href="{{ url_for('customer_account') }}"
+            class="customer-nav-profile"
+        >
+
+            <span class="customer-nav-avatar">
+                {{
+                    customer_account.name[0]|upper
+                    if customer_account.name
+                    else "C"
+                }}
+            </span>
+
+            <span class="customer-nav-identity">
+
+                <small>
+                    CUSTOMER
+                </small>
+
+                <strong>
+                    {{
+                        customer_account.name
+                    }}
+                </strong>
+
+            </span>
+
+        </a>
+
+
+        <button
+            type="button"
+            class="customer-nav-menu-button"
+            id="customerNavMenuButton"
+            aria-label="Buka menu akun"
+            aria-expanded="false"
+        >
+            ⋮
+        </button>
+
+
+        <div
+            class="customer-nav-menu"
+            id="customerNavMenu"
+            hidden
+        >
+
+            <a
+                href="{{ url_for('customer_account') }}"
+            >
+                <span>
+                    Akun Saya
+                </span>
+
+                <span>
+                    →
+                </span>
+            </a>
+
+
+            <a
+                href="{{ url_for('customer_orders') }}"
+            >
+                <span>
+                    Riwayat Pesanan
+                </span>
+
+                <span>
+                    →
+                </span>
+            </a>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('customer_logout') }}"
+            >
+
+                <input
+                    type="hidden"
+                    name="_csrf_token"
+                    value="{{ customer_csrf_token() }}"
+                >
+
+                <button
+                    type="submit"
+                    class="customer-nav-logout"
+                >
+                    <span>
+                        Keluar
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+    <div class="customer-nav-guest">
+
+        <div class="customer-nav-guest-text">
+
+            <small>
+                AKUN CUSTOMER
+            </small>
+
+            <strong>
+                Simpan perjalanan Anda
+            </strong>
+
+        </div>
+
+
+        <div class="customer-nav-actions">
+
+            <a
+                href="{{ url_for('customer_login') }}"
+                class="customer-nav-login"
+            >
+                Masuk
+            </a>
+
+            <a
+                href="{{ url_for('customer_register') }}"
+                class="customer-nav-register"
+            >
+                Daftar
+            </a>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
 
     <!-- =====================================
 
@@ -1472,6 +1626,34 @@ Ojek Pribadi
                 Anda sudah benar.
             </p>
 
+            {% if customer_account %}
+
+            <p class="booking-account-status">
+
+                ✓ Data diambil dari akun Anda.
+
+                <a href="{{ url_for('customer_account') }}">
+                    Kelola akun
+                </a>
+
+            </p>
+
+            {% else %}
+
+            <p class="booking-account-status">
+
+                Sudah punya akun?
+
+                <a href="{{ url_for('customer_login') }}">
+                    Masuk
+                </a>
+
+                agar data pemesan terisi otomatis.
+
+            </p>
+
+            {% endif %}
+
         </div>
 
 
@@ -1500,6 +1682,14 @@ Ojek Pribadi
             id="customerName"
             placeholder="Masukkan nama Anda"
             autocomplete="name"
+            value="{{
+                customer_account.name
+                if customer_account
+                else ''
+            }}"
+            {% if customer_account %}
+            readonly
+            {% endif %}
         >
 
     </div>
@@ -1519,6 +1709,14 @@ Ojek Pribadi
             placeholder="Contoh: 081234567890"
             autocomplete="tel"
             inputmode="tel"
+            value="{{
+                customer_account.whatsapp
+                if customer_account
+                else ''
+            }}"
+            {% if customer_account %}
+            readonly
+            {% endif %}
         >
 
     </div>

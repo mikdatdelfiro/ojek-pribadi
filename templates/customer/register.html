@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Daftar • Ojek Pribadi
+{% endblock %}
+
+
+{% block content %}
+
+<section class="customer-auth-page">
+
+    <div class="customer-auth-card">
+
+        <a
+            href="{{ url_for('customer_login') }}"
+            class="customer-auth-back"
+        >
+            ← Kembali ke Masuk
+        </a>
+
+
+        <div class="customer-auth-heading">
+
+            <span>
+                AKUN CUSTOMER
+            </span>
+
+            <h1>
+                Buat akun Anda.
+            </h1>
+
+            <p>
+                Daftar agar perjalanan Anda nantinya
+                dapat terhubung dengan satu akun.
+            </p>
+
+        </div>
+
+
+        {% if error %}
+
+        <div class="customer-auth-error">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        <form
+            method="POST"
+            autocomplete="on"
+        >
+
+            <input
+                type="hidden"
+                name="_csrf_token"
+                value="{{ customer_csrf_token() }}"
+            >
+
+
+            <div class="customer-auth-field">
+
+                <label for="name">
+                    Nama
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Masukkan nama Anda"
+                    autocomplete="name"
+                    maxlength="80"
+                    required
+                >
+
+            </div>
+
+
+            <div class="customer-auth-field">
+
+                <label for="whatsapp">
+                    Nomor WhatsApp
+                </label>
+
+                <input
+                    type="tel"
+                    id="whatsapp"
+                    name="whatsapp"
+                    placeholder="Contoh: 081234567890"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    required
+                >
+
+            </div>
+
+
+            <div class="customer-auth-field">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Minimal 8 karakter"
+                    autocomplete="new-password"
+                    minlength="8"
+                    maxlength="128"
+                    required
+                >
+
+            </div>
+
+
+            <div class="customer-auth-field">
+
+                <label for="password_confirmation">
+                    Konfirmasi Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    placeholder="Ulangi password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    maxlength="128"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="customer-auth-submit"
+            >
+                <span>
+                    Daftar
+                </span>
+
+                <span>
+                    →
+                </span>
+            </button>
+
+        </form>
+
+
+        <p class="customer-auth-switch">
+
+            Sudah memiliki akun?
+
+            <a
+                href="{{ url_for('customer_login') }}"
+            >
+                Masuk
+            </a>
+
+        </p>
+
+    </div>
+
+</section>
+
+
+<style>
+
+.customer-auth-page {
+    min-height: 100vh;
+    padding: 90px 20px 50px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.customer-auth-card {
+    width: min(460px, 100%);
+    padding: 26px;
+    border: 1px solid rgba(45, 212, 160, .18);
+    border-radius: 26px;
+    background: rgba(7, 23, 17, .94);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .32);
+}
+
+.customer-auth-back {
+    display: inline-block;
+    margin-bottom: 28px;
+    color: rgba(255, 255, 255, .6);
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.customer-auth-heading span {
+    color: #2dd4a0;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+}
+
+.customer-auth-heading h1 {
+    margin: 8px 0;
+    font-size: 30px;
+}
+
+.customer-auth-heading p {
+    margin: 0 0 24px;
+    color: rgba(255, 255, 255, .58);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.customer-auth-error {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 70, 90, .24);
+    border-radius: 13px;
+    background: rgba(255, 70, 90, .08);
+    font-size: 12px;
+}
+
+.customer-auth-field {
+    margin-bottom: 16px;
+}
+
+.customer-auth-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.customer-auth-field input {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, .10);
+    border-radius: 14px;
+    outline: none;
+    background: rgba(255, 255, 255, .045);
+    color: #fff;
+}
+
+.customer-auth-field input:focus {
+    border-color: rgba(45, 212, 160, .7);
+}
+
+.customer-auth-submit {
+    width: 100%;
+    min-height: 54px;
+    margin-top: 6px;
+    padding: 0 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 0;
+    border-radius: 15px;
+    background: #2dd4a0;
+    color: #04130d;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.customer-auth-switch {
+    margin: 22px 0 0;
+    text-align: center;
+    color: rgba(255, 255, 255, .55);
+    font-size: 12px;
+}
+
+.customer-auth-switch a {
+    color: #2dd4a0;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+</style>
+
+{% endblock %}

@@ -40998,3 +40998,488 @@ summary > span:last-child {
     font-size: 9px;
     line-height: 1.4;
 }
+
+/* ==========================================================
+   PHASE 23
+   CUSTOMER ACCOUNT NAVIGATION
+========================================================== */
+
+.customer-nav {
+    position: relative;
+    width: min(100%, 760px);
+    margin: 0 auto 18px;
+    z-index: 40;
+}
+
+
+/* ==========================================================
+   LOGGED IN
+========================================================== */
+
+.customer-nav-authenticated {
+    position: relative;
+    min-height: 64px;
+    padding: 8px 10px 8px 9px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 1px solid rgba(45, 212, 160, .17);
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(45, 212, 160, .075),
+            rgba(255, 255, 255, .025)
+        );
+
+    backdrop-filter: blur(18px);
+}
+
+
+.customer-nav-profile {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    color: #ffffff;
+    text-decoration: none;
+}
+
+
+.customer-nav-avatar {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 14px;
+
+    background: #2dd4a0;
+    color: #04130d;
+
+    font-size: 17px;
+    font-weight: 900;
+}
+
+
+.customer-nav-identity {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+.customer-nav-identity small {
+    margin-bottom: 2px;
+
+    color: #2dd4a0;
+
+    font-size: 8px;
+    font-weight: 900;
+
+    letter-spacing: .13em;
+}
+
+
+.customer-nav-identity strong {
+    max-width: 210px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================================
+   MENU BUTTON
+========================================================== */
+
+.customer-nav-menu-button {
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 13px;
+
+    background: rgba(255, 255, 255, .045);
+    color: #ffffff;
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+
+/* ==========================================================
+   DROPDOWN
+========================================================== */
+
+.customer-nav-menu {
+    position: absolute;
+
+    top: calc(100% + 8px);
+    right: 0;
+
+    width: min(240px, calc(100vw - 36px));
+
+    padding: 7px;
+
+    border: 1px solid rgba(45, 212, 160, .17);
+    border-radius: 16px;
+
+    background: rgba(5, 18, 13, .98);
+
+    box-shadow:
+        0 25px 60px
+        rgba(0, 0, 0, .4);
+
+    backdrop-filter: blur(22px);
+}
+
+
+.customer-nav-menu[hidden] {
+    display: none;
+}
+
+
+.customer-nav-menu > a,
+.customer-nav-logout {
+    width: 100%;
+    min-height: 44px;
+
+    padding: 0 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+
+    border: 0;
+    border-radius: 11px;
+
+    background: transparent;
+    color: rgba(255, 255, 255, .8);
+
+    text-decoration: none;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.customer-nav-menu > a:hover {
+    background: rgba(45, 212, 160, .075);
+    color: #2dd4a0;
+}
+
+
+.customer-nav-menu form {
+    margin: 4px 0 0;
+
+    padding-top: 4px;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, .06);
+}
+
+
+.customer-nav-logout {
+    color: #ff7187;
+}
+
+
+.customer-nav-logout:hover {
+    background: rgba(255, 75, 100, .08);
+}
+
+
+/* ==========================================================
+   GUEST
+========================================================== */
+
+.customer-nav-guest {
+    min-height: 64px;
+
+    padding: 10px 12px 10px 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    border: 1px solid rgba(45, 212, 160, .14);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, .025);
+}
+
+
+.customer-nav-guest-text {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+.customer-nav-guest-text small {
+    margin-bottom: 3px;
+
+    color: #2dd4a0;
+
+    font-size: 8px;
+    font-weight: 900;
+
+    letter-spacing: .12em;
+}
+
+
+.customer-nav-guest-text strong {
+    font-size: 11px;
+}
+
+
+.customer-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+
+.customer-nav-login,
+.customer-nav-register {
+    min-height: 38px;
+
+    padding: 0 14px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    text-decoration: none;
+
+    font-size: 10px;
+    font-weight: 900;
+}
+
+
+.customer-nav-login {
+    border:
+        1px solid
+        rgba(45, 212, 160, .22);
+
+    color: #2dd4a0;
+}
+
+
+.customer-nav-register {
+    background: #2dd4a0;
+    color: #04130d;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (
+    max-width: 520px
+) {
+
+    .customer-nav-guest-text strong {
+        display: none;
+    }
+
+
+    .customer-nav-login,
+    .customer-nav-register {
+        padding:
+            0 12px;
+    }
+
+
+    .customer-nav-identity strong {
+        max-width:
+            145px;
+    }
+
+}
+
+/* ==========================================================
+   PHASE 25
+   CUSTOMER NOTIFICATIONS
+========================================================== */
+
+.customer-notification-center {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.customer-notification-toggle {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 1px solid rgba(45,212,160,.18);
+    border-radius: 15px;
+
+    background: rgba(45,212,160,.06);
+    color: #fff;
+
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.customer-notification-count {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 999px;
+
+    background: #2dd4a0;
+    color: #04130d;
+
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.customer-notification-panel {
+    margin-top: 8px;
+    padding: 12px;
+
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 17px;
+
+    background: rgba(5,18,13,.98);
+}
+
+.customer-notification-panel[hidden] {
+    display: none;
+}
+
+.customer-notification-head {
+    padding: 4px 3px 10px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.customer-notification-head button {
+    border: 0;
+    background: transparent;
+    color: #2dd4a0;
+    font-size: 9px;
+    cursor: pointer;
+}
+
+.customer-notification-item {
+    display: block;
+    padding: 13px;
+    margin-top: 7px;
+
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 13px;
+
+    color: #fff;
+    text-decoration: none;
+}
+
+.customer-notification-item.is-unread {
+    border-color: rgba(45,212,160,.24);
+    background: rgba(45,212,160,.06);
+}
+
+.customer-notification-item strong {
+    display: block;
+    font-size: 11px;
+}
+
+.customer-notification-item p {
+    margin: 5px 0;
+    color: rgba(255,255,255,.6);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.customer-notification-item small {
+    color: rgba(255,255,255,.35);
+    font-size: 8px;
+}
+
+.customer-notification-empty {
+    padding: 20px;
+    text-align: center;
+    opacity: .45;
+    font-size: 10px;
+}
+
+.customer-notification-toast {
+    position: fixed;
+    z-index: 9999;
+
+    right: 18px;
+    bottom: 18px;
+
+    width: min(330px, calc(100vw - 36px));
+
+    padding: 15px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    border: 1px solid rgba(45,212,160,.3);
+    border-radius: 15px;
+
+    background: rgba(5,18,13,.98);
+
+    opacity: 0;
+    transform: translateY(15px);
+
+    transition: .25s ease;
+}
+
+.customer-notification-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.customer-notification-toast strong {
+    color: #2dd4a0;
+    font-size: 11px;
+}
+
+.customer-notification-toast span {
+    color: rgba(255,255,255,.7);
+    font-size: 10px;
+    line-height: 1.5;
+}
