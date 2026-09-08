@@ -427,34 +427,51 @@ app.wsgi_app = ProxyFix(
 )
 
 # ============================================================
-# CUSTOMER PRIVATE PAGE CACHE SECURITY
+# PHASE 26E
+# PRIVATE CUSTOMER CACHE SECURITY
 # ============================================================
 
 @app.after_request
-def disable_customer_private_cache(
+def customer_private_cache_security(
     response
 ):
 
     path = str(
         request.path
         or ""
-    )
+    ).lower()
 
 
     private_customer_page = (
+
         path == "/"
+
         or
+
         path.startswith(
             "/customer/account"
         )
+
         or
+
         path.startswith(
             "/customer/orders"
         )
     )
 
 
-    if private_customer_page:
+    private_customer_api = (
+        path.startswith(
+            "/api/customer/"
+        )
+    )
+
+
+    if (
+        private_customer_page
+        or
+        private_customer_api
+    ):
 
         response.headers[
             "Cache-Control"
@@ -466,11 +483,9 @@ def disable_customer_private_cache(
             "private"
         )
 
-
         response.headers[
             "Pragma"
         ] = "no-cache"
-
 
         response.headers[
             "Expires"

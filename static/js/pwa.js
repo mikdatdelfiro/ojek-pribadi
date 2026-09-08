@@ -1425,6 +1425,169 @@
 
     }
 
+// ========================================================
+// PHASE 26D
+// STANDALONE NAVIGATION
+// ========================================================
+
+function updateStandaloneNavigation() {
+
+    const navigation =
+        document.getElementById(
+            "pwaStandaloneNav"
+        );
+
+
+    if (!navigation) {
+
+        return;
+
+    }
+
+
+    const pathname =
+        String(
+            window.location.pathname
+            || "/"
+        )
+        .toLowerCase();
+
+
+    // ====================================================
+    // LOGIN / REGISTER
+    // Jangan tampilkan bottom navigation.
+    // ====================================================
+
+    const authPage =
+        (
+            pathname
+            ===
+            "/customer/login"
+
+            ||
+
+            pathname
+            ===
+            "/customer/register"
+        );
+
+
+    document.documentElement.dataset.pwaAuth =
+        authPage
+            ? "true"
+            : "false";
+
+
+    if (
+        authPage
+    ) {
+
+        return;
+
+    }
+
+
+    const items =
+        navigation.querySelectorAll(
+            ".pwa-nav-item"
+        );
+
+
+    items.forEach(
+        function (
+            item
+        ) {
+
+            item.classList.remove(
+                "is-active"
+            );
+
+
+            item.removeAttribute(
+                "aria-current"
+            );
+
+        }
+    );
+
+
+    let activeRoute =
+        "home";
+
+
+    // ====================================================
+    // ACCOUNT
+    // ====================================================
+
+    if (
+        pathname
+        ===
+        "/customer/account"
+    ) {
+
+        activeRoute =
+            "account";
+
+    }
+
+
+    // ====================================================
+    // ORDER HISTORY / DETAIL
+    // ====================================================
+
+    else if (
+        pathname.startsWith(
+            "/customer/orders"
+        )
+    ) {
+
+        activeRoute =
+            "orders";
+
+    }
+
+
+    // ====================================================
+    // HOME / BOOKING
+    // ====================================================
+
+    else {
+
+        activeRoute =
+            "home";
+
+    }
+
+
+    const activeItem =
+        navigation.querySelector(
+            (
+                '[data-pwa-route="'
+                +
+                activeRoute
+                +
+                '"]'
+            )
+        );
+
+
+    if (
+        activeItem
+    ) {
+
+        activeItem.classList.add(
+            "is-active"
+        );
+
+
+        activeItem.setAttribute(
+            "aria-current",
+            "page"
+        );
+
+    }
+
+}
 
     // ========================================================
     // DISPLAY MODE UPDATE
@@ -1631,9 +1794,606 @@
 
             updateDisplayMode();
 
-        }
+            updateStandaloneNavigation();
+
+            updateNativeBackButton();
+
+
+            document.documentElement.dataset.pwaTransition =
+                "ready";
+
+// ========================================================
+// PHASE 26D
+// DISPLAY MODE CHANGE
+// ========================================================
+
+const standaloneMediaQuery =
+    window.matchMedia(
+        "(display-mode: standalone)"
     );
 
+
+function handleStandaloneModeChange() {
+
+    updateDisplayMode();
+
+    updateStandaloneNavigation();
+
+}
+
+
+if (
+    typeof
+    standaloneMediaQuery.addEventListener
+    ===
+    "function"
+) {
+
+    standaloneMediaQuery.addEventListener(
+        "change",
+        handleStandaloneModeChange
+    );
+
+}
+else if (
+    typeof
+    standaloneMediaQuery.addListener
+    ===
+    "function"
+) {
+
+    standaloneMediaQuery.addListener(
+        handleStandaloneModeChange
+    );
+
+}
+
+// ========================================================
+// PHASE 26E
+// SESSION + BACK + NATIVE EXPERIENCE
+// ========================================================
+
+const pwaNativeBack =
+    document.getElementById(
+        "pwaNativeBack"
+    );
+
+
+let pwaNavigationLocked =
+    false;
+
+
+let pwaHiddenAt =
+    null;
+
+
+// ========================================================
+// PRIVATE CUSTOMER PATH
+// ========================================================
+
+function isPrivateCustomerPath() {
+
+    const pathname =
+        String(
+            window.location.pathname
+            || "/"
+        ).toLowerCase();
+
+
+    return (
+
+        pathname === "/"
+
+        ||
+
+        pathname.startsWith(
+            "/customer/account"
+        )
+
+        ||
+
+        pathname.startsWith(
+            "/customer/orders"
+        )
+    );
+
+}
+
+
+// ========================================================
+// AUTH PAGE
+// ========================================================
+
+function isCustomerAuthPage() {
+
+    const pathname =
+        String(
+            window.location.pathname
+            || ""
+        ).toLowerCase();
+
+
+    return (
+
+        pathname
+        ===
+        "/customer/login"
+
+        ||
+
+        pathname
+        ===
+        "/customer/register"
+    );
+
+}
+
+
+// ========================================================
+// DETAIL PAGE
+// ========================================================
+
+function isCustomerOrderDetailPage() {
+
+    const pathname =
+        String(
+            window.location.pathname
+            || ""
+        ).toLowerCase();
+
+
+    const parts =
+        pathname
+            .split("/")
+            .filter(Boolean);
+
+
+    return (
+
+        parts.length === 3
+
+        &&
+
+        parts[0] === "customer"
+
+        &&
+
+        parts[1] === "orders"
+    );
+
+}
+
+
+// ========================================================
+// BACK BUTTON VISIBILITY
+// ========================================================
+
+function updateNativeBackButton() {
+
+    if (!pwaNativeBack) {
+
+        return;
+
+    }
+
+
+    const visible = (
+
+        isStandaloneMode()
+
+        &&
+
+        isCustomerOrderDetailPage()
+    );
+
+
+    pwaNativeBack.hidden =
+        !visible;
+
+}
+
+
+// ========================================================
+// SAFE BACK
+// ========================================================
+
+function handleNativeBack() {
+
+    if (
+        pwaNavigationLocked
+    ) {
+
+        return;
+
+    }
+
+
+    pwaNavigationLocked =
+        true;
+
+
+    document.documentElement.dataset.pwaTransition =
+        "leaving";
+
+
+    window.setTimeout(
+        function () {
+
+            /*
+             * Detail order selalu kembali ke
+             * riwayat customer.
+             *
+             * Jangan gunakan history.back()
+             * karena history dapat berisi
+             * halaman login lama setelah logout/login.
+             */
+            window.location.href =
+                "/customer/orders";
+
+        },
+        110
+    );
+
+}
+
+
+if (
+    pwaNativeBack
+) {
+
+    pwaNativeBack.addEventListener(
+        "click",
+        handleNativeBack
+    );
+
+}
+
+
+// ========================================================
+// INTERNAL LINK TRANSITION
+// ========================================================
+
+document.addEventListener(
+    "click",
+    function (
+        event
+    ) {
+
+        if (
+            event.defaultPrevented
+            ||
+            event.button !== 0
+        ) {
+
+            return;
+
+        }
+
+
+        const link =
+            event.target.closest(
+                "a[href]"
+            );
+
+
+        if (!link) {
+
+            return;
+
+        }
+
+
+        if (
+            link.target
+            &&
+            link.target !== "_self"
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            link.hasAttribute(
+                "download"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const href =
+            link.getAttribute(
+                "href"
+            );
+
+
+        if (
+            !href
+            ||
+            href.startsWith("#")
+            ||
+            href.startsWith("javascript:")
+        ) {
+
+            return;
+
+        }
+
+
+        let targetUrl;
+
+
+        try {
+
+            targetUrl =
+                new URL(
+                    link.href,
+                    window.location.href
+                );
+
+        }
+        catch (
+            error
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            targetUrl.origin
+            !==
+            window.location.origin
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            pwaNavigationLocked
+        ) {
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        pwaNavigationLocked =
+            true;
+
+
+        document.documentElement.dataset.pwaTransition =
+            "leaving";
+
+    }
+);
+
+
+// ========================================================
+// PAGE SHOW
+// BFCache SECURITY
+// ========================================================
+
+window.addEventListener(
+    "pageshow",
+    function (
+        event
+    ) {
+
+        pwaNavigationLocked =
+            false;
+
+
+        document.documentElement.dataset.pwaTransition =
+            "ready";
+
+
+        updateNativeBackButton();
+
+
+        /*
+         * Safari / Chrome dapat mengembalikan halaman
+         * lama dari Back-Forward Cache.
+         *
+         * Untuk halaman private, paksa server melakukan
+         * validasi session lagi.
+         */
+        if (
+            event.persisted
+
+            &&
+
+            isPrivateCustomerPath()
+        ) {
+
+            window.location.reload();
+
+        }
+
+    }
+);
+
+
+// ========================================================
+// PAGE HIDE
+// ========================================================
+
+window.addEventListener(
+    "pagehide",
+    function () {
+
+        pwaNavigationLocked =
+            false;
+
+    }
+);
+
+
+// ========================================================
+// APP BACKGROUND / RESUME
+// ========================================================
+
+document.addEventListener(
+    "visibilitychange",
+    function () {
+
+        if (
+            document.visibilityState
+            ===
+            "hidden"
+        ) {
+
+            pwaHiddenAt =
+                Date.now();
+
+            return;
+
+        }
+
+
+        if (
+            document.visibilityState
+            !==
+            "visible"
+        ) {
+
+            return;
+
+        }
+
+
+        const hiddenDuration =
+            pwaHiddenAt
+                ?
+                (
+                    Date.now()
+                    -
+                    pwaHiddenAt
+                )
+                :
+                0;
+
+
+        pwaHiddenAt =
+            null;
+
+
+        updateNetworkState();
+
+        updateDisplayMode();
+
+        updateStandaloneNavigation();
+
+        updateNativeBackButton();
+
+
+        /*
+         * Beri tahu script halaman lain bahwa
+         * aplikasi baru kembali dari background.
+         */
+        window.dispatchEvent(
+            new CustomEvent(
+                "pwa:resume",
+                {
+                    detail: {
+
+                        hiddenDuration:
+                            hiddenDuration
+
+                    }
+                }
+            )
+        );
+
+    }
+);
+
+
+// ========================================================
+// FOCUS
+// ========================================================
+
+window.addEventListener(
+    "focus",
+    function () {
+
+        updateNetworkState();
+
+        updateDisplayMode();
+
+        updateStandaloneNavigation();
+
+        updateNativeBackButton();
+
+    }
+);
+
+
+// ========================================================
+// FORM DOUBLE SUBMIT PROTECTION
+// ========================================================
+
+document.addEventListener(
+    "submit",
+    function (
+        event
+    ) {
+
+        const form =
+            event.target;
+
+
+        if (
+            !(form instanceof HTMLFormElement)
+        ) {
+
+            return;
+
+        }
+
+
+        const submitButtons =
+            form.querySelectorAll(
+                'button[type="submit"], input[type="submit"]'
+            );
+
+
+        window.setTimeout(
+            function () {
+
+                submitButtons.forEach(
+                    function (
+                        button
+                    ) {
+
+                        button.disabled =
+                            true;
+
+                        button.setAttribute(
+                            "aria-disabled",
+                            "true"
+                        );
+
+                    }
+                );
+
+            },
+            0
+        );
+
+    }
+);
+
+})();
 
     // ========================================================
     // INITIALIZE

@@ -185,7 +185,7 @@
         url_for(
             'static',
             filename='css/style.css',
-            v='destination-fixed-v6'
+            v='phase26e-1'
         )
     }}"
 >
@@ -200,15 +200,173 @@
 
 <body>
 
-    {% block content %}{% endblock %}
+    <!-- =====================================================
+     PHASE 26E
+     STANDALONE BACK BUTTON
+===================================================== -->
 
-    {% block scripts %}{% endblock %}
+<button
+    type="button"
+    class="pwa-native-back"
+    id="pwaNativeBack"
+    aria-label="Kembali"
+    hidden
+>
+    <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+    >
+        <path
+            d="M15 18L9 12L15 6"
+        ></path>
+    </svg>
+
+    <span>
+        Kembali
+    </span>
+</button>
+
+{% block content %}{% endblock %}
+
+
+<!-- =====================================================
+     PHASE 26D
+     STANDALONE MOBILE NAVIGATION
+===================================================== -->
+
+<nav
+    class="pwa-standalone-nav"
+    id="pwaStandaloneNav"
+    aria-label="Navigasi aplikasi"
+>
+
+    <!-- PESAN -->
+    <a
+        href="{{ url_for('index') }}"
+        class="pwa-nav-item"
+        data-pwa-route="home"
+        aria-label="Pesan"
+    >
+
+        <span class="pwa-nav-icon">
+
+            <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    d="
+                        M12 2
+                        C8.1 2 5 5.1 5 9
+                        C5 14.2 12 22 12 22
+                        C12 22 19 14.2 19 9
+                        C19 5.1 15.9 2 12 2
+                        Z
+                    "
+                ></path>
+
+                <circle
+                    cx="12"
+                    cy="9"
+                    r="2.5"
+                ></circle>
+            </svg>
+
+        </span>
+
+        <span class="pwa-nav-label">
+            Pesan
+        </span>
+
+    </a>
+
+
+    <!-- RIWAYAT -->
+    <a
+        href="{{ url_for('customer_orders') }}"
+        class="pwa-nav-item"
+        data-pwa-route="orders"
+        aria-label="Riwayat"
+    >
+
+        <span class="pwa-nav-icon">
+
+            <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    d="
+                        M4 6
+                        H20
+
+                        M4 12
+                        H20
+
+                        M4 18
+                        H15
+                    "
+                ></path>
+            </svg>
+
+        </span>
+
+        <span class="pwa-nav-label">
+            Riwayat
+        </span>
+
+    </a>
+
+
+    <!-- AKUN -->
+    <a
+        href="{{ url_for('customer_account') }}"
+        class="pwa-nav-item"
+        data-pwa-route="account"
+        aria-label="Akun"
+    >
+
+        <span class="pwa-nav-icon">
+
+            <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+
+                <circle
+                    cx="12"
+                    cy="8"
+                    r="4"
+                ></circle>
+
+                <path
+                    d="
+                        M4 21
+                        C4.8 16.5 7.6 14 12 14
+                        C16.4 14 19.2 16.5 20 21
+                    "
+                ></path>
+
+            </svg>
+
+        </span>
+
+        <span class="pwa-nav-label">
+            Akun
+        </span>
+
+    </a>
+
+</nav>
+
+
+{% block scripts %}{% endblock %}
 
     <script
     src="{{ url_for(
         'static',
         filename='js/pwa.js',
-        v='phase26c-1'
+        v='phase26e-1'
     ) }}"
     defer
 ></script>

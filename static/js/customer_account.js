@@ -839,6 +839,22 @@ if (
 
 }
 
+window.addEventListener(
+    "pwa:resume",
+    function () {
+
+        if (
+            typeof refreshCustomerNotifications
+            ===
+            "function"
+        ) {
+
+            refreshCustomerNotifications();
+
+        }
+
+    }
+);
 
 // ============================================================
 // INITIAL + POLLING
@@ -850,4 +866,18 @@ refreshCustomerNotifications();
 window.setInterval(
     refreshCustomerNotifications,
     10000
+);
+
+// ============================================================
+// PHASE 26E
+// REFRESH AFTER APP RESUME
+// ============================================================
+
+window.addEventListener(
+    "pwa:resume",
+    function () {
+
+        refreshCustomerActiveOrders();
+
+    }
 );

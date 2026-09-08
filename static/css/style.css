@@ -41483,3 +41483,579 @@ summary > span:last-child {
     font-size: 10px;
     line-height: 1.5;
 }
+
+/* ==========================================================
+   PHASE 26D
+   STANDALONE APP EXPERIENCE
+========================================================== */
+
+
+/* ==========================================================
+   DEFAULT
+   Tidak tampil ketika website dibuka dari browser biasa.
+========================================================== */
+
+.pwa-standalone-nav {
+    display: none;
+}
+
+
+/* ==========================================================
+   STANDALONE MODE
+========================================================== */
+
+html[data-pwa="standalone"] .pwa-standalone-nav {
+
+    position: fixed;
+
+    left: 12px;
+    right: 12px;
+
+    bottom:
+        calc(
+            10px
+            +
+            env(
+                safe-area-inset-bottom
+            )
+        );
+
+    z-index: 8000;
+
+    min-height: 68px;
+
+    padding:
+        7px
+        8px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            1fr
+        );
+
+    align-items: center;
+
+    gap: 4px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .08
+        );
+
+    border-radius: 23px;
+
+    background:
+        rgba(
+            5,
+            18,
+            13,
+            .94
+        );
+
+    box-shadow:
+        0
+        18px
+        55px
+        rgba(
+            0,
+            0,
+            0,
+            .42
+        );
+
+    backdrop-filter:
+        blur(
+            22px
+        );
+
+    -webkit-backdrop-filter:
+        blur(
+            22px
+        );
+}
+
+
+/* ==========================================================
+   AUTH PAGE
+========================================================== */
+
+html[data-pwa-auth="true"]
+.pwa-standalone-nav {
+
+    display:
+        none
+        !important;
+}
+
+
+/* ==========================================================
+   NAV ITEM
+========================================================== */
+
+.pwa-nav-item {
+
+    min-width: 0;
+
+    min-height: 54px;
+
+    padding:
+        6px
+        4px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 4px;
+
+    position: relative;
+
+    border-radius: 16px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .42
+        );
+
+    text-decoration: none;
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .15s ease;
+}
+
+
+.pwa-nav-item:active {
+
+    transform:
+        scale(
+            .94
+        );
+}
+
+
+/* ==========================================================
+   ICON
+========================================================== */
+
+.pwa-nav-icon {
+
+    width: 23px;
+    height: 23px;
+
+    display: grid;
+
+    place-items: center;
+}
+
+
+.pwa-nav-icon svg {
+
+    width: 22px;
+    height: 22px;
+
+    fill: none;
+
+    stroke:
+        currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
+}
+
+
+.pwa-nav-item[data-pwa-route="home"]
+.pwa-nav-icon svg path:first-child {
+
+    fill:
+        transparent;
+}
+
+
+/* ==========================================================
+   LABEL
+========================================================== */
+
+.pwa-nav-label {
+
+    overflow: hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing:
+        .03em;
+}
+
+
+/* ==========================================================
+   ACTIVE NAV
+========================================================== */
+
+.pwa-nav-item.is-active {
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .10
+        );
+
+    color:
+        #2dd4a0;
+}
+
+
+.pwa-nav-item.is-active::before {
+
+    content: "";
+
+    position: absolute;
+
+    top: 4px;
+
+    left: 50%;
+
+    width: 18px;
+
+    height: 2px;
+
+    border-radius: 999px;
+
+    background:
+        #2dd4a0;
+
+    transform:
+        translateX(
+            -50%
+        );
+
+    box-shadow:
+        0
+        0
+        12px
+        rgba(
+            45,
+            212,
+            160,
+            .7
+        );
+}
+
+
+/* ==========================================================
+   BODY SAFE SPACE
+========================================================== */
+
+html[data-pwa="standalone"]:not(
+    [data-pwa-auth="true"]
+)
+body {
+
+    padding-bottom:
+        calc(
+            100px
+            +
+            env(
+                safe-area-inset-bottom
+            )
+        );
+}
+
+
+/* ==========================================================
+   IOS SAFE AREA
+========================================================== */
+
+html[data-pwa="standalone"] body {
+
+    padding-left:
+        env(
+            safe-area-inset-left
+        );
+
+    padding-right:
+        env(
+            safe-area-inset-right
+        );
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (
+    max-width: 480px
+) {
+
+    html[data-pwa="standalone"]
+    .pwa-standalone-nav {
+
+        left: 8px;
+
+        right: 8px;
+
+        bottom:
+            calc(
+                7px
+                +
+                env(
+                    safe-area-inset-bottom
+                )
+            );
+
+        border-radius:
+            21px;
+    }
+
+}
+
+
+/* ==========================================================
+   LANDSCAPE
+========================================================== */
+
+@media (
+    orientation: landscape
+)
+and
+(
+    max-height: 520px
+) {
+
+    html[data-pwa="standalone"]
+    .pwa-standalone-nav {
+
+        min-height:
+            58px;
+
+        padding:
+            4px
+            7px;
+    }
+
+
+    .pwa-nav-item {
+
+        min-height:
+            46px;
+    }
+
+
+    .pwa-nav-icon svg {
+
+        width:
+            19px;
+
+        height:
+            19px;
+    }
+
+}
+
+/* ==========================================================
+   PHASE 26E
+   STANDALONE NATIVE FEEL
+========================================================== */
+
+
+/* ==========================================================
+   PAGE TRANSITION
+========================================================== */
+
+html[data-pwa="standalone"] body {
+    transition:
+        opacity .16s ease,
+        transform .16s ease;
+}
+
+
+html[data-pwa-transition="leaving"] body {
+    opacity: .72;
+
+    transform:
+        translateY(2px);
+
+    pointer-events: none;
+}
+
+
+/* ==========================================================
+   NATIVE BACK BUTTON
+========================================================== */
+
+.pwa-native-back {
+    display: none;
+}
+
+
+html[data-pwa="standalone"]
+.pwa-native-back:not([hidden]) {
+
+    position: sticky;
+
+    top:
+        calc(
+            8px
+            +
+            env(
+                safe-area-inset-top
+            )
+        );
+
+    z-index: 7900;
+
+    width: fit-content;
+
+    min-height: 42px;
+
+    margin:
+        8px
+        0
+        -50px
+        12px;
+
+    padding:
+        0
+        12px
+        0
+        9px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .08
+        );
+
+    border-radius: 14px;
+
+    background:
+        rgba(
+            5,
+            18,
+            13,
+            .88
+        );
+
+    color: #ffffff;
+
+    backdrop-filter:
+        blur(18px);
+
+    -webkit-backdrop-filter:
+        blur(18px);
+
+    box-shadow:
+        0
+        10px
+        30px
+        rgba(
+            0,
+            0,
+            0,
+            .22
+        );
+
+    font: inherit;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color:
+        transparent;
+}
+
+
+.pwa-native-back svg {
+
+    width: 20px;
+    height: 20px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 2;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+}
+
+
+.pwa-native-back:active {
+
+    transform:
+        scale(.95);
+}
+
+
+/* ==========================================================
+   SAFE AREA TOP
+========================================================== */
+
+html[data-pwa="standalone"] body {
+
+    min-height:
+        100dvh;
+}
+
+
+/* ==========================================================
+   PREVENT TEXT SELECTION ON APP NAVIGATION
+========================================================== */
+
+html[data-pwa="standalone"]
+.pwa-standalone-nav,
+
+html[data-pwa="standalone"]
+.pwa-native-back {
+
+    user-select: none;
+
+    -webkit-user-select: none;
+}
