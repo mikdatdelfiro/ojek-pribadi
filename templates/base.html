@@ -51,18 +51,111 @@
 
     <link
         rel="apple-touch-icon"
+        sizes="180x180"
         href="{{
             url_for(
                 'static',
-                filename='icons/apple-touch-icon.png'
+                filename='icons/apple-touch-icon.png',
+                v='phase26c-1'
             )
         }}"
     >
 
     <link
-    rel="icon"
-    type="image/png"
-    href="{{ url_for('static', filename='icons/icon-192.png') }}"
+        rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href="{{
+            url_for(
+                'static',
+                filename='icons/favicon-32.png',
+                v='phase26c-1'
+            )
+        }}"
+    >
+
+
+    <!-- =====================================================
+         PHASE 26C
+         iPHONE / iPAD WEB APP STARTUP IMAGES
+    ====================================================== -->
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-5-se1.png', v='phase26c-1') }}"
+        media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-6-7-8-se2-se3.png', v='phase26c-1') }}"
+        media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-plus.png', v='phase26c-1') }}"
+        media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-x-xs-11pro.png', v='phase26c-1') }}"
+        media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-xr-11.png', v='phase26c-1') }}"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-xsmax-11promax.png', v='phase26c-1') }}"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-12mini-13mini.png', v='phase26c-1') }}"
+        media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-12-13-14.png', v='phase26c-1') }}"
+        media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-12-13promax-14plus.png', v='phase26c-1') }}"
+        media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-14pro-15-15pro.png', v='phase26c-1') }}"
+        media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-14promax-15plus-max.png', v='phase26c-1') }}"
+        media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-16pro.png', v='phase26c-1') }}"
+        media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    >
+
+    <link
+        rel="apple-touch-startup-image"
+        href="{{ url_for('static', filename='splash/iphone-16promax.png', v='phase26c-1') }}"
+        media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
     >
 
     <title>
@@ -115,7 +208,7 @@
     src="{{ url_for(
         'static',
         filename='js/pwa.js',
-        v='phase20h-1'
+        v='phase26c-1'
     ) }}"
     defer
 ></script>
