@@ -102,9 +102,7 @@ function renderCustomerActiveOrders(
                     Pesanan baru Anda akan muncul di sini.
                 </p>
 
-                <a href="/">
-                    Pesan Perjalanan
-                </a>
+                <a href="/app">Pesan Perjalanan</a>
 
             </div>
         `;

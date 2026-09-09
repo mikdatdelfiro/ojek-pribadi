@@ -14585,11 +14585,67 @@ def pwa_service_worker():
     return response
 
 # ============================================================
+# PHASE 27A
+# PUBLIC SEO LANDING PAGE
+# ============================================================
+
+@app.route("/")
+def public_landing():
+
+    connection = get_db()
+
+
+    try:
+
+        service_open = (
+            get_service_open(
+                connection
+            )
+        )
+
+
+        profile = (
+            get_driver_profile(
+                connection
+            )
+        )
+
+
+        driver_trust = (
+            get_public_driver_trust(
+                connection,
+                profile
+            )
+        )
+
+
+    finally:
+
+        connection.close()
+
+
+    return render_template(
+        "landing.html",
+
+        service_open=
+            service_open,
+
+        driver_profile=
+            profile,
+
+        driver_trust=
+            driver_trust,
+
+        customer_logged_in=
+            customer_is_authenticated(),
+    )
+
+# ============================================================
 # CUSTOMER PAGE
 # PHASE 19D
 # ============================================================
 
-@app.route("/")
+@app.route("/app")
 @customer_login_required
 def index():
 

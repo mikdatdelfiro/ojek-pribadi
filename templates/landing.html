@@ -1,0 +1,1444 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Ojek Pribadi Belitang | Antar Jemput & Perjalanan
+{% endblock %}
+
+
+{% block head %}
+
+<!-- =====================================================
+     PHASE 27C
+     OPEN GRAPH + SOCIAL MEDIA PREVIEW
+===================================================== -->
+
+<meta
+    property="og:type"
+    content="website"
+>
+
+<meta
+    property="og:locale"
+    content="id_ID"
+>
+
+<meta
+    property="og:site_name"
+    content="Ojek Pribadi"
+>
+
+<meta
+    property="og:title"
+    content="Ojek Pribadi Belitang | Antar Jemput & Perjalanan"
+>
+
+<meta
+    property="og:description"
+    content="Ojek Pribadi Belitang melayani antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di Belitang dan sekitarnya."
+>
+
+<meta
+    property="og:url"
+    content="{{ request.url_root.rstrip('/') }}/"
+>
+
+<meta
+    property="og:image"
+    content="{{
+        request.url_root.rstrip('/')
+        ~
+        url_for(
+            'static',
+            filename='icons/icon-512.png'
+        )
+    }}"
+>
+
+<meta
+    property="og:image:secure_url"
+    content="{{
+        request.url_root.rstrip('/')
+        ~
+        url_for(
+            'static',
+            filename='icons/icon-512.png'
+        )
+    }}"
+>
+
+<meta
+    property="og:image:type"
+    content="image/png"
+>
+
+<meta
+    property="og:image:width"
+    content="512"
+>
+
+<meta
+    property="og:image:height"
+    content="512"
+>
+
+<meta
+    property="og:image:alt"
+    content="Logo Ojek Pribadi Belitang"
+>
+
+
+<!-- =====================================================
+     X / TWITTER CARD
+===================================================== -->
+
+<meta
+    name="twitter:card"
+    content="summary_large_image"
+>
+
+<meta
+    name="twitter:title"
+    content="Ojek Pribadi Belitang | Antar Jemput & Perjalanan"
+>
+
+<meta
+    name="twitter:description"
+    content="Layanan antar jemput, perjalanan pribadi, serta pesan makanan dan minuman untuk Belitang dan sekitarnya."
+>
+
+<meta
+    name="twitter:image"
+    content="{{
+        request.url_root.rstrip('/')
+        ~
+        url_for(
+            'static',
+            filename='icons/icon-512.png'
+        )
+    }}"
+>
+
+<meta
+    name="twitter:image:alt"
+    content="Ojek Pribadi Belitang"
+>
+
+<meta
+    name="description"
+    content="Ojek Pribadi Belitang melayani antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di Belitang dan sekitarnya. Pesan mudah secara online."
+>
+
+<meta
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+>
+
+<link
+    rel="canonical"
+    href="{{ request.url_root.rstrip('/') }}/"
+>
+
+{% endblock %}
+
+
+{% block content %}
+
+<main class="seo-landing">
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="seo-hero">
+
+        <div class="seo-hero-glow"></div>
+
+
+        <div class="seo-container">
+
+            <div class="seo-brand">
+
+                <div class="seo-brand-icon">
+
+                    <img
+                        src="{{
+                            url_for(
+                                'static',
+                                filename='icons/icon-192.png'
+                            )
+                        }}"
+                        alt="Logo Ojek Pribadi"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        OJEK PRIBADI
+                    </small>
+
+                    <strong>
+                        Belitang
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="seo-status">
+
+                <span
+                    class="
+                        seo-status-dot
+                        {% if service_open %}
+                            is-open
+                        {% endif %}
+                    "
+                ></span>
+
+                {% if service_open %}
+
+                    Sedang menerima pesanan
+
+                {% else %}
+
+                    Layanan sedang tidak tersedia
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="seo-hero-copy">
+
+                <span class="seo-eyebrow">
+                    TRANSPORTASI PRIBADI • BELITANG
+                </span>
+
+                <h1>
+                    Ojek Pribadi Belitang
+                    untuk perjalanan yang lebih mudah.
+                </h1>
+
+                <p>
+                    Ojek Pribadi melayani kebutuhan antar jemput,
+                    perjalanan pribadi, serta pesan makanan dan
+                    minuman untuk masyarakat Belitang dan wilayah
+                    sekitarnya dengan pemesanan secara online.
+                </p>
+
+            </div>
+
+
+            <div class="seo-actions">
+
+                <a
+                    href="{{ url_for('index') }}"
+                    class="seo-primary-button"
+                >
+
+                    {% if customer_logged_in %}
+
+                        Buka Aplikasi
+
+                    {% else %}
+
+                        Pesan Sekarang
+
+                    {% endif %}
+
+                    <span>
+                        →
+                    </span>
+
+                </a>
+
+
+                {% if not customer_logged_in %}
+
+                <a
+                    href="{{
+                        url_for(
+                            'customer_register'
+                        )
+                    }}"
+                    class="seo-secondary-button"
+                >
+                    Buat Akun
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SERVICES
+    ====================================================== -->
+
+    <section class="seo-section">
+
+        <div class="seo-container">
+
+            <span class="seo-section-label">
+                LAYANAN
+            </span>
+
+            <h2>
+                Satu layanan untuk berbagai kebutuhan.
+            </h2>
+
+
+            <div class="seo-service-grid">
+
+                <article class="seo-service-card">
+
+                    <span>
+                        01
+                    </span>
+
+                    <h3>
+                        Antar Jemput
+                    </h3>
+
+                    <p>
+                        Layanan perjalanan dari lokasi
+                        penjemputan menuju tujuan Anda.
+                    </p>
+
+                </article>
+
+
+                <article class="seo-service-card">
+
+                    <span>
+                        02
+                    </span>
+
+                    <h3>
+                        Pesan Makanan
+                    </h3>
+
+                    <p>
+                        Membantu mengambil dan mengantarkan
+                        makanan atau minuman pesanan Anda.
+                    </p>
+
+                </article>
+
+
+                <article class="seo-service-card">
+
+                    <span>
+                        03
+                    </span>
+
+                    <h3>
+                        Perjalanan Pribadi
+                    </h3>
+
+                    <p>
+                        Transportasi yang praktis untuk
+                        kebutuhan perjalanan sehari-hari.
+                    </p>
+
+                </article>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TRUST
+    ====================================================== -->
+
+    {% if driver_profile %}
+
+    <section class="seo-section">
+
+        <div class="seo-container">
+
+            <div class="seo-driver-card">
+
+                <div class="seo-driver-photo">
+
+                    {% if driver_profile.photo_url %}
+
+                    <img
+                        src="{{ driver_profile.photo_url }}"
+                        alt="Driver Ojek Pribadi Belitang"
+                    >
+
+                    {% else %}
+
+                    <span>
+                        OP
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="seo-driver-copy">
+
+                    <span class="seo-section-label">
+                        DRIVER & REPUTASI
+                    </span>
+
+                    <h2>
+                        {{ driver_profile.driver_name }}
+                    </h2>
+
+                    <p>
+
+                        {% if driver_profile.vehicle_name %}
+
+                            {{ driver_profile.vehicle_name }}
+
+                        {% else %}
+
+                            Pengemudi Ojek Pribadi
+
+                        {% endif %}
+
+                    </p>
+
+                </div>
+
+
+                {% if driver_trust %}
+
+                <div class="seo-driver-rating">
+
+                    <strong>
+                        ★ {{ driver_trust.average_rating }}
+                    </strong>
+
+                    <small>
+                        {{ driver_trust.review_count }}
+                        ulasan
+                    </small>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         CTA
+    ====================================================== -->
+
+    <section class="seo-section">
+
+        <div class="seo-container">
+
+            <div class="seo-cta">
+
+                <span class="seo-section-label">
+                    OJEK PRIBADI
+                </span>
+
+                <h2>
+                    Siap melakukan perjalanan?
+                </h2>
+
+                <p>
+                    Masuk ke aplikasi untuk menentukan
+                    lokasi jemput, tujuan dan melihat
+                    estimasi tarif perjalanan.
+                </p>
+
+
+                <a
+                    href="{{ url_for('index') }}"
+                    class="seo-primary-button"
+                >
+                    Buka Ojek Pribadi
+
+                    <span>
+                        →
+                    </span>
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="seo-footer">
+
+        <div class="seo-container">
+
+            <strong>
+                OJEK PRIBADI
+            </strong>
+
+            <p>
+                Layanan transportasi pribadi
+                Belitang dan sekitarnya.
+            </p>
+
+        </div>
+
+    </footer>
+
+</main>
+
+
+<style>
+
+/* ==========================================================
+   PHASE 27A
+   PUBLIC SEO LANDING PAGE
+========================================================== */
+
+.seo-landing {
+
+    min-height:
+        100vh;
+
+    background:
+        #040908;
+
+    color:
+        #ffffff;
+}
+
+
+.seo-container {
+
+    width:
+        min(
+            1120px,
+            calc(
+                100%
+                -
+                40px
+            )
+        );
+
+    margin:
+        0
+        auto;
+}
+
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.seo-hero {
+
+    position:
+        relative;
+
+    min-height:
+        720px;
+
+    padding:
+        32px
+        0
+        90px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    overflow:
+        hidden;
+}
+
+
+.seo-hero-glow {
+
+    position:
+        absolute;
+
+    width:
+        700px;
+
+    height:
+        700px;
+
+    right:
+        -260px;
+
+    top:
+        -230px;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .10
+        );
+
+    filter:
+        blur(
+            120px
+        );
+
+    pointer-events:
+        none;
+}
+
+
+.seo-brand {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+}
+
+
+.seo-brand-icon {
+
+    width:
+        48px;
+
+    height:
+        48px;
+
+    overflow:
+        hidden;
+
+    border-radius:
+        15px;
+}
+
+
+.seo-brand-icon img {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    object-fit:
+        cover;
+}
+
+
+.seo-brand small {
+
+    display:
+        block;
+
+    color:
+        #2dd4a0;
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .13em;
+}
+
+
+.seo-brand strong {
+
+    display:
+        block;
+
+    margin-top:
+        3px;
+
+    font-size:
+        14px;
+}
+
+
+.seo-status {
+
+    width:
+        fit-content;
+
+    margin-top:
+        70px;
+
+    padding:
+        9px
+        13px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .08
+        );
+
+    border-radius:
+        999px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .62
+        );
+
+    font-size:
+        10px;
+}
+
+
+.seo-status-dot {
+
+    width:
+        7px;
+
+    height:
+        7px;
+
+    border-radius:
+        50%;
+
+    background:
+        #64748b;
+}
+
+
+.seo-status-dot.is-open {
+
+    background:
+        #2dd4a0;
+
+    box-shadow:
+        0
+        0
+        14px
+        rgba(
+            45,
+            212,
+            160,
+            .8
+        );
+}
+
+
+.seo-hero-copy {
+
+    max-width:
+        760px;
+
+    margin-top:
+        28px;
+}
+
+
+.seo-eyebrow,
+.seo-section-label {
+
+    color:
+        #2dd4a0;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .14em;
+}
+
+
+.seo-hero h1 {
+
+    max-width:
+        800px;
+
+    margin:
+        12px
+        0
+        20px;
+
+    font-size:
+        clamp(
+            45px,
+            8vw,
+            86px
+        );
+
+    line-height:
+        .98;
+
+    letter-spacing:
+        -.045em;
+}
+
+
+.seo-hero-copy p {
+
+    max-width:
+        620px;
+
+    margin:
+        0;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .56
+        );
+
+    font-size:
+        17px;
+
+    line-height:
+        1.7;
+}
+
+
+.seo-actions {
+
+    margin-top:
+        34px;
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        10px;
+}
+
+
+.seo-primary-button,
+.seo-secondary-button {
+
+    min-height:
+        54px;
+
+    padding:
+        0
+        20px;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        28px;
+
+    border-radius:
+        15px;
+
+    text-decoration:
+        none;
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+}
+
+
+.seo-primary-button {
+
+    background:
+        #2dd4a0;
+
+    color:
+        #04130d;
+}
+
+
+.seo-secondary-button {
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .12
+        );
+
+    color:
+        #ffffff;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .035
+        );
+}
+
+
+/* ==========================================================
+   SECTIONS
+========================================================== */
+
+.seo-section {
+
+    padding:
+        80px
+        0;
+}
+
+
+.seo-section h2 {
+
+    max-width:
+        680px;
+
+    margin:
+        10px
+        0
+        30px;
+
+    font-size:
+        clamp(
+            30px,
+            5vw,
+            48px
+        );
+
+    letter-spacing:
+        -.035em;
+}
+
+
+.seo-service-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            1fr
+        );
+
+    gap:
+        14px;
+}
+
+
+.seo-service-card {
+
+    min-height:
+        240px;
+
+    padding:
+        25px;
+
+    border:
+        1px solid
+        rgba(
+            45,
+            212,
+            160,
+            .13
+        );
+
+    border-radius:
+        24px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .035
+        );
+}
+
+
+.seo-service-card > span {
+
+    color:
+        #2dd4a0;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+}
+
+
+.seo-service-card h3 {
+
+    margin:
+        80px
+        0
+        8px;
+
+    font-size:
+        21px;
+}
+
+
+.seo-service-card p {
+
+    margin:
+        0;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .48
+        );
+
+    font-size:
+        12px;
+
+    line-height:
+        1.65;
+}
+
+
+/* ==========================================================
+   DRIVER
+========================================================== */
+
+.seo-driver-card {
+
+    padding:
+        30px;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        auto
+        1fr
+        auto;
+
+    gap:
+        20px;
+
+    align-items:
+        center;
+
+    border:
+        1px solid
+        rgba(
+            45,
+            212,
+            160,
+            .15
+        );
+
+    border-radius:
+        26px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .04
+        );
+}
+
+
+.seo-driver-photo {
+
+    width:
+        90px;
+
+    height:
+        90px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    overflow:
+        hidden;
+
+    border-radius:
+        24px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .10
+        );
+
+    color:
+        #2dd4a0;
+
+    font-weight:
+        900;
+}
+
+
+.seo-driver-photo img {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    object-fit:
+        cover;
+}
+
+
+.seo-driver-copy h2 {
+
+    margin:
+        5px
+        0;
+
+    font-size:
+        26px;
+}
+
+
+.seo-driver-copy p {
+
+    margin:
+        0;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .48
+        );
+}
+
+
+.seo-driver-rating {
+
+    min-width:
+        110px;
+
+    padding:
+        14px;
+
+    text-align:
+        center;
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .08
+        );
+}
+
+
+.seo-driver-rating strong {
+
+    display:
+        block;
+
+    color:
+        #2dd4a0;
+
+    font-size:
+        18px;
+}
+
+
+.seo-driver-rating small {
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .42
+        );
+}
+
+
+/* ==========================================================
+   CTA
+========================================================== */
+
+.seo-cta {
+
+    padding:
+        60px;
+
+    border:
+        1px solid
+        rgba(
+            45,
+            212,
+            160,
+            .16
+        );
+
+    border-radius:
+        30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(
+                45,
+                212,
+                160,
+                .10
+            ),
+            rgba(
+                45,
+                212,
+                160,
+                .025
+            )
+        );
+}
+
+
+.seo-cta p {
+
+    max-width:
+        580px;
+
+    margin:
+        -15px
+        0
+        28px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .5
+        );
+
+    line-height:
+        1.7;
+}
+
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.seo-footer {
+
+    padding:
+        50px
+        0;
+
+    border-top:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .06
+        );
+}
+
+
+.seo-footer strong {
+
+    color:
+        #2dd4a0;
+
+    font-size:
+        11px;
+
+    letter-spacing:
+        .13em;
+}
+
+
+.seo-footer p {
+
+    margin:
+        7px
+        0
+        0;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .4
+        );
+
+    font-size:
+        11px;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (
+    max-width: 760px
+) {
+
+    .seo-container {
+
+        width:
+            min(
+                100%
+                -
+                28px,
+                1120px
+            );
+    }
+
+
+    .seo-hero {
+
+        min-height:
+            auto;
+
+        padding:
+            24px
+            0
+            70px;
+    }
+
+
+    .seo-status {
+
+        margin-top:
+            60px;
+    }
+
+
+    .seo-hero h1 {
+
+        font-size:
+            48px;
+    }
+
+
+    .seo-service-grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .seo-service-card {
+
+        min-height:
+            190px;
+    }
+
+
+    .seo-service-card h3 {
+
+        margin-top:
+            50px;
+    }
+
+
+    .seo-driver-card {
+
+        grid-template-columns:
+            auto
+            1fr;
+    }
+
+
+    .seo-driver-rating {
+
+        grid-column:
+            1
+            /
+            -1;
+
+        text-align:
+            left;
+    }
+
+
+    .seo-cta {
+
+        padding:
+            32px
+            24px;
+    }
+
+}
+
+</style>
+
+{% endblock %}
