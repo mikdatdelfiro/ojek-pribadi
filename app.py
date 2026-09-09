@@ -14523,6 +14523,101 @@ def customer_order_detail(
         payment=
             payment,
     )
+    
+    # ============================================================
+# PHASE 27E
+# ROBOTS.TXT
+# ============================================================
+
+@app.route(
+    "/robots.txt"
+)
+def robots_txt():
+
+    sitemap_url = (
+        url_for(
+            "sitemap_xml",
+            _external=True
+        )
+    )
+
+
+    robots_content = (
+        "User-agent: *\n"
+        "\n"
+        "Allow: /\n"
+        "\n"
+        "Disallow: /app\n"
+        "Disallow: /api/\n"
+        "Disallow: /customer/\n"
+        "Disallow: /driver/\n"
+        "Disallow: /admin/\n"
+        "Disallow: /order/\n"
+        "\n"
+        f"Sitemap: {sitemap_url}\n"
+    )
+
+
+    return (
+        robots_content,
+        200,
+        {
+            "Content-Type":
+                "text/plain; charset=utf-8",
+
+            "Cache-Control":
+                "public, max-age=3600",
+        }
+    )
+    
+    # ============================================================
+# PHASE 27E
+# SITEMAP.XML
+# ============================================================
+
+@app.route(
+    "/sitemap.xml"
+)
+def sitemap_xml():
+
+    landing_url = (
+        url_for(
+            "public_landing",
+            _external=True
+        )
+    )
+
+
+    sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
+
+    <url>
+
+        <loc>{landing_url}</loc>
+
+        <changefreq>weekly</changefreq>
+
+        <priority>1.0</priority>
+
+    </url>
+
+</urlset>
+"""
+
+
+    return (
+        sitemap_content,
+        200,
+        {
+            "Content-Type":
+                "application/xml; charset=utf-8",
+
+            "Cache-Control":
+                "public, max-age=3600",
+        }
+    )
 # ============================================================
 # PHASE 13
 # PWA FILES

@@ -139,6 +139,127 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
     href="{{ request.url_root.rstrip('/') }}/"
 >
 
+<!-- =====================================================
+     PHASE 27D
+     STRUCTURED DATA / SCHEMA.ORG
+===================================================== -->
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+
+    "@graph": [
+
+        {
+            "@type": "WebSite",
+
+            "@id": "{{ request.url_root.rstrip('/') }}/#website",
+
+            "url": "{{ request.url_root.rstrip('/') }}/",
+
+            "name": "Ojek Pribadi",
+
+            "alternateName": "Ojek Pribadi Belitang",
+
+            "inLanguage": "id-ID",
+
+            "publisher": {
+                "@id": "{{ request.url_root.rstrip('/') }}/#organization"
+            }
+        },
+
+
+        {
+            "@type": "Organization",
+
+            "@id": "{{ request.url_root.rstrip('/') }}/#organization",
+
+            "name": "Ojek Pribadi",
+
+            "url": "{{ request.url_root.rstrip('/') }}/",
+
+            "logo": {
+                "@type": "ImageObject",
+
+                "url": "{{
+                    request.url_root.rstrip('/')
+                    ~
+                    url_for(
+                        'static',
+                        filename='icons/icon-512.png'
+                    )
+                }}",
+
+                "width": 512,
+
+                "height": 512
+            },
+
+            "areaServed": [
+                {
+                    "@type": "Place",
+                    "name": "Belitang"
+                },
+                {
+                    "@type": "AdministrativeArea",
+                    "name": "Ogan Komering Ulu Timur"
+                },
+                {
+                    "@type": "AdministrativeArea",
+                    "name": "Sumatera Selatan"
+                }
+            ]
+        },
+
+
+        {
+            "@type": "Service",
+
+            "@id": "{{ request.url_root.rstrip('/') }}/#service",
+
+            "name": "Ojek Pribadi Belitang",
+
+            "serviceType": [
+                "Antar jemput",
+                "Perjalanan pribadi",
+                "Pesan makanan dan minuman"
+            ],
+
+            "description":
+                "Layanan ojek pribadi untuk antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di wilayah Belitang dan sekitarnya.",
+
+            "url": "{{ request.url_root.rstrip('/') }}/",
+
+            "provider": {
+                "@id": "{{ request.url_root.rstrip('/') }}/#organization"
+            },
+
+            "areaServed": [
+                {
+                    "@type": "Place",
+                    "name": "Belitang"
+                },
+                {
+                    "@type": "AdministrativeArea",
+                    "name": "Ogan Komering Ulu Timur"
+                },
+                {
+                    "@type": "AdministrativeArea",
+                    "name": "Sumatera Selatan"
+                }
+            ],
+
+            "availableChannel": {
+                "@type": "ServiceChannel",
+
+                "serviceUrl": "{{ request.url_root.rstrip('/') }}{{ url_for('index') }}"
+            }
+        }
+
+    ]
+}
+</script>
+
 {% endblock %}
 
 
