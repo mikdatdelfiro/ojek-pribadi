@@ -2,7 +2,7 @@
 
 
 {% block title %}
-Ojek Pribadi Belitang | Antar Jemput & Perjalanan
+Ojek Belitang | Ojek Pribadi, Antar Jemput & Pesan Makanan
 {% endblock %}
 
 
@@ -30,12 +30,12 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
 <meta
     property="og:title"
-    content="Ojek Pribadi Belitang | Antar Jemput & Perjalanan"
+    content="Ojek Belitang | Ojek Pribadi & Antar Jemput"
 >
 
 <meta
     property="og:description"
-    content="Ojek Pribadi Belitang melayani antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di Belitang dan sekitarnya."
+    content="Layanan ojek pribadi untuk antar jemput, perjalanan, serta pesan makanan dan minuman di Belitang, OKU Timur dan sekitarnya."
 >
 
 <meta
@@ -99,12 +99,12 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
 <meta
     name="twitter:title"
-    content="Ojek Pribadi Belitang | Antar Jemput & Perjalanan"
+    content="Ojek Belitang | Ojek Pribadi & Antar Jemput"
 >
 
 <meta
     name="twitter:description"
-    content="Layanan antar jemput, perjalanan pribadi, serta pesan makanan dan minuman untuk Belitang dan sekitarnya."
+    content="Layanan ojek pribadi, antar jemput dan pesan makanan untuk wilayah Belitang, OKU Timur dan sekitarnya."
 >
 
 <meta
@@ -126,7 +126,7 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
 <meta
     name="description"
-    content="Ojek Pribadi Belitang melayani antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di Belitang dan sekitarnya. Pesan mudah secara online."
+    content="Ojek Belitang untuk antar jemput, perjalanan pribadi, serta pesan makanan dan minuman di Belitang, OKU Timur dan sekitarnya. Pesan Ojek Pribadi secara online."
 >
 
 <meta
@@ -217,9 +217,11 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
             "@id": "{{ request.url_root.rstrip('/') }}/#service",
 
-            "name": "Ojek Pribadi Belitang",
+            "name": "Ojek Belitang - Ojek Pribadi",
 
             "serviceType": [
+                "Ojek Belitang",
+                "Ojek pribadi",
                 "Antar jemput",
                 "Perjalanan pribadi",
                 "Pesan makanan dan minuman"
@@ -341,15 +343,15 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
                 </span>
 
                 <h1>
-                    Ojek Pribadi Belitang
-                    untuk perjalanan yang lebih mudah.
+                    Ojek Belitang untuk perjalanan
+                    yang lebih mudah.
                 </h1>
 
                 <p>
-                    Ojek Pribadi melayani kebutuhan antar jemput,
-                    perjalanan pribadi, serta pesan makanan dan
-                    minuman untuk masyarakat Belitang dan wilayah
-                    sekitarnya dengan pemesanan secara online.
+                    Ojek Pribadi melayani antar jemput,
+                    perjalanan pribadi, serta pesan makanan
+                    dan minuman untuk wilayah Belitang,
+                    OKU Timur dan sekitarnya.
                 </p>
 
             </div>
@@ -400,6 +402,90 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
     </section>
 
+<!-- =====================================================
+     PHASE 27G
+     LOCAL SEO BELITANG
+===================================================== -->
+
+<section class="seo-local">
+
+    <div class="seo-container">
+
+        <div class="seo-local-grid">
+
+            <div class="seo-local-copy">
+
+                <span class="seo-section-label">
+                    OJEK BELITANG
+                </span>
+
+                <h2>
+                    Layanan ojek pribadi
+                    untuk Belitang dan sekitarnya.
+                </h2>
+
+                <p>
+                    Ojek Pribadi hadir untuk membantu
+                    kebutuhan transportasi sehari-hari
+                    di wilayah Belitang, Kabupaten
+                    Ogan Komering Ulu Timur,
+                    Sumatera Selatan.
+                </p>
+
+                <p>
+                    Anda dapat menggunakan layanan
+                    antar jemput, perjalanan pribadi,
+                    serta bantuan pesan dan antar
+                    makanan maupun minuman.
+                </p>
+
+                <a
+                    href="{{ url_for('index') }}"
+                    class="seo-primary-button"
+                >
+                    Pesan Ojek Belitang
+
+                    <span>
+                        →
+                    </span>
+                </a>
+
+            </div>
+
+
+            <div class="seo-local-area">
+
+                <span class="seo-section-label">
+                    WILAYAH LAYANAN
+                </span>
+
+                <div class="seo-area-list">
+
+                    <span>
+                        Belitang
+                    </span>
+
+                    <span>
+                        OKU Timur
+                    </span>
+
+                    <span>
+                        Sumatera Selatan
+                    </span>
+
+                    <span>
+                        Wilayah Sekitar
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>    
 
     <!-- =====================================================
          SERVICES
@@ -1463,6 +1549,165 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
         11px;
 }
 
+/* ==========================================================
+   PHASE 27G
+   LOCAL SEO SECTION
+========================================================== */
+
+.seo-local {
+
+    padding:
+        80px
+        0;
+}
+
+
+.seo-local-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        1.4fr
+        .8fr;
+
+    gap:
+        20px;
+}
+
+
+.seo-local-copy,
+.seo-local-area {
+
+    padding:
+        30px;
+
+    border:
+        1px solid
+        rgba(
+            45,
+            212,
+            160,
+            .13
+        );
+
+    border-radius:
+        26px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .035
+        );
+}
+
+
+.seo-local-copy h2 {
+
+    margin:
+        10px
+        0
+        20px;
+
+    font-size:
+        clamp(
+            30px,
+            5vw,
+            48px
+        );
+
+    letter-spacing:
+        -.035em;
+}
+
+
+.seo-local-copy p {
+
+    max-width:
+        680px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .54
+        );
+
+    font-size:
+        13px;
+
+    line-height:
+        1.75;
+}
+
+
+.seo-local-copy
+.seo-primary-button {
+
+    margin-top:
+        15px;
+}
+
+
+.seo-area-list {
+
+    margin-top:
+        20px;
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        9px;
+}
+
+
+.seo-area-list span {
+
+    padding:
+        10px
+        13px;
+
+    border:
+        1px solid
+        rgba(
+            45,
+            212,
+            160,
+            .15
+        );
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(
+            45,
+            212,
+            160,
+            .06
+        );
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .72
+        );
+
+    font-size:
+        10px;
+
+    font-weight:
+        700;
+}
 
 /* ==========================================================
    MOBILE
@@ -1555,6 +1800,20 @@ Ojek Pribadi Belitang | Antar Jemput & Perjalanan
 
         padding:
             32px
+            24px;
+    }
+
+        .seo-local-grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .seo-local-copy,
+    .seo-local-area {
+
+        padding:
             24px;
     }
 
