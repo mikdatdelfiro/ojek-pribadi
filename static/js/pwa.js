@@ -1454,38 +1454,107 @@ function updateStandaloneNavigation() {
 
 
     // ====================================================
-    // LOGIN / REGISTER
-    // Jangan tampilkan bottom navigation.
+    // PHASE 26D FIX
+    // TENTUKAN AREA APLIKASI
     // ====================================================
 
-    const authPage =
+    const driverArea =
         (
-            pathname
-            ===
-            "/customer/login"
+            pathname.startsWith(
+                "/driver"
+            )
 
             ||
 
-            pathname
-            ===
-            "/customer/register"
+            pathname.startsWith(
+                "/admin"
+            )
         );
 
 
-    document.documentElement.dataset.pwaAuth =
-        authPage
-            ? "true"
-            : "false";
+    const customerNavigationAllowed =
+        (
+            pathname === "/app"
+
+            ||
+
+            pathname === "/customer/account"
+
+            ||
+
+            pathname.startsWith(
+                "/customer/orders"
+            )
+        );
 
 
-    if (
-        authPage
-    ) {
+    if (driverArea) {
+
+        document.documentElement.dataset.pwaArea =
+            "driver";
+
+    }
+
+    else if (customerNavigationAllowed) {
+
+        document.documentElement.dataset.pwaArea =
+            "customer";
+
+    }
+
+    else {
+
+        document.documentElement.dataset.pwaArea =
+            "other";
+
+    }
+
+
+    // ====================================================
+    // DRIVER / LANDING / LOGIN
+    // CUSTOMER BOTTOM NAV TIDAK BOLEH MUNCUL
+    // ====================================================
+
+    if (!customerNavigationAllowed) {
+
+        navigation.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+
+        navigation
+            .querySelectorAll(
+                ".pwa-nav-item"
+            )
+            .forEach(
+                function (item) {
+
+                    item.classList.remove(
+                        "is-active"
+                    );
+
+                    item.removeAttribute(
+                        "aria-current"
+                    );
+
+                }
+            );
+
 
         return;
 
     }
 
+
+    navigation.removeAttribute(
+        "aria-hidden"
+    );
+
+
+    // ====================================================
+    // CUSTOMER ACTIVE MENU
+    // ====================================================
 
     const items =
         navigation.querySelectorAll(
@@ -1494,14 +1563,11 @@ function updateStandaloneNavigation() {
 
 
     items.forEach(
-        function (
-            item
-        ) {
+        function (item) {
 
             item.classList.remove(
                 "is-active"
             );
-
 
             item.removeAttribute(
                 "aria-current"
@@ -1515,13 +1581,8 @@ function updateStandaloneNavigation() {
         "home";
 
 
-    // ====================================================
-    // ACCOUNT
-    // ====================================================
-
     if (
-        pathname
-        ===
+        pathname ===
         "/customer/account"
     ) {
 
@@ -1529,11 +1590,6 @@ function updateStandaloneNavigation() {
             "account";
 
     }
-
-
-    // ====================================================
-    // ORDER HISTORY / DETAIL
-    // ====================================================
 
     else if (
         pathname.startsWith(
@@ -1543,18 +1599,6 @@ function updateStandaloneNavigation() {
 
         activeRoute =
             "orders";
-
-    }
-
-
-    // ====================================================
-    // HOME / BOOKING
-    // ====================================================
-
-    else {
-
-        activeRoute =
-            "home";
 
     }
 
@@ -1571,9 +1615,7 @@ function updateStandaloneNavigation() {
         );
 
 
-    if (
-        activeItem
-    ) {
+    if (activeItem) {
 
         activeItem.classList.add(
             "is-active"

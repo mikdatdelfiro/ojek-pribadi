@@ -42059,3 +42059,88 @@ html[data-pwa="standalone"]
 
     -webkit-user-select: none;
 }
+
+/* ==========================================================
+   PWA DRIVER + MOBILE SCROLL FIX
+========================================================== */
+
+
+html[data-pwa="standalone"][data-pwa-area="driver"]
+.pwa-standalone-nav,
+
+html[data-pwa="standalone"][data-pwa-area="other"]
+.pwa-standalone-nav {
+
+    display:
+        none
+        !important;
+}
+
+
+/* ==========================================================
+   DRIVER TIDAK MEMBUTUHKAN SPACE BOTTOM NAV CUSTOMER
+========================================================== */
+
+html[data-pwa="standalone"][data-pwa-area="driver"]
+body,
+
+html[data-pwa="standalone"][data-pwa-area="other"]
+body {
+
+    padding-bottom:
+        env(
+            safe-area-inset-bottom
+        )
+        !important;
+}
+
+
+/* ==========================================================
+   MOBILE VERTICAL SCROLL
+========================================================== */
+
+html[data-pwa="standalone"] {
+
+    overflow-x:
+        hidden;
+
+    overflow-y:
+        auto
+        !important;
+
+    touch-action:
+        pan-y;
+
+    overscroll-behavior-y:
+        auto;
+
+    -webkit-overflow-scrolling:
+        touch;
+}
+
+
+html[data-pwa="standalone"]
+body:not(.no-scroll) {
+
+    overflow-x:
+        hidden
+        !important;
+
+    overflow-y:
+        visible
+        !important;
+
+    touch-action:
+        pan-y;
+}
+
+
+html[data-pwa="standalone"]
+.driver-page {
+
+    min-height:
+        100dvh;
+
+    touch-action:
+        pan-y;
+}
