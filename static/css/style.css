@@ -41886,33 +41886,6 @@ and
 }
 
 /* ==========================================================
-   PHASE 26E
-   STANDALONE NATIVE FEEL
-========================================================== */
-
-
-/* ==========================================================
-   PAGE TRANSITION
-========================================================== */
-
-html[data-pwa="standalone"] body {
-    transition:
-        opacity .16s ease,
-        transform .16s ease;
-}
-
-
-html[data-pwa-transition="leaving"] body {
-    opacity: .72;
-
-    transform:
-        translateY(2px);
-
-    pointer-events: none;
-}
-
-
-/* ==========================================================
    NATIVE BACK BUTTON
 ========================================================== */
 
@@ -42143,4 +42116,75 @@ html[data-pwa="standalone"]
 
     touch-action:
         pan-y;
+}
+
+/* ==========================================================
+   PWA NATIVE SCROLL FINAL FIX
+========================================================== */
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+
+html[data-pwa="standalone"] {
+    height: auto !important;
+    min-height: 100% !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    touch-action: auto !important;
+
+    overscroll-behavior-y: auto !important;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+
+html[data-pwa="standalone"] body {
+    position: static !important;
+
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+
+    touch-action: auto !important;
+
+    pointer-events: auto !important;
+}
+
+
+html[data-pwa="standalone"] body.no-scroll {
+    position: static !important;
+
+    height: auto !important;
+    max-height: none !important;
+
+    overflow-y: visible !important;
+
+    touch-action: auto !important;
+
+    pointer-events: auto !important;
+}
+
+
+html[data-pwa="standalone"] .app,
+html[data-pwa="standalone"] .driver-page,
+html[data-pwa="standalone"] .driver-login-page,
+html[data-pwa="standalone"] .driver-profile-page,
+html[data-pwa="standalone"] .history-page,
+html[data-pwa="standalone"] .order-detail-page {
+
+    height: auto !important;
+    max-height: none !important;
+
+    overflow-y: visible !important;
+
+    touch-action: auto !important;
 }
