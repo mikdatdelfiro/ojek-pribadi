@@ -42119,72 +42119,162 @@ html[data-pwa="standalone"]
 }
 
 /* ==========================================================
-   PWA NATIVE SCROLL FINAL FIX
+   PWA STANDALONE SCROLL — FINAL
 ========================================================== */
 
-html,
-body {
-    width: 100%;
-    min-height: 100%;
-}
-
-
 html[data-pwa="standalone"] {
-    height: auto !important;
-    min-height: 100% !important;
 
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    width: 100%;
+    height: 100% !important;
 
-    touch-action: auto !important;
+    overflow: hidden !important;
 
-    overscroll-behavior-y: auto !important;
-
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior:
+        none;
 }
 
 
-html[data-pwa="standalone"] body {
-    position: static !important;
+html[data-pwa="standalone"]
+body:not(.no-scroll) {
 
-    height: auto !important;
+    position: relative !important;
+
+    width: 100% !important;
+
+    height: 100dvh !important;
     min-height: 100dvh !important;
     max-height: none !important;
 
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow-x:
+        hidden !important;
 
-    touch-action: auto !important;
+    overflow-y:
+        auto !important;
 
-    pointer-events: auto !important;
+    touch-action:
+        pan-y !important;
+
+    overscroll-behavior-y:
+        contain;
+
+    -webkit-overflow-scrolling:
+        touch;
 }
 
 
-html[data-pwa="standalone"] body.no-scroll {
-    position: static !important;
+/* CUSTOMER APP */
 
-    height: auto !important;
-    max-height: none !important;
+html[data-pwa="standalone"]
+.app {
 
-    overflow-y: visible !important;
+    height:
+        auto !important;
 
-    touch-action: auto !important;
+    min-height:
+        100dvh !important;
 
-    pointer-events: auto !important;
+    max-height:
+        none !important;
+
+    overflow:
+        visible !important;
+
+    touch-action:
+        pan-y !important;
 }
 
 
-html[data-pwa="standalone"] .app,
-html[data-pwa="standalone"] .driver-page,
-html[data-pwa="standalone"] .driver-login-page,
-html[data-pwa="standalone"] .driver-profile-page,
-html[data-pwa="standalone"] .history-page,
-html[data-pwa="standalone"] .order-detail-page {
+/* DRIVER */
 
-    height: auto !important;
-    max-height: none !important;
+html[data-pwa="standalone"]
+.driver-page,
 
-    overflow-y: visible !important;
+html[data-pwa="standalone"]
+.driver-profile-page,
 
-    touch-action: auto !important;
+html[data-pwa="standalone"]
+.history-page,
+
+html[data-pwa="standalone"]
+.order-detail-page,
+
+html[data-pwa="standalone"]
+.driver-payment-history-page,
+
+html[data-pwa="standalone"]
+.driver-payments-page,
+
+html[data-pwa="standalone"]
+.driver-reviews-page {
+
+    height:
+        auto !important;
+
+    min-height:
+        100dvh !important;
+
+    max-height:
+        none !important;
+
+    overflow:
+        visible !important;
+
+    touch-action:
+        pan-y !important;
+}
+
+
+/* SWIPE BOLEH DIMULAI DARI AREA TENGAH CARD */
+
+html[data-pwa="standalone"]
+.driver-page section,
+
+html[data-pwa="standalone"]
+.driver-page article,
+
+html[data-pwa="standalone"]
+.driver-page header,
+
+html[data-pwa="standalone"]
+.driver-page div,
+
+html[data-pwa="standalone"]
+.driver-page p,
+
+html[data-pwa="standalone"]
+.driver-page span,
+
+html[data-pwa="standalone"]
+.app main,
+
+html[data-pwa="standalone"]
+.app section,
+
+html[data-pwa="standalone"]
+.app article {
+
+    touch-action:
+        pan-y !important;
+}
+
+
+/* ELEMENT INTERAKTIF TETAP BISA DIKLIK */
+
+html[data-pwa="standalone"]
+button,
+
+html[data-pwa="standalone"]
+input,
+
+html[data-pwa="standalone"]
+select,
+
+html[data-pwa="standalone"]
+textarea,
+
+html[data-pwa="standalone"]
+a {
+
+    touch-action:
+        manipulation !important;
 }
