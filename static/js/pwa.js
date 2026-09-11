@@ -1844,10 +1844,12 @@ function updateStandaloneNavigation() {
             document.documentElement.dataset.pwaTransition =
                 "ready";
 
+        }
+    );
+
 // ========================================================
 // PHASE 26D
 // DISPLAY MODE CHANGE
-// ========================================================
 
 const standaloneMediaQuery =
     window.matchMedia(
@@ -2021,7 +2023,7 @@ function updateNativeBackButton() {
 
     const visible = (
 
-        isStandaloneMode()
+        isStandalone()
 
         &&
 
@@ -2435,8 +2437,6 @@ document.addEventListener(
     }
 );
 
-})();
-
     // ========================================================
     // INITIALIZE
     // ========================================================
@@ -2508,5 +2508,4 @@ document.addEventListener(
                 true
         }
     );
-
-})();
+})();    

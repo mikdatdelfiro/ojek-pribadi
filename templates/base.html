@@ -2,61 +2,67 @@
 <html lang="id">
 
 <head>
-<!-- =====================================================
-     PHASE 27F
-     GOOGLE SEARCH CONSOLE VERIFICATION
-===================================================== -->
 
-<meta 
-    name="google-site-verification" 
-    content="FVaUVnl5UcHhDm2xvul9Qkri21kCVpZeDFUUwXER-t4" />
+    <!-- =====================================================
+         PHASE 27F
+         GOOGLE SEARCH CONSOLE VERIFICATION
+    ====================================================== -->
+
+    <meta
+        name="google-site-verification"
+        content="FVaUVnl5UcHhDm2xvul9Qkri21kCVpZeDFUUwXER-t4"
+    >
 
     <meta charset="UTF-8">
 
     <meta
-    name="viewport"
-    content="
-        width=device-width,
-        initial-scale=1,
-        viewport-fit=cover
-    "
->
+        name="viewport"
+        content="
+            width=device-width,
+            initial-scale=1,
+            viewport-fit=cover
+        "
+    >
 
     <meta
-    name="theme-color"
-    content="#050a09"
-
+        name="theme-color"
+        content="#050a09"
     >
+
+
+    <!-- =====================================================
+         PWA MANIFEST
+    ====================================================== -->
 
     <link
         rel="manifest"
         href="{{ url_for('pwa_manifest') }}"
     >
 
-
     <meta
         name="mobile-web-app-capable"
         content="yes"
     >
-
 
     <meta
         name="apple-mobile-web-app-capable"
         content="yes"
     >
 
-
     <meta
         name="apple-mobile-web-app-status-bar-style"
         content="black-translucent"
     >
-
 
     <meta
         name="apple-mobile-web-app-title"
         content="Ojek Pribadi"
     >
 
+
+    <!-- =====================================================
+         ICONS
+    ====================================================== -->
 
     <link
         rel="apple-touch-icon"
@@ -77,26 +83,28 @@
         href="{{
             url_for(
                 'static',
-                filename='icons/icon-192.png',
-                v='phase26c-1'
+                filename='icons/favicon-32.png',
+                v='favicon-v3'
             )
         }}"
     >
 
     <link
-    rel="shortcut icon"
-    type="image/png"
-    href="{{ url_for(
-        'static',
-        filename='icons/icon-192.png',
-        v='favicon-v2'
-    ) }}"
->
+        rel="shortcut icon"
+        type="image/png"
+        href="{{
+            url_for(
+                'static',
+                filename='icons/favicon-32.png',
+                v='favicon-v3'
+            )
+        }}"
+    >
 
 
     <!-- =====================================================
          PHASE 26C
-         iPHONE / iPAD WEB APP STARTUP IMAGES
+         iPHONE / iPAD STARTUP IMAGES
     ====================================================== -->
 
     <link
@@ -177,9 +185,19 @@
         media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
     >
 
+
+    <!-- =====================================================
+         TITLE
+    ====================================================== -->
+
     <title>
         {% block title %}Ojek Pribadi{% endblock %}
     </title>
+
+
+    <!-- =====================================================
+         FONT
+    ====================================================== -->
 
     <link
         rel="preconnect"
@@ -196,199 +214,399 @@
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
     >
-    
+
+
+    <!-- =====================================================
+         MAIN CSS
+    ====================================================== -->
 
     <link
-    rel="stylesheet"
-    href="{{
-        url_for(
-            'static',
-            filename='css/style.css',
-            v='pwa-driver-nav-fix-v1'
-        )
-    }}"
->
-
-    <link
-    rel="stylesheet"
-    href="{{ url_for('static',filename='css/dark-premium.css',v='phase20f-1') }}"
+        rel="stylesheet"
+        href="{{
+            url_for(
+                'static',
+                filename='css/style.css',
+                v='pwa-driver-scroll-fix-v2'
+            )
+        }}"
     >
 
+    <link
+        rel="stylesheet"
+        href="{{
+            url_for(
+                'static',
+                filename='css/dark-premium.css',
+                v='phase20f-1'
+            )
+        }}"
+    >
+
+
     {% block head %}{% endblock %}
-</>
+
+
+    <!-- =====================================================
+         DRIVER / ADMIN
+         HARD MOBILE SCROLL SAFETY
+    ====================================================== -->
+
+    {% if
+        request.path.startswith('/driver')
+        or
+        request.path.startswith('/admin')
+    %}
+
+    <style id="driver-mobile-scroll-fix">
+
+        html {
+
+            width: 100% !important;
+
+            height: auto !important;
+
+            min-height: 100% !important;
+            min-height: 100dvh !important;
+
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+
+            touch-action: pan-y !important;
+
+            overscroll-behavior-y: auto !important;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        body {
+
+            position: static !important;
+
+            width: 100% !important;
+
+            height: auto !important;
+            max-height: none !important;
+
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+
+            margin: 0;
+
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+
+            touch-action: pan-y !important;
+
+            overscroll-behavior-y: auto !important;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        body.no-scroll {
+
+            position: static !important;
+
+            height: auto !important;
+            max-height: none !important;
+
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+
+            touch-action: pan-y !important;
+        }
+
+
+        .driver-page {
+
+            position: relative !important;
+
+            height: auto !important;
+            max-height: none !important;
+
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+
+            touch-action: pan-y !important;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        .driver-profile-page,
+        .history-page,
+        .order-detail-page,
+        .driver-payment-history-page,
+        .driver-payments-page,
+        .driver-reviews-page {
+
+            height: auto !important;
+            max-height: none !important;
+
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+
+            touch-action: pan-y !important;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        html[data-pwa="standalone"]
+        body {
+
+            height: auto !important;
+
+            min-height: 100dvh !important;
+
+            overflow-y: visible !important;
+        }
+
+
+        html[data-pwa="standalone"]
+        .driver-page {
+
+            height: auto !important;
+
+            max-height: none !important;
+
+            overflow-y: visible !important;
+
+            touch-action: pan-y !important;
+        }
+
+    </style>
+
+    {% endif %}
+
+</head>
+
 
 <body>
 
     <!-- =====================================================
-     PHASE 26E
-     STANDALONE BACK BUTTON
-===================================================== -->
+         PHASE 26E
+         STANDALONE BACK BUTTON
+    ====================================================== -->
 
-<button
-    type="button"
-    class="pwa-native-back"
-    id="pwaNativeBack"
-    aria-label="Kembali"
-    hidden
->
-    <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-    >
-        <path
-            d="M15 18L9 12L15 6"
-        ></path>
-    </svg>
-
-    <span>
-        Kembali
-    </span>
-</button>
-
-{% block content %}{% endblock %}
-
-
-<!-- =====================================================
-     PHASE 26D
-     STANDALONE MOBILE NAVIGATION
-===================================================== -->
-
-<nav
-    class="pwa-standalone-nav"
-    id="pwaStandaloneNav"
-    aria-label="Navigasi aplikasi"
->
-
-    <!-- PESAN -->
-    <a
-        href="{{ url_for('index') }}"
-        class="pwa-nav-item"
-        data-pwa-route="home"
-        aria-label="Pesan"
+    <button
+        type="button"
+        class="pwa-native-back"
+        id="pwaNativeBack"
+        aria-label="Kembali"
+        hidden
     >
 
-        <span class="pwa-nav-icon">
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
 
-            <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-            >
-                <path
-                    d="
-                        M12 2
-                        C8.1 2 5 5.1 5 9
-                        C5 14.2 12 22 12 22
-                        C12 22 19 14.2 19 9
-                        C19 5.1 15.9 2 12 2
-                        Z
-                    "
-                ></path>
+            <path
+                d="M15 18L9 12L15 6"
+            ></path>
 
-                <circle
-                    cx="12"
-                    cy="9"
-                    r="2.5"
-                ></circle>
-            </svg>
+        </svg>
 
+        <span>
+            Kembali
         </span>
 
-        <span class="pwa-nav-label">
-            Pesan
-        </span>
-
-    </a>
+    </button>
 
 
-    <!-- RIWAYAT -->
-    <a
-        href="{{ url_for('customer_orders') }}"
-        class="pwa-nav-item"
-        data-pwa-route="orders"
-        aria-label="Riwayat"
+    <!-- =====================================================
+         PAGE CONTENT
+    ====================================================== -->
+
+    {% block content %}{% endblock %}
+
+
+    <!-- =====================================================
+         PHASE 26D
+         CUSTOMER-ONLY STANDALONE NAVIGATION
+
+         JANGAN TAMPILKAN DI DRIVER
+    ====================================================== -->
+
+    {% if
+        request.path == '/app'
+        or
+        request.path.startswith('/customer/account')
+        or
+        request.path.startswith('/customer/orders')
+    %}
+
+    <nav
+        class="pwa-standalone-nav"
+        id="pwaStandaloneNav"
+        aria-label="Navigasi aplikasi"
     >
 
-        <span class="pwa-nav-icon">
 
-            <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-            >
-                <path
-                    d="
-                        M4 6
-                        H20
+        <!-- =================================================
+             PESAN
+        ================================================== -->
 
-                        M4 12
-                        H20
+        <a
+            href="{{ url_for('index') }}"
+            class="pwa-nav-item"
+            data-pwa-route="home"
+            aria-label="Pesan"
+        >
 
-                        M4 18
-                        H15
-                    "
-                ></path>
-            </svg>
+            <span class="pwa-nav-icon">
 
-        </span>
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
 
-        <span class="pwa-nav-label">
-            Riwayat
-        </span>
+                    <path
+                        d="
+                            M12 2
+                            C8.1 2 5 5.1 5 9
+                            C5 14.2 12 22 12 22
+                            C12 22 19 14.2 19 9
+                            C19 5.1 15.9 2 12 2
+                            Z
+                        "
+                    ></path>
 
-    </a>
+                    <circle
+                        cx="12"
+                        cy="9"
+                        r="2.5"
+                    ></circle>
 
+                </svg>
 
-    <!-- AKUN -->
-    <a
-        href="{{ url_for('customer_account') }}"
-        class="pwa-nav-item"
-        data-pwa-route="account"
-        aria-label="Akun"
-    >
+            </span>
 
-        <span class="pwa-nav-icon">
+            <span class="pwa-nav-label">
+                Pesan
+            </span>
 
-            <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-            >
-
-                <circle
-                    cx="12"
-                    cy="8"
-                    r="4"
-                ></circle>
-
-                <path
-                    d="
-                        M4 21
-                        C4.8 16.5 7.6 14 12 14
-                        C16.4 14 19.2 16.5 20 21
-                    "
-                ></path>
-
-            </svg>
-
-        </span>
-
-        <span class="pwa-nav-label">
-            Akun
-        </span>
-
-    </a>
-
-</nav>
+        </a>
 
 
-{% block scripts %}{% endblock %}
+        <!-- =================================================
+             RIWAYAT CUSTOMER
+        ================================================== -->
+
+        <a
+            href="{{ url_for('customer_orders') }}"
+            class="pwa-nav-item"
+            data-pwa-route="orders"
+            aria-label="Riwayat"
+        >
+
+            <span class="pwa-nav-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+
+                    <path
+                        d="
+                            M4 6
+                            H20
+
+                            M4 12
+                            H20
+
+                            M4 18
+                            H15
+                        "
+                    ></path>
+
+                </svg>
+
+            </span>
+
+            <span class="pwa-nav-label">
+                Riwayat
+            </span>
+
+        </a>
+
+
+        <!-- =================================================
+             AKUN CUSTOMER
+        ================================================== -->
+
+        <a
+            href="{{ url_for('customer_account') }}"
+            class="pwa-nav-item"
+            data-pwa-route="account"
+            aria-label="Akun"
+        >
+
+            <span class="pwa-nav-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+
+                    <circle
+                        cx="12"
+                        cy="8"
+                        r="4"
+                    ></circle>
+
+                    <path
+                        d="
+                            M4 21
+                            C4.8 16.5 7.6 14 12 14
+                            C16.4 14 19.2 16.5 20 21
+                        "
+                    ></path>
+
+                </svg>
+
+            </span>
+
+            <span class="pwa-nav-label">
+                Akun
+            </span>
+
+        </a>
+
+    </nav>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         PAGE SCRIPTS
+    ====================================================== -->
+
+    {% block scripts %}{% endblock %}
+
+
+    <!-- =====================================================
+         PWA
+    ====================================================== -->
 
     <script
-    src="{{ url_for(
-        'static',
-        filename='js/pwa.js',
-        v='pwa-driver-nav-fix-v1'
-    ) }}"
-    defer
-></script>
+        src="{{
+            url_for(
+                'static',
+                filename='js/pwa.js',
+                v='pwa-driver-scroll-fix-v2'
+            )
+        }}"
+        defer
+    ></script>
 
 </body>
 
